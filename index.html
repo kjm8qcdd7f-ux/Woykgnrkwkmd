@@ -5810,7 +5810,11 @@ function autoStep(){
      nur wenn er größer ist als der bisher gemessene Durchschnittsschaden der Hauptfertigkeit */
   const fl=m=>Math.max(1,Math.ceil(m.max*[0,1/3,0.5][G.diff||0]));
   const stExp=al.reduce((x,m)=>{const r=effRes(m,'light');return r>=100?x:x+Math.max(0,Math.min(Math.floor(m.hp*0.25*(1-r/100)),m.hp-fl(m)))},0);
-  const st=stExp>0&&mAvg!==null&&stExp>mAvg?sks.find(id=>SKILLS[id].stS&&ok(id)):null;
+  /* Hat der Spieler eine Hauptfertigkeit gewählt, bleibt sie Vorrang: Statikfeld dann nur gegen Bosse, Champions und Einzigartige
+     (wie man es in D2 spielt) und nur, wenn es deutlich mehr abzieht; bei Manamangel nicht auf Statik ausweichen */
+  const stId=sks.find(id=>SKILLS[id].stS),own=dm&&(dm===G.autoSk||(stId&&(G.skills[dm]||0)>=(G.skills[stId]||0))),elite=C.boss||al.some(m=>m.boss||m.champ||m.uniq);
+  const stOk=own?(elite&&stExp>2*mAvg&&G.mana-9>=SKILLS[dm].cost(sk(dm))):stExp>mAvg;
+  const st=stExp>0&&mAvg!==null&&stOk?sks.find(id=>SKILLS[id].stS&&ok(id)):null;
   /* 6. Kampfkünste (Assassine): gesteigerte Aufladungen auf 3 bringen (Phönix auf die Stufe mit dem höchsten Erwartungsschaden), dann Abschlussbewegung */
   let ma=null;
   {const chs=sks.filter(id=>SKILLS[id].chgS&&ok(id)&&((G.skills[id]||0)>=2||id===G.autoSk));
