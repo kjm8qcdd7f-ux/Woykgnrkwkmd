@@ -4675,7 +4675,7 @@ function accScene(){
  titleFx();
 }
 /* ===== Sicherung aller Spielstände dieses Geräts ===== */
-const GAMEVER='17.11.2026';
+const GAMEVER='18.11.2026';
 function bakT(){try{return +localStorage.getItem('d2dnd_lastbak')||0}catch(e){return 0}}
 function bakAgo(){const t=bakT();if(!t)return 'Noch keine Sicherung.';const d=Math.floor((Date.now()-t)/864e5);return 'Letzte Sicherung: '+(d<1?'heute':d===1?'gestern':'vor '+d+' Tagen')+'.'}
 /* dezente Erinnerung: nur wenn es Charaktere gibt und die letzte Sicherung über 7 Tage her ist (bzw. seit 7 Tagen keine) */
