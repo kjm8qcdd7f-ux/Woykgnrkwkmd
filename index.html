@@ -354,7 +354,7 @@ button.mcard .mci .ei{margin:0!important;vertical-align:0!important;display:bloc
 .ig .gs[data-k]{position:absolute;box-sizing:border-box;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .lootbeam{position:fixed;inset:0;z-index:500;pointer-events:auto;display:flex;align-items:center;justify-content:center;animation:lbfade 3.2s ease forwards}
 .lbray{position:absolute;left:50%;top:-10%;width:90px;height:120%;transform:translateX(-50%);background:linear-gradient(90deg,transparent,rgba(255,215,120,.15) 30%,rgba(255,236,170,.75) 50%,rgba(255,215,120,.15) 70%,transparent);filter:blur(6px);animation:lbray 3.2s ease forwards}
-.lbtxt{position:relative;padding:12px 18px;background:rgba(10,6,4,.85);border:1px solid #c9a24a;border-radius:8px;box-shadow:0 0 30px rgba(201,162,74,.6);font-size:18px;text-align:center;line-height:1.5;max-width:85%}
+.lbtxt{position:relative;display:flex;flex-direction:column;gap:10px;padding:14px 18px;background:rgba(10,6,4,.85);border:1px solid #c9a24a;border-radius:8px;box-shadow:0 0 30px rgba(201,162,74,.6);font-size:18px;text-align:left;line-height:1.25;max-width:88%;max-height:80vh;overflow:auto}.lbrow{display:flex;align-items:center;gap:12px}.lbi{width:48px;height:48px;flex:none;display:inline-block;object-fit:contain;background:#000;border:1px solid #c9a24a}.lbr{display:flex;align-items:center;justify-content:center;color:#e8c46a}#zoom .zic .zimg{display:inline-block;width:min(60vw,220px);height:min(60vw,220px);object-fit:contain;max-width:none;background:#000;border:2px solid var(--gold);margin:0 auto 8px}
 @keyframes lbfade{0%{opacity:0}8%{opacity:1}80%{opacity:1}100%{opacity:0;visibility:hidden}}
 @keyframes lbray{0%{width:4px;opacity:0}12%{width:110px;opacity:1}60%{width:70px}100%{width:40px;opacity:.2}}
 .igdrag{box-shadow:0 8px 22px rgba(0,0,0,.8),0 0 16px rgba(201,162,74,.5);background:#1a110c;transition:none;border:1px solid}
@@ -899,7 +899,7 @@ function calc(){
  for(const s of SLOTS){const it=G.eq[s];if(!it)continue;const act=(it.aff||[]).filter(a=>(!a.need||(sc[it.set]||0)>=a.need)&&!(a.col&&COLX&&COLX!==it));if(it.def){const e=act.reduce((t,a)=>t+(a.stat==='defE'||a.stat==='defP'?a.v:0),0);def+=Math.round(it.def*(1+e/100))}/* D2: „+% Verbesserte Verteidigung“ auf einem Gegenstand gilt nur für dessen eigene Verteidigung */const sn=K4.map(k=>A[k]||0),smm=KM.map(k=>A[k]||0);act.forEach(addA);if(s==='offhand'&&BASES[it.base].slot==='weapon'){OFFM={};KM.forEach((k,i)=>{OFFM[k]=(A[k]||0)-smm[i]})}if((s==='weapon'||s==='offhand')&&BASES[it.base].slot==='weapon'){HD[s]={w:it};K4.forEach((k,i)=>{HD[s][k]=(A[k]||0)-sn[i]})}}
  const DW=!!(G.eq.offhand&&BASES[G.eq.offhand.base].slot==='weapon'&&HD.weapon&&HD.offhand);if(DW)K4.forEach(k=>{A[k]=(A[k]||0)-HD.weapon[k]-HD.offhand[k]});
  /* D2R: nur ein Erneuerter Sunder-Zauber wirkt gleichzeitig */let RNX=null;
- (G.inv||[]).forEach(it=>{if(it&&!it.unid&&BASES[it.base]&&BASES[it.base].slot==='charm'&&(it.rlvl||0)<=G.lvl){if(it.rnw){if(RNX)return;RNX=it}(it.aff||[]).forEach(addA)}});
+ (G.inv||[]).forEach(it=>{if(it&&!it.unid&&BASES[it.base]&&BASES[it.base].slot==='charm'&&!it.rs&&(it.rlvl||0)<=G.lvl){if(it.rnw){if(RNX)return;RNX=it}(it.aff||[]).forEach(addA)}});
  S0={};for(const si in sc){const n=sc[si],bn=SETS[si].bonus;S0[si]=n;for(let k=0;k<Math.min(n-1,bn.length);k++)bn[k].forEach(addA)}
  A.life+=G.qlife||0;
  /* Schrein-Verstärkung (shrines.txt: Arg0, Dauer in Frames; 1 Zug = 25 Frames) */if(G.shr&&G.shr.t>0){const k=G.shr.k;if(k==='armor')A.defP+=100;else if(k==='combat'){A.edmg+=200;A.arP=(A.arP||0)+200}else if(k==='rf')A.resF+=75;else if(k==='rc')A.resC+=75;else if(k==='rl')A.resL+=75;else if(k==='rp')A.resP+=75;else if(k==='skill')A.allsk+=2;else if(k==='mana')A.mregenP=(A.mregenP||0)+400}
@@ -1045,7 +1045,7 @@ function genItem(ilvl,o={}){
  const slot=o.slot||pick(slots);const base=pickBase(ilvl,slot);
  return mkItem(base,qualityRoll(o.mf||0,o.minQ),ilvl);
 }
-function addInv(it){if(!canAdd(it))return false;G.inv.push(it);return true}
+function addInv(it){/* neue Talismane landen im Rucksack, ins Raster legt man sie selbst */if(it&&BASES[it.base]&&BASES[it.base].slot==='charm'&&it.rs===undefined)it.rs=true;if(!canAdd(it))return false;G.inv.push(it);return true}
 /* Hart erarbeitete Gegenstände (Fackel, Annihilus, Quest-Gegenstände) gehen nie verloren: Rucksack, sonst Truhe. Rückgabe: 'inv' | 'stash' */
 function giveSafe(it){if(addInv(it))return 'inv';G.stash.push(it);return 'stash'}
 const SAFE_TXT=w=>w==='stash'?' <span class="good">(Rucksack voll – liegt in deiner Truhe)</span>':'';
@@ -4108,7 +4108,8 @@ const D2DIM={"hand axe":[1,3],"axe":[2,3],"double axe":[2,3],"military pick":[2,
 const INV_W=10,INV_H=4;
 function dimOf(it){const B=BASES[it.base]||{};const d=D2DIM[(B.en||'').toLowerCase()];return d||(B.slot==='weapon'?[2,4]:B.slot==='body'?[2,3]:B.slot==='offhand'?[2,3]:[2,2])}
 /* Talisman-Raster: nur Talismane (Juwelen wirken nur in Sockeln und liegen deshalb im Rucksack) */
-const isGrid=it=>{const s=(BASES[it.base]||{}).slot;return s==='charm'};
+/* it.rs = Talisman liegt im Rucksack (neu gefunden oder abgelegt) – wirkt dann nicht und ist verkäuflich; im Raster gehört er zur festen Ausrüstung */
+const isGrid=it=>{const s=(BASES[it.base]||{}).slot;return s==='charm'&&!it.rs};
 function cellsOf(it){const d=dimOf(it);return d[0]*d[1]}
 /* D2: Tränke liegen im Gürtel (4 Spalten × Reihen; ohne Gürtel 1 Reihe), der Rest belegt je ein freies Feld im 10×4-Raster (mit Zaubern/Juwelen geteilt). Der Listen-Rucksack für Ausrüstung bleibt getrennt (Vereinfachung). */
 function beltSlots(){const b=G.eq&&G.eq.belt,B=b&&BASES[b.base];return 4*(B?(B.rows||4):1)}
@@ -4553,7 +4554,7 @@ Object.assign(ICMAP,{gehaertetesleder:'lederruestung',schuppenpanzer:'ringpanzer
 const PERM=['cainFree','wuerfel','torchDone'];
 const atTile=(key,cls,q)=>{const g=key.startsWith('uniq_')?ATL.uniq:ATL.set,i=g.idx[key];if(i===undefined)return '';const c=ATL.cols,col=i%c,row=Math.floor(i/c);
  return `<span class="${cls||'ii'} at b${q}" style="background-image:url(${g.src});background-size:${c*100}% ${g.rows*100}%;background-position:${c>1?col/(c-1)*100:0}% ${g.rows>1?row/(g.rows-1)*100:0}%" onclick="zoomAt(this)"></span>`};
-const imgIt=(it,cls)=>{const b=it.base.replace(/_[23]$/,''),f=BASES[it.base].img||ICMAP[b]||b;const sp=it.uid?'uniq_'+uKey(it.uid):(it.set!==undefined?(SETS[it.set].pieces[it.pc].ik||'set_'+it.set+'_'+it.pc):'');const fb=(it.uid&&(it.uid===UNIQ[UNIQ_TORCH].id||(UNIQ.find(x=>x.id===it.uid)||{}).n==='Höllenfackel'))?'fackel':f;
+let imgIt=(it,cls)=>{const b=it.base.replace(/_[23]$/,''),f=BASES[it.base].img||ICMAP[b]||b;const sp=it.uid?'uniq_'+uKey(it.uid):(it.set!==undefined?(SETS[it.set].pieces[it.pc].ik||'set_'+it.set+'_'+it.pc):'');const fb=(it.uid&&(it.uid===UNIQ[UNIQ_TORCH].id||(UNIQ.find(x=>x.id===it.uid)||{}).n==='Höllenfackel'))?'fackel':f;
  {/* geprüfte eigene Bilder (atlas_new) haben Vorrang */const own=it.uid?'u_'+it.uid:(it.set!==undefined?'s_'+it.set+'_'+it.pc:'');const U=window.UIMG,j=own&&U&&U.idx[own];
   if(j!==undefined&&own){const c=U.cols,col=j%c,row=Math.floor(j/c);return `<span class="${cls||'ii'} at b${it.rw?6:it.q}" style="background-image:url(${U.src});background-size:${c*100}% ${U.rows*100}%;background-position:${col/(c-1)*100}% ${U.rows>1?row/(U.rows-1)*100:0}%" onclick="zoomAt(this)"></span>`}}
  if(sp&&!(it.uid&&window.UIMG&&(UIMG.bad||[]).includes(it.uid))){const t=atTile(sp,cls,it.rw?6:it.q);if(t)return t}
@@ -4563,6 +4564,14 @@ const imgIt=(it,cls)=>{const b=it.base.replace(/_[23]$/,''),f=BASES[it.base].img
 const zoomAt=el=>{const d=document.createElement('div');d.id='zoom';const c=el.cloneNode(true);c.style.width='min(80vw,360px)';c.style.height='min(80vw,360px)';c.style.border='0';c.removeAttribute('onclick');d.appendChild(c);d.onclick=()=>d.remove();document.body.appendChild(d)};
 const zoomImg=src=>{const d=document.createElement('div');d.id='zoom';d.innerHTML=`<img loading="lazy" decoding="async" src="${src}" alt="">`;d.onclick=()=>d.remove();document.body.appendChild(d)};
 const cbtn=(g,t,sub,fn,cls)=>btn(`<span class="cb"><span class="cbi">${skSvg(g)}</span><span><b>${t}</b>${sub?`<br><span class="dim">${sub}</span>`:''}</span></span>`,fn,cls);
+/* Bild antippen = Gegenstand mit Eigenschaften anzeigen (auch in Kauf-/Verkaufslisten, ohne den Knopf auszulösen) */
+const ZI=new Map();let ZIK=0;
+{const _im=imgIt;imgIt=function(it,cls){const h=_im(it,cls);if(!it||!h)return h;if(ZI.size>3000)ZI.clear();const k=++ZIK;ZI.set(k,it);return h.replace(/^<(img|span) /,`<$1 data-zi="${k}" `)}}
+function zoomItem(it,src){const d=document.createElement('div');d.id='zoom';let L=[];try{L=it.unid?['<span class="dim">Nicht identifiziert</span>']:itemDesc(it)}catch(e){}
+ d.innerHTML=`<div class="mcard zic"><div class="center">${src}</div><h2 class="${it.rw?'qr':'q'+it.q}" style="font-size:20px">${itemName(it)}</h2><p class="dim" style="margin:0 0 6px">${it.rw?'Runenwort':QN[it.q]||''}</p><div style="font-size:15px;line-height:1.45">${L.join('<br>')}</div><p class="dim center" style="font-size:12px;margin-top:8px">Antippen zum Schließen</p></div>`;
+ d.onclick=()=>d.remove();document.body.appendChild(d)}
+if(typeof document!=='undefined')document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return;const z=t.closest('[data-zi]');if(!z||t.closest('.gs,.pd,#zoom,.lootbeam'))return;const it=ZI.get(+z.dataset.zi);if(!it)return;
+ e.stopPropagation();e.preventDefault();const c=z.cloneNode(true);c.removeAttribute('onclick');c.removeAttribute('data-zi');c.className=c.className.replace(/\b(ii|iis|iibig|gi)\b/g,'')+' zimg';zoomItem(it,c.outerHTML)},true);
 const iname=it=>`${imgIt(it)}<span class="${it.rw?'qr':'q'+it.q}">${itemName(it)}</span>`;
 const clean=s=>String(s||'').replace(/[<>&"]/g,'').slice(0,16);
 /* Kurzmeldung oben (statt alert, das im iPhone-Rahmen blockiert ist) */
@@ -4783,6 +4792,7 @@ function syncState(){
 function playersPick(){show(`<h2>Spieleranzahl (/players)</h2><p>Wie in D2: Monster haben × (Spieler+1)/2 Leben und geben × (Spieler+1)/2 Erfahrung, Beute fällt häufiger (7 und 8 Spieler gleich). Ihr Schaden bleibt gleich. Gilt ab dem nächsten Kampf.</p>`,[1,2,3,4,5,6,7,8].map(n=>btn(`${n===(G.players||1)?'✔ ':''}/players ${n}${n>1?` · Leben ×${(n+1)/2}`:''}`,()=>{G.players=n;save();goto(townScene)})).concat([btn('Zurück',()=>goto(townScene))]))}
 function townScene(){
  if(typeof syncState==='function')syncState();
+ if(G.at!=='town')G.buyback=[];/* Rückkauf gilt wie in D2 nur bis zum Verlassen der Stadt */
  G.at='town';G.act=G.act||1;G.pb=[];if(typeof refillCharges==='function')refillCharges();save();
  if(typeof storyAct==='function'&&storyAct())return;
  const T=TOWNS[G.act],b=[];
@@ -4792,7 +4802,13 @@ function townScene(){
  else if(typeof endRunsAny==='function'&&(endRunsAny()||G.flags.cowOpen))b.push(cbtn('flame','Farm-Läufe','Besiegte Bosse direkt wiederholen',()=>goto(endgameScene)));
  if(G.act===1&&G.flags.cowOpen)b.push(cbtn('cow','Rotes Portal',cowLocked()?'gesperrt (Kuhkönig getötet)':'Kuhweide',()=>cowRun()));
  if((G.maxDiff||0)>0)b.push(cbtn('swap','Schwierigkeit wechseln',DIFFN[G.diff||0],()=>goto(diffPick)));
- show(`${banner(T.ban)}<h2>${T.n}</h2><p>${T.txt}</p>${nextGoal()?`<div class="box">❗ ${nextGoal()}</div>`:''}<div class="tgrid">${tiles.join('')}</div><p class="dim">Akt ${G.act} · ${DIFFN[G.diff||0]}. Im Lager lassen sich Gegenstände verkaufen und die Truhe nutzen (Reiter Inventar).</p>`,b);
+ /* Menü unten auf- und zuklappbar (Zustand bleibt gemerkt), damit die Händler sichtbar bleiben */
+ let open=false;try{open=localStorage.getItem('d2dnd_tmenu')==='1'}catch(e){}
+ const tog=v=>{try{localStorage.setItem('d2dnd_tmenu',v?'1':'0')}catch(e){}render()};
+ const names=b.length;let bb=b;
+ if(!open)bb=[btn(`<span style="display:flex;justify-content:space-between;align-items:center;width:100%"><span>☰ <b>Menü</b> <span class="dim">· Aufbrechen${names>1?' & '+(names-1)+' weitere':''}</span></span><span>▴</span></span>`,()=>tog(true),'tmtog')];
+ else bb=[btn(`<span style="display:flex;justify-content:space-between;width:100%"><span class="dim">Menü einklappen</span><span>▾</span></span>`,()=>tog(false),'tmtog')].concat(b);
+ show(`${banner(T.ban)}<h2>${T.n}</h2><p>${T.txt}</p>${nextGoal()?`<div class="box">❗ ${nextGoal()}</div>`:''}<div class="tgrid">${tiles.join('')}</div><p class="dim">Akt ${G.act} · ${DIFFN[G.diff||0]}. Im Lager lassen sich Gegenstände verkaufen und die Truhe nutzen (Reiter Inventar).</p>`,bb);
 }
 function qBtns(who){
  const b=[];
@@ -4853,7 +4869,7 @@ function npcScene(w){
  }
  if(R2.includes('cain')){
   const un=G.inv.filter(i=>i.unid);
-  b.push(btn(`🔎 Identifizieren (${un.length})${G.flags.cainFree?' – kostenlos':' – 25 Gold je Stück'}`,()=>goto(cainId),'',!un.length));
+  b.push(btn(`🔎 Alle identifizieren (${un.length})${G.flags.cainFree?' – kostenlos':' – 25 Gold je Stück'}`,()=>{let n=0;for(const i of un){if(!G.flags.cainFree){if(G.gold<25)break;G.gold-=25}i.unid=false;n++}calc();save();note(`Cain hat ${n} Gegenst${n===1?'and':'ände'} identifiziert.`);goto(npcScene,w)},'',!un.length||(!G.flags.cainFree&&G.gold<25)));
   if(G.q.q3==='active'&&G.flags.inifuss&&!G.flags.deciph&&G.act===1)b.push(btn('📜 Inifuss-Schriftrolle übergeben',()=>{G.flags.deciph=true;G.flags.cairnOrder=[1,2,3,4,5].sort(()=>Math.random()-0.5);save();goto(msgScene,`<h2>Die Fünf Steine</h2><p>Cain liest murmelnd. „Die Steine im Feld der Steine wollen in einer bestimmten Reihenfolge berührt werden. Lies sie so: <b>${G.flags.cairnOrder.join(' → ')}</b>. Von links nach rechts.“</p>`,()=>goto(npcScene,'cain'))}));
   if(G.act===2&&G.q.q9==='done'&&G.q.q10==='done'&&G.flags.wuerfel&&!G.flags.stab)b.push(btn('🔧 Horadrim-Stab zusammensetzen',()=>{G.flags.stab=true;save();goto(msgScene,'<h2>Der Horadrim-Stab</h2><p>Cain setzt Schaft und Amulett im Würfel zusammen. Das Licht verändert sich. „Jetzt kannst du ins Grab.“</p>',()=>goto(npcScene,'cain'))}));
   if(G.act===3&&G.flags.khalimauge&&G.flags.khalimherz&&G.flags.khalimhirn&&!G.flags.khalimswille)b.push(btn('🔧 Khalims Willen zusammensetzen',()=>{G.flags.khalimswille=true;const u=UNIQ.find(x=>x.n==='Khalims Wille'),it=mkUnique(u);it.unid=false;giveSafe(it);save();goto(msgScene,`<h2>Khalims Wille</h2><p>Auge, Herz und Gehirn verschmelzen zu einem Flegel. Cain reicht ihn dir: ${iname(it)}</p>`,()=>goto(npcScene,'cain'))}));
@@ -4896,7 +4912,7 @@ function nextDifficulty(){
 function cainId(){
  const un=G.inv.filter(i=>i.unid);
  show(`<h2>Identifizieren</h2><p class="dim">${G.flags.cainFree?'Kostenlos.':'25 Gold je Stück.'}</p>`+un.map(i=>`<p>${iname(i)}</p>`).join(''),
- un.map(i=>btn(`${itemName(i)}`,()=>{if(!G.flags.cainFree){if(G.gold<25)return;G.gold-=25}i.unid=false;save();goto(cainId)},'',!G.flags.cainFree&&G.gold<25)).concat([btn('◀ Zurück',()=>goto(npcScene,'cain'))]));
+ (un.length>1?[btn(`🔎 Alle identifizieren (${un.length})${G.flags.cainFree?'':' · '+un.length*25+' 🪙'}`,()=>{for(const i of un){if(!G.flags.cainFree){if(G.gold<25)break;G.gold-=25}i.unid=false}calc();save();goto(cainId)},'gold',!G.flags.cainFree&&G.gold<25)]:[]).concat(un.map(i=>btn(`${itemName(i)}`,()=>{if(!G.flags.cainFree){if(G.gold<25)return;G.gold-=25}i.unid=false;save();goto(cainId)},'',!G.flags.cainFree&&G.gold<25))).concat([btn('◀ Zurück',()=>goto(npcScene,'cain'))]));
 }
 function potShop(w){
  const b=[];const av=G.act>=5?POTK.filter(k=>!POTS[k].rj):G.act>=3?['h1','h2','h3','m1','m2','m3']:['h1','h2','m1','m2'];
@@ -4931,10 +4947,18 @@ function shopScene(w){
 }
 function sellScene(w){
  const b=[];
- G.inv.forEach(it=>b.push(btn(`${iname(it)} → ${sellPrice(it)} 🪙`,()=>{G.gold+=sellPrice(it);soldHook(it);removeFrom(G.inv,it.u);save();goto(sellScene,w)})));
+ /* Jede Zeile zeigt die Eigenschaften, damit man z. B. gleichnamige Talismane unterscheiden kann */
+ const info=it=>{const L=it.unid?['Nicht identifiziert']:itemDesc(it).map(x=>String(x).replace(/<[^>]*>/g,'')).filter(x=>x&&!/^Benötigt|^Schaden \d|^Verteidigung \d/.test(x));return L.length?`<br><span class="dim" style="font-size:12px;line-height:1.3;display:block;text-align:left">${L.slice(0,6).join(' · ')}</span>`:''};
+ const bk=G.buyback||[];
+ if(bk.length)b.push(btn(`↩ Rückkauf (${bk.length}) – zuletzt: ${iname(bk[0].it)}`,()=>goto(buybackScene,w),'gold'));
+ G.inv.filter(it=>!isGrid(it)).forEach(it=>b.push(btn(`<span style="display:block;text-align:left">${iname(it)} → ${sellPrice(it)} 🪙${info(it)}</span>`,()=>{G.gold+=sellPrice(it);soldHook(it);removeFrom(G.inv,it.u);save();goto(sellScene,w)})));
  b.push(btn('◀ Zurück',()=>goto(npcScene,w)));
- show(`<h2>Verkaufen</h2><p>Du hast <b>${G.gold}</b> 🪙. Tippe einen Gegenstand zum Verkaufen an.</p>`,b);
+ show(`<h2>Verkaufen</h2><p>Du hast <b>${G.gold}</b> 🪙. Tippe einen Gegenstand zum Verkaufen an.</p>${bk.length?`<p class="dim" style="font-size:13px">Versehentlich verkauft? Unter <b>Rückkauf</b> bekommst du es zum selben Preis zurück, solange du die Stadt nicht verlässt.</p>`:''}`,b);
 }
+function buybackScene(w){const bk=G.buyback||[],b=[];
+ bk.forEach((e,i)=>{const it=e.it,no=G.gold<e.g;b.push(btn(`<span style="display:block;text-align:left">${iname(it)} ← ${e.g} 🪙${it.unid?'':`<br><span class="dim" style="font-size:12px;display:block">${itemDesc(it).map(x=>String(x).replace(/<[^>]*>/g,'')).filter(x=>x&&!/^Benötigt/.test(x)).slice(0,6).join(' · ')}</span>`}</span>`,()=>{if(G.gold<e.g)return;if(!addInv(it)){note('Kein Platz im Inventar.');return}G.gold-=e.g;bk.splice(i,1);save();goto(buybackScene,w)},'',no))});
+ b.push(btn('◀ Zurück',()=>w?goto(sellScene,w):(TAB='inv',goto(townScene))));
+ show(`<h2>Rückkauf</h2><p>Hier liegen die Gegenstände, die du seit dem Betreten der Stadt verkauft hast (die letzten 20). Du bekommst sie zum Verkaufspreis zurück. Verlässt du die Stadt, sind sie weg – wie in D2.</p>${bk.length?'':'<p class="dim">Nichts verkauft.</p>'}`,b)}
 function gambleScene(msg,w){w=w||'gheed';
  const b=[];const il=Math.max(1,G.lvl+1);
  ['weapon','body','head','offhand','hands','feet','belt','amulet','ring'].forEach(s=>{const c=40+il*25;b.push(btn(`${{weapon:'Waffe',body:'Rüstung',head:'Helm',offhand:'Schild',hands:'Handschuhe',feet:'Stiefel',belt:'Gürtel',amulet:'Amulett',ring:'Ring'}[s]} (${c} 🪙)`,()=>{
@@ -5326,17 +5350,19 @@ function flee(){
  if(rr==='dead')return deadScene();render();
 }
 /* Beute direkt im Siegbildschirm verkaufen (Preis wie beim Händler) */
-function sellOne(u){const it=G.inv.find(x=>x.u===u);if(!it)return 0;const g=sellPrice(it);G.gold+=g;if(typeof soldHook==='function')soldHook(it);removeFrom(G.inv,u);return g}
+function sellOne(u){const it=G.inv.find(x=>x.u===u);if(!it||isGrid(it))return 0;const g=sellPrice(it);G.gold+=g;if(typeof soldHook==='function')soldHook(it);removeFrom(G.inv,u);return g}
 function goldHud(){try{const sp=document.querySelector('#hud .sub span');if(sp){const ic=sp.querySelector('svg,img,i,span');sp.innerHTML=(ic?ic.outerHTML:'')+' '+G.gold.toLocaleString('de-DE')}}catch(e){}}
 /* Beutezeile: Bild + Name, rechts Schriftrolle (identifizieren) und Münze (verkaufen) */
 const lootU=i=>JSON.stringify(i.u).replace(/"/g,'&quot;');
 function lootLine(i){return `<div class="lline" data-u="${String(i.u).replace(/"/g,'')}"><span class="lname">${iname(i)}</span><span class="lbtns">${lootBtns(i)}</span></div>`}
 function lootBtns(i){const sc=G.sc.id||0;return (i.unid?`<button class="lsell lic" title="Identifizieren (Schriftrolle)" onclick="idLoot(${lootU(i)},this)"${sc>0?'':' disabled'}>${emo('📜')}</button>`:'')+`<button class="lsell lic" title="Verkaufen" onclick="sellLoot(${lootU(i)},this)">${hi('coin')} ${sellPrice(i)}</button>`}
-function lootAllTxt(){let g=0;(window.__loot||[]).forEach(u=>{const it=G.inv.find(x=>x.u===u);if(it)g+=sellPrice(it)});return emo(`💰 Gesamte Beute verkaufen (+${g} 🪙)`)}
+/* „Gesamte Beute verkaufen“ lässt Talismane und Juwelen aus – die verkauft man nur einzeln */
+const lootBulk=u=>{const it=G.inv.find(x=>x.u===u);return it&&!['charm','jewel'].includes((BASES[it.base]||{}).slot)};
+function lootAllTxt(){let g=0;(window.__loot||[]).filter(lootBulk).forEach(u=>{const it=G.inv.find(x=>x.u===u);if(it)g+=sellPrice(it)});return emo(`💰 Gesamte Beute verkaufen (+${g} 🪙)`)}
 function lootRefresh(){const sc=document.querySelector('#lscr b');if(sc)sc.textContent=G.sc.id||0;document.querySelectorAll('#main .lline').forEach(l=>{const it=G.inv.find(x=>String(x.u)===l.dataset.u);const b=l.querySelector('.lbtns');if(it&&b&&!b.dataset.done)b.innerHTML=lootBtns(it)});const a=document.querySelector('#lallb');if(a)a.innerHTML=lootAllTxt()}
 function idLoot(u,el){const it=G.inv.find(x=>x.u===u);if(!it||!it.unid||(G.sc.id||0)<1)return;G.sc.id--;it.unid=false;save();const l=el.closest('.lline');if(l)l.querySelector('.lname').innerHTML=iname(it);lootRefresh()}
 function sellLoot(u,el){const g=sellOne(u);save();goldHud();const b=el&&el.closest('.lbtns');if(b){b.dataset.done=1;b.innerHTML=emo(`<span class="dim">${g?'verkauft +'+g+' 🪙':'nicht mehr da'}</span>`)}else if(el)el.outerHTML=emo(`<span class="dim">verkauft +${g} 🪙</span>`);lootRefresh()}
-function sellLootList(list,el,all){let g=0;(list||[]).forEach(u=>{g+=sellOne(u)});save();goldHud();if(all){document.querySelectorAll('#main .lbtns').forEach(b=>{b.dataset.done=1;b.innerHTML='<span class="dim">verkauft</span>'});document.querySelectorAll('#main .lsell').forEach(b=>{if(b!==el)b.outerHTML='<span class="dim">verkauft</span>'})}if(el&&el.isConnected)el.outerHTML=emo(`<span class="good">verkauft +${g} 🪙</span>`);lootRefresh()}
+function sellLootList(list,el,all){let g=0;const keep=all?(list||[]).filter(u=>!lootBulk(u)):[];(list||[]).forEach(u=>{if(all&&!lootBulk(u))return;g+=sellOne(u)});save();goldHud();if(all){document.querySelectorAll('#main .lbtns').forEach(b=>{if(keep.some(u=>b.innerHTML.includes('('+u+',')||b.innerHTML.includes('('+u+')')))return;b.dataset.done=1;b.innerHTML='<span class="dim">verkauft</span>'});document.querySelectorAll('#main .lsell').forEach(b=>{if(b===el)return;const oc=b.getAttribute('onclick')||'';if(keep.some(u=>oc.includes('('+u+',')||oc.includes('('+u+')')))return;b.outerHTML='<span class="dim">verkauft</span>'})}if(el&&el.isConnected)el.outerHTML=emo(`<span class="good">verkauft +${g} 🪙</span>`);lootRefresh()}
 function winScene(){
  const spec=C.spec,r=finishCombat();
  if(typeof heraldCheck==='function')try{heraldCheck(spec)}catch(e){console.error(e)}
@@ -5345,8 +5371,8 @@ function winScene(){
  /* Beute: Besonderes einzeln, Gewöhnliches zusammengefasst */
  const full=r.full||[],plain=r.items.filter(i=>(i.q||0)===0&&!full.includes(i));
  const got=r.items.filter(i=>!full.includes(i));window.__loot=got.map(i=>i.u);
- if(got.some(i=>i.unid))L.push(`<p class="dim" id="lscr">📜 Identifizierungs-Schriftrollen: <b>${G.sc.id||0}</b></p>`);
- r.items.forEach(i=>{if((i.q||0)===0&&!full.includes(i))return;L.push(full.includes(i)?`<p>Beute: ${iname(i)} <span class="bad">(Rucksack voll)</span></p>`:lootLine(i))});
+ if(got.some(i=>i.unid))L.push(`<p class="dim" id="lscr">📜 Identifizierungs-Schriftrollen: <b>${G.sc.id||0}</b>${got.filter(i=>i.unid).length>1?` <button class="lsell" onclick="document.querySelectorAll('.lic[title^=Identifizieren]:not([disabled])').forEach(b=>b.click());this.remove()">Alle identifizieren</button>`:''}</p>`);
+ r.items.forEach(i=>{if((i.q||0)===0&&!full.includes(i))return;L.push(full.includes(i)?`<p>Beute: ${iname(i)} <span class="bad">(${isGrid(i)?'kein passender Platz im Talisman-Raster':'Rucksack voll'} – liegen gelassen)</span></p>`:lootLine(i))});
  if(plain.length){window.__plain=plain.map(i=>i.u);L.push(`<p class="dim">+ ${plain.length} gewöhnliche${plain.length>1?' Gegenstände':'r Gegenstand'} (im Inventar) <button class="lsell" onclick="sellLootList(window.__plain,this)">Verkaufen +${plain.reduce((x,i)=>x+sellPrice(i),0)} 🪙</button></p>`)}
  if(got.length>1)L.push(`<p><button class="lsell lall" id="lallb" onclick="sellLootList(window.__loot,this,true)">${lootAllTxt()}</button></p>`);
  const pc={};r.pots.forEach(k=>{pc[k]=(pc[k]||0)+1});const pl=Object.keys(pc).map(k=>`${pc[k]>1?pc[k]+'× ':''}${POTS[k].n}`);
@@ -5485,7 +5511,8 @@ function shView(){const t=V.shs.t,i=V.shs.i,o=shGet(),it=o.t[t]&&o.t[t][i];if(!i
  b.push(btn('◀ Zurück',()=>{V.shs=null;render()}));main(h+b.join(''))}
 /* Rucksack: Filter, Vergleichs-Pfeile und Neu-Markierung */
 const IFL=[['all','Alle'],['w','Waffen'],['a','Rüstung'],['j','Schmuck'],['n','Neu'],['s','Verkaufbar']];
-const isJunk=it=>(it.q||0)<=1&&!it.sock&&!it.rw;
+/* Schrott: normale/magische Ausrüstung ohne Sockel – Talismane und Juwelen nie (die prüft man lieber einzeln) */
+const isJunk=it=>(it.q||0)<=1&&!it.sock&&!it.rw&&!['charm','jewel'].includes((BASES[it.base]||{}).slot);
 function invFilt(it,f){const sl=BASES[it.base].slot;if(f==='w')return sl==='weapon';if(f==='a')return ['offhand','head','body','hands','belt','feet'].includes(sl);if(f==='j')return ['amulet','ring','charm','jewel'].includes(sl);if(f==='n')return it.u>(G.seenU||0);if(f==='s')return isJunk(it);return true}
 function cmpTag(it){const sl=BASES[it.base].slot;if(['charm','jewel'].includes(sl))return '';if(it.unid)return '<span class="ctag dim">? unidentifiziert</span>';
  const e=canEquip(it),bad=e&&!/^Wirkt|^In Sockel/.test(e)?`<span class="ctag cmpd">${e}</span>`:'';
@@ -5519,8 +5546,13 @@ function viewInv(){
    else if(G.merc&&!eq&&(inInv||inSt)&&mercCanWear(it,G.merc.t)){const sl=BASES[it.base].slot;b.push(btn(`Dem Söldner geben (${SLOTN[sl]||sl})`,()=>{G.merc.eq=G.merc.eq||{};const old=G.merc.eq[sl];removeFrom(G.inv,it.u);removeFrom(G.stash,it.u);G.merc.eq[sl]=it;if(old){if(canAdd(old))G.inv.push(old);else G.stash.push(old)}V.sel=null;save();render()}))}
    else if(G.merc&&!eq&&(inInv||inSt)&&['weapon','head','body'].includes(BASES[it.base].slot)&&!it.unid)h+=`<p class="dim">Dein Söldner kann das nicht tragen (${BASES[it.base].slot==='weapon'?'falscher Waffentyp':'Klassen-Gegenstand'} oder Stufe zu hoch).</p>`}
   if(G.at==='town'&&ACC&&!eq&&(inInv||inSt)){const st=V.stab||0,tt=st>0?st-1:0;b.push(btn(`In die gemeinsame Truhe (Reiter ${tt+1})`,()=>{if(!shTo(it,tt))note('Gemeinsame Truhe (Reiter '+(tt+1)+') ist voll');V.sel=null;render()}))}
+  if(inSt&&BASES[it.base].slot==='charm')it.rs=true;
   if(inSt&&canAdd(it))b.push(btn('Aus der Truhe nehmen',()=>{removeFrom(G.stash,it.u);G.inv.push(it);V.sel=null;save();render()}));
-  if(G.at==='town'&&!eq)b.push(btn(`Verkaufen (+${sellPrice(it)} 🪙)`,()=>{G.gold+=sellPrice(it);soldHook(it);removeFrom(G.inv,it.u);removeFrom(G.stash,it.u);V.sel=null;save();render()}));
+  /* Talisman: zwischen Rucksack und Raster wechseln */
+  if(inInv&&BASES[it.base].slot==='charm'){if(it.rs){const t=Object.assign({},it);delete t.rs;delete t.gp;const ok=canAdd(t);b.push(btn(ok?'⬆ Ins Talisman-Raster legen':'Talisman-Raster voll',()=>{delete it.rs;delete it.gp;calc();save();render()},'',!ok))}
+   else b.push(btn(invUsed()<INV_MAX?'⬇ Ablegen (in den Rucksack)':'Rucksack voll',()=>{it.rs=true;delete it.gp;calc();save();render()},'',invUsed()>=INV_MAX))}
+  if(G.at==='town'&&!eq&&inInv&&isGrid(it))h+='<p class="dim">Liegt im Talisman-Raster und gehört zur festen Ausrüstung – zum Verkaufen erst ablegen.</p>';
+  else if(G.at==='town'&&!eq)b.push(btn(`Verkaufen (+${sellPrice(it)} 🪙)`,()=>{G.gold+=sellPrice(it);soldHook(it);removeFrom(G.inv,it.u);removeFrom(G.stash,it.u);V.sel=null;save();render()}));
   if(!eq&&inInv)b.push(btn('Wegwerfen',()=>{removeFrom(G.inv,it.u);V.sel=null;save();render()}));
   if(inInv&&G.flags.wuerfel)b.push(btn('🎲 In den Würfel legen',()=>{V.cube=it.u;V.sel=null;TAB='craft';render()}));
   if(V.rwmsg){h+=`<p class="good">${V.rwmsg}</p>`;V.rwmsg=null}
@@ -5537,7 +5569,8 @@ function viewInv(){
  if(G.merc){const M=MERCS[G.merc.t]||{};G.merc.eq=G.merc.eq||{};h+=`<h2>Söldner <span class="dim">${M.ic||''} ${M.n||''}${G.merc.alive?'':' · verwundet'}</span></h2>`+mercInfo()+`<div class="pdoll" style="grid-template-columns:repeat(3,1fr)">`+MSLOTS.map(sl=>{const it=G.merc.eq[sl];return `<div class="pd${it?' pdf q'+(it.rw?'r':it.q):''}">${btn(it?`${imgIt(it)}<span class="pdn ${it.rw?'qr':'q'+it.q}">${itemName(it)}</span>`:`<span class="pdl">${SLOTN[sl]}</span>`,()=>{if(it){V.sel=it.u;render()}},'pdb',!it)}</div>`}).join('')+`</div><p class="dim" style="font-size:11px">Waffe: ${({fire:'Bögen',cold:'Bögen',desert:'Stangenwaffen und Speere',iw_fire:'Schwerter',iw_cold:'Schwerter',iw_light:'Schwerter',barb:'Schwerter'})[G.merc.t]||'–'} · Helm und Rüstung ohne Klassen-Gegenstände. Gegenstand im Rucksack antippen → „Dem Söldner geben“.</p>`}
  if(typeof donerCard==='function')h+=donerCard();
  h+=`<h2>Rucksack <span class="dim">${invUsed()}/${INV_MAX}</span></h2><p class="dim" style="margin-top:-6px">Gürtel: ${Math.min(potTot(),beltSlots())}/${beltSlots()} Tränke${potOver()?` · ${potOver()} weitere im Talisman-Raster`:''}</p>`;
- h+=`<div class="seg">`+btn('↕ Sortieren',()=>{const SO={weapon:0,offhand:1,head:2,body:3,hands:4,belt:5,feet:6,amulet:7,ring:8};G.inv.sort((a,b)=>(b.q||0)-(a.q||0)||(SO[BASES[a.base].slot]??9)-(SO[BASES[b.base].slot]??9)||(b.ilvl||0)-(a.ilvl||0));save();render()})+(G.at==='town'?(()=>{const j=G.inv.filter(it=>!isGrid(it)&&isJunk(it));const v=j.reduce((t,it)=>t+sellPrice(it),0);return btn(`🪙 Schrott verkaufen (${j.length}, +${v})`,()=>{j.forEach(it=>{G.gold+=sellPrice(it);removeFrom(G.inv,it.u)});save();render()},'',!j.length)})():'')+`</div>`;
+ {const un=G.inv.filter(i=>i.unid),sc=G.sc.id||0;if(un.length)h+=btn(`📜 Alle identifizieren (${un.length}) · Schriftrollen: ${sc}`,()=>{let n=0;for(const i of G.inv){if(!i.unid)continue;if((G.sc.id||0)<1)break;G.sc.id--;i.unid=false;n++}calc();save();note(n?`${n} Gegenst${n>1?'ände':'and'} identifiziert.`:'Keine Schriftrollen.');render()},'',sc<1)+(sc<un.length?`<p class="dim" style="font-size:12px;margin:2px 0 6px">${sc<1?'Keine Schriftrollen – kaufen bei Akara/Fara/Ormus/Jamella/Malah oder in der Stadt bei Deckard Cain identifizieren lassen.':'Nicht genug Schriftrollen für alle – Cain identifiziert in der Stadt alles auf einmal.'}</p>`:'')}
+ h+=`<div class="seg">`+btn('↕ Sortieren',()=>{const SO={weapon:0,offhand:1,head:2,body:3,hands:4,belt:5,feet:6,amulet:7,ring:8};G.inv.sort((a,b)=>(b.q||0)-(a.q||0)||(SO[BASES[a.base].slot]??9)-(SO[BASES[b.base].slot]??9)||(b.ilvl||0)-(a.ilvl||0));save();render()})+(G.at==='town'?(()=>{const j=G.inv.filter(it=>!isGrid(it)&&isJunk(it));const v=j.reduce((t,it)=>t+sellPrice(it),0);return btn(`🪙 Schrott verkaufen (${j.length}, +${v})`,()=>{j.forEach(it=>{G.gold+=sellPrice(it);if(typeof soldHook==='function')soldHook(it);removeFrom(G.inv,it.u)});save();render()},'',!j.length)})():'')+`</div>`+(G.at==='town'&&(G.buyback||[]).length?btn(`↩ Rückkauf (${G.buyback.length})`,()=>goto(buybackScene)):'');
 {const all=G.inv.filter(it=>!isGrid(it)),f=V.ifl||'all',L=all.filter(it=>invFilt(it,f));
  h+=`<div class="seg fseg">`+IFL.map(([k,n])=>btn(`${n} <span class="dim">${all.filter(it=>invFilt(it,k)).length}</span>`,()=>{V.ifl=k;render()},f===k?'on':'')).join('')+`</div>`;
  if(!L.length)h+='<p class="dim">'+(all.length?'Nichts in diesem Filter.':'Leer.')+'</p>';
@@ -5576,7 +5609,7 @@ const HELP=[
  ['🗺️ Ereignis & Reisen','<p>Im Reiter <b>Ereignis</b> spielst du: Gebiete betreten, Schritt für Schritt Begegnungen, Truhen und Ereignisse erleben, am Ende wartet oft ein Boss. In der Stadt sprichst du mit Händlern, Heilern und Quest-Gebern. Zurück in die Stadt geht es per Wegpunkt oder Stadtportal-Schriftrolle.</p>'],
  ['⚔️ Kampf & Auto-Kampf','<p>Im Kampf wählst du eine Fertigkeit und ein Ziel. <b>Auto-Kampf</b> kämpft selbstständig mit der eingestellten Hauptfertigkeit, Falle und Fluch und hört bei wenig Leben auf. Stirbst du, verlierst du Gold, wachst in der Stadt auf und das Gebiet beginnt von vorn.</p>'],
  ['🧪 Tränke & Gürtel','<p>Tränke liegen zuerst im Gürtel (Plätze hängen vom Gürtel ab). Was nicht hineinpasst, liegt im Talisman-Raster. Trinken kannst du im Kampf oder im Reiter <b>Alchemie</b>. Verjüngungstränke füllen Leben und Mana zugleich. Oben in der Leiste siehst du, wie viele Heil-, Mana- und Verjüngungstränke du hast.</p>'],
- ['🎒 Inventar & Talisman-Raster','<p><b>Rucksack:</b> Ausrüstung, die du gerade nicht trägst. Gegenstand antippen = Details, anlegen, verkaufen, identifizieren.</p><p><b>Talisman-Raster (10×4):</b> nur Talismane und übrige Tränke. Talismane wirken nur, solange sie hier liegen. Mit dem Finger kannst du jedes Teil auf ein freies Feld ziehen (gold = passt, rot = passt nicht); gleich große Teile tauschen den Platz. <b>Auto sortieren</b> packt alles dicht zusammen.</p><p><b>Truhe:</b> Suchfeld und Filter (Waffen, Rüstung, Schmuck, Einzigartig & Set, Sockel & Runenwort).</p><p><b>Seltene Funde:</b> Einzigartige, Set-Gegenstände und Runen ab Pul erscheinen mit goldenem Lichtstrahl und Klang.</p>'],
+ ['🎒 Inventar & Talisman-Raster','<p><b>Rucksack:</b> Ausrüstung, die du gerade nicht trägst. Gegenstand antippen = Details, anlegen, verkaufen, identifizieren.</p><p><b>Talisman-Raster (10×4):</b> nur Talismane und übrige Tränke. Talismane wirken nur, solange sie hier liegen. Neu gefundene Talismane landen erst im <b>Rucksack</b>: antippen → „Ins Talisman-Raster legen“. Was im Raster liegt, gehört zur festen Ausrüstung und kann nicht verkauft werden – erst „Ablegen“, dann verkaufen. Mit dem Finger kannst du jedes Teil auf ein freies Feld ziehen (gold = passt, rot = passt nicht); gleich große Teile tauschen den Platz. <b>Auto sortieren</b> packt alles dicht zusammen.</p><p><b>Truhe:</b> Suchfeld und Filter (Waffen, Rüstung, Schmuck, Einzigartig & Set, Sockel & Runenwort).</p><p><b>Seltene Funde:</b> Einzigartige, Set-Gegenstände und Runen ab Pul erscheinen mit goldenem Lichtstrahl und Klang.</p>'],
  ['💎 Sockeln','<p><b>Einsetzen:</b> Gegenstand mit freiem Sockel antippen → Edelstein, Rune oder Juwel wählen. Die richtige Runen-Reihenfolge in einem normalen (weißen/grauen) Gegenstand ergibt ein <b>Runenwort</b>. Eingesetztes lässt sich nicht einzeln herausnehmen.</p><p><b>Runenwort-Hinweis:</b> Ein normaler Gegenstand mit freien Sockeln zeigt, welche Runenwörter hineinpassen; grün = Rune vorhanden, rot = fehlt.</p><p><b>Gefundene Sockel:</b> Wie in D2 fällt jeder dritte normale Gegenstand schon mit Sockeln (Normal höchstens 3, Albtraum 4, Hölle 6).</p><p><b>Sockel bekommen:</b> Larzuk (Akt 5) gegen Gold (2.000 + 100 je Charakterstufe), beliebig oft; die Quest „Belagerung von Harrogath“ schenkt je Schwierigkeitsgrad einen kostenlosen Sockel. Normal = Höchstzahl, magisch 1–2, selten/Set/Einzigartig = 1. Oder im Würfel: Rezept je Gegenstandsart (nur normale Gegenstände, 1–6 Sockel, gedeckelt), seltene Gegenstände mit 3 perfekten Schädeln + Stein von Jordan (1 Sockel).</p><p><b>Entsockeln:</b> Horadrim-Würfel: Hel-Rune + Stadtportal-Schriftrolle + Gegenstand. Die Sockel bleiben, aber <b>alles darin wird zerstört</b> (auch ein Runenwort).</p>'],
  ['🧊 Horadrim-Würfel & Herstellen','<p>Im Reiter <b>Herstellen</b>: Edelsteine und Runen aufwerten, Gegenstände neu würfeln, Handwerk, Aufwerten von Einzigartigen und Sets, Portale (Kuhlevel, Uber-Schlüssel, Uber-Tristram) und Charsis Imbue. Erst Gegenstand in den Würfel legen, dann Rezept wählen. Der Würfel funktioniert überall wie in D2, nur Portale öffnen sich in der Stadt.</p>'],
  ['👥 Söldner','<p>Söldner heuerst du in der Stadt an. Du kannst ihm Waffe, Rüstung und Helm geben. Stirbt er, lässt er sich gegen Gold wiederbeleben.</p>'],
@@ -5724,11 +5757,11 @@ function autoStep(){
 
 /* Seltene Funde hervorheben (wie D2R): Einzigartige, Set-Gegenstände und Runen ab Pul bekommen einen goldenen Lichtstrahl mit Klang */
 function lootFx(items,stones){
- const N=[];(items||[]).forEach(it=>{if(it.q===4||it.q===3)N.push(`<span class="${it.q===4?'q4':'q3'}">${it.q===4?'Einzigartig':'Set'}: ${iname(it)}</span>`)});
- let rune=false;(stones||[]).forEach(x=>{if(x.k==='r'&&RUNE[x.r]&&RUNE[x.r].i>=20){rune=true;N.push(`<span class="qr">Rune ${RUNE[x.r].n}</span>`)}});
+ const N=[];(items||[]).forEach(it=>{if(it.q===4||it.q===3)N.push(`<div class="lbrow">${imgIt(it,'lbi')}<span><small class="dim">${it.q===4?'Einzigartig':'Set'}</small><br><span class="${it.q===4?'q4':'q3'}">${itemName(it)}</span></span></div>`)});
+ let rune=false;(stones||[]).forEach(x=>{if(x.k==='r'&&RUNE[x.r]&&RUNE[x.r].i>=20){rune=true;N.push(`<div class="lbrow"><span class="lbi lbr">✦</span><span><small class="dim">Rune</small><br><span class="qr">${RUNE[x.r].n}</span></span></div>`)}});
  if(!N.length||typeof document==='undefined'||!document.body)return;
  if(rune&&!(items||[]).some(it=>(it.q||0)>=2)&&typeof SND!=='undefined')setTimeout(()=>SND.play('loot',4),700);
- const o=document.createElement('div');o.className='lootbeam';o.innerHTML=`<div class="lbray"></div><div class="lbtxt">✦ ${N.join('<br>')} ✦</div>`;
+ const o=document.createElement('div');o.className='lootbeam';o.innerHTML=`<div class="lbray"></div><div class="lbtxt">${N.join('')}</div>`;
  o.addEventListener('click',()=>o.remove());document.body.appendChild(o);setTimeout(()=>o.remove(),3200)}
 {const _fcx=finishCombat;finishCombat=function(){const r=_fcx.apply(this,arguments);try{if(r)lootFx(r.items,r.stones)}catch(e){}return r}}
 
@@ -5795,6 +5828,7 @@ const ORGN={horn:'Diablos Horn',eye:'Baals Auge',brain:'Mephistos Hirn'};
 const PORTALS=[{id:'lilith',n:'Matrons Versteck',boss:'lilith',org:'horn'},{id:'uber_duriel',n:'Vergessene Sande',boss:'uber_duriel',org:'eye'},{id:'uber_izual',n:'Ofen des Schmerzes',boss:'uber_izual',org:'brain'}];
 /* Stein von Jordan an Händler verkaufen (Hölle) -> Diablo-Klon beim nächsten Boss – wie in D2R beliebig oft */
 function soldHook(it){
+ /* Rückkauf-Liste (neueste zuerst, max. 20) */try{if(it&&G){G.buyback=G.buyback||[];G.buyback.unshift({it:JSON.parse(JSON.stringify(it)),g:sellPrice(it)});G.buyback.length=Math.min(G.buyback.length,20)}}catch(e){}
  if(G.diff===2&&!G.flags.dclone&&it&&it.q===4&&it.uid){const u=UNIQ.find(x=>x.id===it.uid);if(u&&u.n==='Der Stein von Jordan'){G.flags.dclone=true;G.notice='Der Händler zittert. „Diablo wandelt auf Erden.“ Der Herr des Schreckens wird dich beim nächsten großen Gegner in der Hölle suchen.'}}
 }
 function cloneFirst(next){
