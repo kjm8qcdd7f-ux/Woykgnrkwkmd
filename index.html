@@ -1112,12 +1112,15 @@ function equipItem(it,free,to){
 }
 function unequip(sl){const it=G.eq[sl];if(!it)return;if(!canAdd(it))return 'Inventar voll';G.inv.push(it);G.eq[sl]=null;calc();return ''}
 function shopStock(who){
- const st=G.shops[who];if(st&&st.ref===G.shopRef&&st.lvl===G.lvl)return st.items;
- const il=Math.max(1,G.lvl+2);const items=[];
- const mk=(slot,minQ)=>{const it=genItem(il,{slot,minQ});it.unid=false;items.push(it)};
+ const st=G.shops[who];if(st&&st.ref===G.shopRef&&st.lvl===G.lvl&&st.v===2)return st.items;
+ /* D2: Händler-Gegenstandsstufe = Charakterstufe + 5; in Normal je Akt gedeckelt (12/20/28/36/45), in Albtraum/Hölle ohne Deckel */
+ const il=Math.min(99,Math.max(1,(G.diff||0)===0?Math.min(G.lvl+5,[12,20,28,36,45][(G.act||1)-1]||45):G.lvl+5));const items=[];
+ /* normale Waffen/Rüstungen beim Händler können wie Funde mit Sockeln kommen (Normal max. 3, Albtraum 4, Hölle 6) */
+ const mk=(slot,minQ)=>{const it=genItem(il,{slot,minQ});it.unid=false;
+  if((it.q||0)===0&&!it.sock&&['weapon','body','head','offhand'].includes(slot)&&maxSock(it)>0&&d(3)===1){it.sock=Math.min(R(1,6),maxSock(it),[3,4,6][G.diff||0]);it.socks=[]}items.push(it)};
  if(NPCS[who]&&NPCS[who].roles.includes('smith')){['weapon','weapon','weapon','body','body','head','offhand','hands','feet','belt'].forEach(s=>mk(s,d(3)===1?1:0))}
  else{['amulet','ring','ring','weapon','body','head'].forEach(s=>mk(s,1))}
- G.shops[who]={ref:G.shopRef,lvl:G.lvl,items};return items;
+ G.shops[who]={ref:G.shopRef,lvl:G.lvl,v:2,items};return items;
 }
 
 
