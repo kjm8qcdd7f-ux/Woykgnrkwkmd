@@ -360,7 +360,7 @@ button.mcard .mci .ei{margin:0!important;vertical-align:0!important;display:bloc
 .igdrag{box-shadow:0 8px 22px rgba(0,0,0,.8),0 0 16px rgba(201,162,74,.5);background:#1a110c;transition:none;border:1px solid}
 .ig .gs[data-k] img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
 .ighl{position:absolute;pointer-events:none;border:2px dashed;box-sizing:border-box;z-index:5}.ighl.ok{border-color:#c9a24a;background:rgba(201,162,74,.18)}.ighl.bad{border-color:#b33;background:rgba(180,30,20,.18)}
-</style></head>
+.rwgo{display:block;width:100%;margin:2px 0 8px;padding:8px;font-size:14px;background:#3a2a12;color:#f0d68a;border:1px solid var(--gold);border-radius:6px}.rng{color:#9a8a6a;font-size:.85em;white-space:nowrap}.rng.top{color:#7fd17f}.ibox,#zoom .zic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}.rwi{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border:1px solid var(--gold);border-radius:50%;font-size:13px;color:#e8c46a;cursor:pointer;vertical-align:1px;margin-left:2px}</style></head>
 <body><div id="app"><header id="hud"></header><main id="main"></main><footer id="btns"></footer><nav id="tabs"></nav></div>
 <script>/* js/atlas.js */
 /* Unique-IDs im Spiel sind ab u107 um 1 verschoben (Khalims Wille belegte u106); EN-Namen, Stufen-Tabelle und Bild-Atlas zählen ohne ihn */
@@ -1020,12 +1020,26 @@ function reqLvl(it){const B=BASES[it.base];return Math.max(B.lvl||0,it.rwLvl||0,
 /* Haltbarkeits-Zeilen (Reparieren, Max. Haltbarkeit, Unzerstörbar) ausblenden – kein Haltbarkeitssystem */
 const DURL=/Haltbarkeit|^Unzerstörbar$/;
 function itemDesc(it){return itemDesc0(it).filter(x=>!DURL.test(String(x).replace(/<[^>]*>/g,'').trim()))}
+/* Wertebereiche (lange auf den Gegenstand drücken): [min–max] hinter jedem gewürfelten Wert, ★ = Höchstwert */
+let RNGON=false;try{RNGON=localStorage.getItem('d2dnd_rng')==='1'}catch(e){}
+const RES4=['resF','resC','resL','resP'];
+function rngSpan(v,lo,hi,pre){if(lo>hi){const t=lo;lo=hi;hi=t}const top=v>=hi;return ` <span class="rng${top?' top':''}">[${pre||''}${lo}–${hi}${top?' ★':''}]</span>`}
+function affRange(it,a){if(a.stat==='txt'||(a.sock&&!a.rw)||a.need)return null;const st=a.stat;
+ const fit=L=>{for(const e of L||[]){const k=Array.isArray(e)?e[0]:e.stat,lo=Array.isArray(e)?e[1]:e.min,hi=Array.isArray(e)?(e[2]??e[1]):e.max;if(lo==null||hi==null)continue;if(k===st||(k==='res4'&&RES4.includes(st))||(k==='resAll'&&RES4.includes(st)))return [lo,hi]}return null};
+ if(a.rw&&it.rw){const r=RW.find(x=>x.n===it.rw);return r?fit(r.a):null}
+ if(it.uid){const u=UNIQ.find(x=>x.id===it.uid);return u?fit(u.aff):null}
+ if(it.set!==undefined&&it.q===3){const p=SETS[it.set]&&SETS[it.set].pieces[it.pc];return p?fit(p.aff):null}
+ if(a.n&&typeof AFFDB!=='undefined'){for(const ty in AFFDB){for(const x of AFFDB[ty]){if(x.n===a.n){const r=fit(x.t);if(r)return r}}}}
+ return null}
+function rngTag(it,a){if(!RNGON)return '';const r=affRange(it,a);if(!r||r[0]===r[1])return '';
+ /* skalierte Werte (z. B. Leben pro Stufe) so anzeigen, wie die Zeile sie zeigt */const num=v=>{try{const m=String(statLine({...a,v})).replace(/<[^>]*>/g,'').match(/-?\d+(?:[.,]\d+)?/);return m?parseFloat(m[0].replace(',','.')):v}catch(e){return v}};
+ const lo=num(r[0]),hi=num(r[1]),cur=num(a.v);const s=rngSpan(cur,Math.min(lo,hi),Math.max(lo,hi));return (Math.abs(r[1])>=Math.abs(r[0])?a.v>=r[1]:a.v<=r[1])?s.replace('class="rng"','class="rng top"').replace(/\]<\/span>$/,s.includes('★')?']</span>':' ★]</span>'):s.replace(' top','').replace(' ★','')}
 function itemDesc0(it){
  const B=BASES[it.base];const L=[];
  if(B.dice){const bonus=B.dice[2];L.push(`Schaden ${dmgR(B.dice)} · ${WTYPE[B.type]||''}${B.two?' · Zweihand':''}`)}if(it.eth)L.push('Ätherisch (nicht reparierbar) · +50 % Basis-'+(B.dice?'Schaden':'Verteidigung'));
- if(it.def){/* wie in D2: Verteidigung inkl. %-Verbesserung und +Verteidigung des Gegenstands, verändert = blau */const act=(it.aff||[]).filter(a=>!a.need&&!it.unid),e=act.reduce((t,a)=>t+(a.stat==='defE'?a.v:0),0),f=act.reduce((t,a)=>t+(a.stat==='defF'?a.v:0),0),v=Math.round(it.def*(1+e/100))+f;L.push('Verteidigung '+(v!==it.def?`<span style="color:#6f9bff">${v}</span>`:v))}
+ if(it.def){/* wie in D2: Verteidigung inkl. %-Verbesserung und +Verteidigung des Gegenstands, verändert = blau */const act=(it.aff||[]).filter(a=>!a.need&&!it.unid),e=act.reduce((t,a)=>t+(a.stat==='defE'?a.v:0),0),f=act.reduce((t,a)=>t+(a.stat==='defF'?a.v:0),0),v=Math.round(it.def*(1+e/100))+f;L.push('Verteidigung '+(v!==it.def?`<span style="color:#6f9bff">${v}</span>`:v)+(RNGON&&B.def&&B.def[0]!==B.def[1]?rngSpan(it.def,B.def[0]*(it.eth?1.5:1)|0,B.def[1]*(it.eth?1.5:1)|0,'Basis '):''))}
  if(it.sock){L.push(sockLine(it));if(!it.unid)sockDetail(it).forEach(x=>L.push(x))}
- if(!it.unid)it.aff.forEach(a=>L.push(statLine(a)));else if(it.q>0)L.push('<i>Unidentifizierte Eigenschaften</i>');
+ if(!it.unid)it.aff.forEach(a=>L.push(statLine(a)+rngTag(it,a)));else if(it.q>0)L.push('<i>Unidentifizierte Eigenschaften</i>');
  if(it.q===3&&!it.unid&&it.set!==undefined){const st=SETS[it.set],n=S0[it.set]||0;L.push(`<span class="q3">Set: ${st.n} (${n}/${st.cnt||st.pieces.length} getragen)</span>`);st.bonus.forEach((b,k)=>L.push(`<span class="${n>=k+2?'q3':'dim'}">(${k+2===(st.cnt||st.pieces.length)?'Komplettes Set':(k+2)+' Teile'}) ${b.map(statLine).join(', ')}</span>`))}
  const rl=reqLvl(it),rq=itReq(it);if(rq.str||rl)L.push(`Benötigt: ${rq.str?'Stärke '+rq.str:''}${rq.str&&rl?', ':''}${rl?'Stufe '+rl:''}`.replace(/: $/,''));
  return L;
@@ -4205,17 +4219,17 @@ function d2Auto(name){
 const D2K={q:40,n:3,r:10};
 const D2RND=n=>Math.floor(Math.random()*n);
 function d2Mf(mf,f){return f?mf*f/(mf+f):mf}
-function d2Chance(base,div,min,ilvl,qlvl,mf,f,qf){
+function d2Chance(base,div,min,ilvl,qlvl,mf,f,qf,raw){
  let c=(base-Math.floor((ilvl-qlvl)/div))*128;
  c=c*100/(100+d2Mf(mf,f));if(c<min)c=min;
- c=c-c*qf/1024;return c/D2K.q;
+ c=c-c*qf/1024;return raw?c:c/D2K.q;
 }
 const d2Roll=c=>c<=128||D2RND(Math.floor(c))<128;
 function d2Quality(code,ilvl,mf,qf,magicOnly){
  const b=D2B[code]||(D2M[code]&&[D2M[code][0],1,0,0]);const q=b[0];
  const row=D2IR.find(r=>r[0]===1&&r[1]===(b[2]||0)&&r[2]===(b[3]||0))||D2IR[2];
- const chk=(i,f,qq)=>d2Roll(d2Chance(row[i],row[i+1],row[i+2],ilvl,q,mf,f,qq));
- if(chk(3,250,qf[0]))return 4;if(chk(9,500,qf[1]))return 3;if(chk(6,600,qf[2]))return 2;if(chk(12,0,qf[3]))return 1;
+ const chk=(i,f,qq,raw)=>d2Roll(d2Chance(row[i],row[i+1],row[i+2],ilvl,q,mf,f,qq,raw));
+ if(chk(3,250,qf[0]))return 4;if(chk(9,500,qf[1]))return 3;if(chk(6,600,qf[2]))return 2;/* Magisch: Originalchance aus itemratio (nicht beschleunigt), damit wie in D2 weiße und graue Gegenstände fallen */if(chk(12,0,qf[3],1))return 1;
  return magicOnly?1:0;
 }
 function d2Pick(list){let t=0;list.forEach(x=>t+=x[1]);let r=D2RND(t);for(const x of list){if(r<x[1])return x;r-=x[1]}return list[0]}
@@ -4573,8 +4587,19 @@ const cbtn=(g,t,sub,fn,cls)=>btn(`<span class="cb"><span class="cbi">${skSvg(g)}
 /* Bild antippen = Gegenstand mit Eigenschaften anzeigen (auch in Kauf-/Verkaufslisten, ohne den Knopf auszulösen) */
 const ZI=new Map();let ZIK=0;
 {const _im=imgIt;imgIt=function(it,cls){const h=_im(it,cls);if(!it||!h)return h;if(ZI.size>3000)ZI.clear();const k=++ZIK;ZI.set(k,it);return h.replace(/^<(img|span) /,`<$1 data-zi="${k}" `)}}
-function zoomItem(it,src){const d=document.createElement('div');d.id='zoom';let L=[];try{L=it.unid?['<span class="dim">Nicht identifiziert</span>']:itemDesc(it)}catch(e){}
- d.innerHTML=`<div class="mcard zic"><div class="center">${src}</div><h2 class="${it.rw?'qr':'q'+it.q}" style="font-size:20px">${itemName(it)}</h2><p class="dim" style="margin:0 0 6px">${it.rw?'Runenwort':QN[it.q]||''}</p>${(()=>{try{const c=cmpTag(it);return c?`<p style="margin:0 0 6px">${c}</p>`:''}catch(e){return ''}})()}<div style="font-size:15px;line-height:1.45">${L.join('<br>')}</div><p class="dim center" style="font-size:12px;margin-top:8px">Antippen zum Schließen</p></div>`;
+let ZLAST=null;
+/* Langes Drücken auf einen Gegenstand (Detailansicht oder Bildkarte) blendet die Wertebereiche ein/aus */
+if(typeof document!=='undefined'){let lpT=null,lpX=0,lpY=0,lpFired=false;
+ document.addEventListener('pointerdown',e=>{const t=e.target&&e.target.closest&&e.target.closest('.ibox,#zoom .zic');if(!t)return;lpX=e.clientX;lpY=e.clientY;lpFired=false;clearTimeout(lpT);
+  lpT=setTimeout(()=>{lpFired=true;RNGON=!RNGON;try{localStorage.setItem('d2dnd_rng',RNGON?'1':'0')}catch(x){}
+   if(document.querySelector('#zoom .zic')&&ZLAST){document.getElementById('zoom').remove();zoomItem(ZLAST[0],ZLAST[1])}else render();
+   note(RNGON?'Wertebereiche an: [min–max], ★ = Höchstwert':'Wertebereiche aus');try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}},550)},true);
+ const cancel=e=>{if(lpT&&(e.type!=='pointermove'||Math.hypot(e.clientX-lpX,e.clientY-lpY)>10)){clearTimeout(lpT);lpT=null}};
+ ['pointerup','pointercancel','pointermove'].forEach(k=>document.addEventListener(k,cancel,true));
+ document.addEventListener('click',e=>{if(lpFired){lpFired=false;e.stopPropagation();e.preventDefault()}},true);
+ document.addEventListener('contextmenu',e=>{if(e.target.closest&&e.target.closest('.ibox,#zoom'))e.preventDefault()},true)}
+function zoomItem(it,src){ZLAST=[it,src];const d=document.createElement('div');d.id='zoom';let L=[];try{L=it.unid?['<span class="dim">Nicht identifiziert</span>']:itemDesc(it)}catch(e){}
+ d.innerHTML=`<div class="mcard zic"><div class="center">${src}</div><h2 class="${it.rw?'qr':'q'+it.q}" style="font-size:20px">${itemName(it)}</h2><p class="dim" style="margin:0 0 6px">${it.rw?'Runenwort':QN[it.q]||''}</p>${(()=>{try{const c=cmpTag(it);return c?`<p style="margin:0 0 6px">${c}</p>`:''}catch(e){return ''}})()}<div style="font-size:15px;line-height:1.45">${L.join('<br>')}</div><p class="dim center" style="font-size:12px;margin-top:8px">Antippen zum Schließen · lange drücken = Wertebereiche</p></div>`;
  d.onclick=()=>d.remove();document.body.appendChild(d)}
 if(typeof document!=='undefined')document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return;const z=t.closest('[data-zi]');if(!z||t.closest('.gs,.pd,#zoom,.lootbeam'))return;const it=ZI.get(+z.dataset.zi);if(!it)return;
  e.stopPropagation();e.preventDefault();const c=z.cloneNode(true);c.removeAttribute('onclick');c.removeAttribute('data-zi');c.className=c.className.replace(/\b(ii|iis|iibig|gi)\b/g,'')+' zimg';zoomItem(it,c.outerHTML)},true);
@@ -4597,7 +4622,14 @@ function logFix(){const l=document.querySelector('#main .log');if(!l)return;cons
  setTimeout(upd,500)}
 function show(html,btns){logSave();V.areaOn=!!V.areaUI;V.areaUI=false;{const a=document.querySelector&&document.querySelector('#app');if(a&&a.classList)a.classList.toggle('area',V.areaOn)}if(typeof G!=='undefined'&&G&&G.notice){html=`<p class="good">${G.notice}</p>`+html;G.notice=null}$('#main').innerHTML=emo(html);$('#btns').innerHTML=emo((btns||[]).join(''));$('#btns').style.gridTemplateColumns='';$('#btns').style.display=(btns&&btns.length)?'grid':'none';$('#main').scrollTop=0;logFix()}
 function setTab(t){if(TAB==='inv'&&t!=='inv'&&G&&G.inv){G.seenU=Math.max(G.seenU||0,...G.inv.map(x=>x.u),...G.stash.map(x=>x.u),0)}TAB=t;render()}
+/* Detailansicht (Gegenstand) öffnet immer oben; zurück zur Liste stellt die alte Scroll-Position wieder her */
+let VKEY='',LISTPOS={};
+const vKey=()=>{const it=(typeof V!=='undefined'&&(V.sel||V.shs))?('i:'+(V.sel||'')+(V.shs?JSON.stringify(V.shs):'')):'';return [typeof TAB!=='undefined'?TAB:'',it]};
 function render(){
+ const _m=document.querySelector&&document.querySelector('#main'),_pre=_m?_m.scrollTop:0,[_t0,_i0]=VKEY.split('§');
+ try{return render0()}finally{try{const [t,i]=vKey();const k=t+'§'+i;if(_m&&k!==VKEY){if(i&&i!==_i0){if(!_i0)LISTPOS[_t0]=_pre;_m.scrollTop=0}else if(!i&&_i0&&t===_t0){const y=LISTPOS[t]||0;_m.scrollTop=y;requestAnimationFrame(()=>{_m.scrollTop=y})}}VKEY=k}catch(e){}}
+}
+function render0(){
  H=[];
  {const a=document.querySelector('#app');if(a&&a.dataset)a.dataset.act=(typeof G!=='undefined'&&G&&G.act)||1}
  hud();tabs();
@@ -4947,7 +4979,7 @@ function cmpBlock(it,cur){if(it.unid)return '<p class="dim">Vergleich nach dem I
   if(k==='__def'||k==='__dmg')L.unshift(`<div class="${d>0?'cmpu':'cmpd'}">${d>0?'▲':'▼'} ${k==='__def'?'Verteidigung':'Ø-Schaden'} ${d>0?'+':''}${d} <span class="dim">(${b[k]||0} → ${a[k]||0})</span></div>`);
   else if(d>0)L.push(`<div class="cmpu">▲ ${nm(k,d)}</div>`);else L.push(`<div class="cmpd">▼ ${nm(k,-d)}</div>`)});
  return `<div class="box cmpb"><b>Vergleich mit getragenem</b>${L.join('')||'<div class="dim">Keine Unterschiede.</div>'}</div>`}
-function itemBlock(it,extra,small){return `<div class="box">${small?'':`<div class="center">${imgIt(it,'iibig')}</div>`}<b>${iname(it)}</b> <span class="dim">(${it.rw?'Runenwort':QN[it.q]})</span><br>${itemDesc(it).join('<br>')}${extra||''}</div>`}
+function itemBlock(it,extra,small){return `<div class="box ibox">${small?'':`<div class="center">${imgIt(it,'iibig')}</div>`}<b>${iname(it)}</b> <span class="dim">(${it.rw?'Runenwort':QN[it.q]})</span><br>${itemDesc(it).join('<br>')}${extra||''}</div>`}
 function shopScene(w){
  const st=shopStock(w);const b=[];
  const card=it=>{const pr=buyPrice(it),no=G.gold<pr,full=!canAdd(it);return `<div class="box"><div class="center">${imgIt(it,'iibig')}</div><b>${iname(it)}</b> <span class="dim">(${it.rw?'Runenwort':QN[it.q]})</span><br>${cmpTag(it)?cmpTag(it)+'<br>':''}${itemDesc(it).join('<br>')}<br>`+btn(full?'Inventar voll':no?`Zu teuer · ${pr} 🪙`:`Kaufen · ${pr} 🪙`,()=>{if(G.gold<pr||!canAdd(it))return;G.gold-=pr;removeFrom(st,it.u);G.inv.push(it);save();goto(shopScene,w)},'',no||full)+`</div>`};
@@ -5367,7 +5399,8 @@ const lcmp=i=>{const t=cmpTag(i);return t?`<br>${t}`:''};
 function lootLine(i){return `<div class="lline" data-u="${String(i.u).replace(/"/g,'')}"><span class="lname">${iname(i)}${lcmp(i)}</span><span class="lbtns">${lootBtns(i)}</span></div>`}
 function lootBtns(i){const sc=G.sc.id||0;return (i.unid?`<button class="lsell lic" title="Identifizieren (Schriftrolle)" onclick="idLoot(${lootU(i)},this)"${sc>0?'':' disabled'}>${emo('📜')}</button>`:'')+`<button class="lsell lic" title="Verkaufen" onclick="sellLoot(${lootU(i)},this)">${hi('coin')} ${sellPrice(i)}</button>`}
 /* „Gesamte Beute verkaufen“ lässt Talismane und Juwelen aus – die verkauft man nur einzeln */
-const lootBulk=u=>{const it=G.inv.find(x=>x.u===u);return it&&!['charm','jewel'].includes((BASES[it.base]||{}).slot)};
+/* Sammelverkauf lässt Talismane, Juwelen und graue Rohlinge (normal mit Sockeln) liegen */
+const lootBulk=u=>{const it=G.inv.find(x=>x.u===u);return it&&!['charm','jewel'].includes((BASES[it.base]||{}).slot)&&!((it.q||0)===0&&it.sock&&!(it.socks||[]).length)};
 function lootAllTxt(){let g=0;(window.__loot||[]).filter(lootBulk).forEach(u=>{const it=G.inv.find(x=>x.u===u);if(it)g+=sellPrice(it)});return emo(`💰 Gesamte Beute verkaufen (+${g} 🪙)`)}
 function lootRefresh(){const sc=document.querySelector('#lscr b');if(sc)sc.textContent=G.sc.id||0;document.querySelectorAll('#main .lline').forEach(l=>{const it=G.inv.find(x=>String(x.u)===l.dataset.u);const b=l.querySelector('.lbtns');if(it&&b&&!b.dataset.done)b.innerHTML=lootBtns(it)});const a=document.querySelector('#lallb');if(a)a.innerHTML=lootAllTxt()}
 function idLoot(u,el){const it=G.inv.find(x=>x.u===u);if(!it||!it.unid||(G.sc.id||0)<1)return;G.sc.id--;it.unid=false;save();const l=el.closest('.lline');if(l)l.querySelector('.lname').innerHTML=iname(it)+lcmp(it);lootRefresh()}
@@ -5566,7 +5599,9 @@ function viewInv(){
   if(!eq&&inInv)b.push(btn('Wegwerfen',()=>{removeFrom(G.inv,it.u);V.sel=null;save();render()}));
   if(inInv&&G.flags.wuerfel)b.push(btn('🎲 In den Würfel legen',()=>{V.cube=it.u;V.sel=null;TAB='craft';render()}));
   if(V.rwmsg){h+=`<p class="good">${V.rwmsg}</p>`;V.rwmsg=null}
-  if(inInv&&it.sock&&it.socks.length<it.sock){h+=`<h2>Einsetzen</h2>`+(stoneUI(it).join('')||'<p class="dim">Keine Edelsteine oder Runen vorhanden.</p>')}
+  /* Sockel leeren direkt aus Rucksack oder Truhe (Würfel-Rezept Hel + Stadtportal, Würfel wirkt überall); zweiter Tipp bestätigt */
+  if((inInv||inSt)&&!eq&&(it.socks||[]).length&&G.flags.wuerfel){const ok=hasRune('hel',1)&&G.sc.tp>0;b.push(btn(`🎲 Sockel leeren: Rune Hel + Stadtportal-Rolle${ok?'':' (fehlt)'}<br><span class="dim" style="font-size:12px">Inhalt wird zerstört${it.rw?' – auch das Runenwort '+it.rw:''}</span>`,function(){if(!V.unsk||V.unsk!==it.u){V.unsk=it.u;note('Wirklich leeren? Nochmal tippen – alles in den Sockeln geht verloren.');render();return}V.unsk=null;unsockIt(it)},'',!ok))}
+  if((inInv||inSt)&&it.sock&&it.socks.length<it.sock){h+=`<h2>Einsetzen</h2>`+(stoneUI(it).join('')||'<p class="dim">Keine Edelsteine oder Runen vorhanden.</p>')}
   h+=rwHint(it);
   b.push(btn('◀ Zurück',()=>{V.sel=null;render()}));
   main(h+b.join(''));return;
@@ -5608,20 +5643,37 @@ function stFilt(it,f){if(f==='u')return it.q===3||it.q===4;if(f==='k')return !!(
 function stKey(it){const B=BASES[it.base]||{};return [iname(it),B.n,it.rw,B.en].filter(Boolean).join(' ').replace(/<[^>]*>/g,'').toLowerCase().replace(/"/g,'')}
 function stashQ(){const q=(V.sq||'').trim().toLowerCase();document.querySelectorAll('.strow').forEach(e=>{e.style.display=!q||e.dataset.s.includes(q)?'':'none'})}
 /* Runenwort-Hinweis: welche Runenwörter passen in diesen gesockelten normalen Gegenstand, welche Runen fehlen noch */
-function rwHint(it){if(it.q!==0||!it.sock||it.rw||!(it.socks||[]).every(s=>s.k==='r')||it.socks.length>=it.sock)return '';
+/* Ein Tipp setzt alle fehlenden Runen in der richtigen Reihenfolge ein (zweiter Tipp bestätigt) */
+let RWIT=null;
+/* ⓘ hinter dem Runenwort: alle Eigenschaften mit Wertebereich, Runen, Stufe */
+function unsockIt(it){if(!(hasRune('hel',1)&&G.sc.tp>0))return;takeRune('hel',1);G.sc.tp--;it.aff=it.aff.filter(a=>!a.sock&&!a.rw);it.socks=[];delete it.rw;delete it.rwLvl;delete it.rwV;if(it.rlvlB!==undefined){it.rlvl=it.rlvlB;delete it.rlvlB}calc();save();note('Sockel geleert.');render()}
+function rwInfo(i){const r=RW[i];if(!r)return;const L=[];
+ const sl=(k,v)=>(k==='resAll'||k==='res4')?`Alle Widerstandsarten +${v}`:statLine({stat:k,v});
+ const num=t=>{const m=String(t).replace(/<[^>]*>/g,'').match(/-?\d+(?:[.,]\d+)?/);return m?m[0]:''};
+ (r.a||[]).forEach(e=>{const lo=e[1],hi=e[2]??e[1];let t='';try{t=sl(e[0],hi)}catch(x){t=e[0]+' '+hi}if(lo!=null&&hi!=null&&lo!==hi){let a=lo,b=hi;try{a=num(sl(e[0],lo))||lo;b=num(t)||hi}catch(x){}t+=` <span class="rng">[${a}–${b}]</span>`}L.push(t)});
+ (r.t||[]).forEach(t=>L.push(t));
+ const d=document.createElement('div');d.id='zoom';
+ d.innerHTML=`<div class="mcard zic" style="text-align:left"><h2 class="qr" style="font-size:20px;margin-bottom:2px">${r.n}</h2><p class="dim" style="margin:0 0 6px">Benötigt Stufe ${r.lvl||1} · ${r.n_s} Sockel</p><p style="margin:0 0 8px">${r.r.split(' ').map(id=>`<b class="qr">${RUNE[id].n}</b>`).join(' → ')}</p><div style="font-size:15px;line-height:1.45">${L.join('<br>')}</div><p class="dim" style="font-size:12px;margin-top:8px">Dazu kommen die Eigenschaften der einzelnen Runen. Werte in [ ] werden beim Erstellen gewürfelt.</p><p class="dim center" style="font-size:12px">Antippen zum Schließen</p></div>`;
+ d.onclick=()=>d.remove();document.body.appendChild(d)}
+function rwFill(el,i){const it=RWIT,r=RW[i];if(!it||!r)return;if(!el.dataset.ok){el.dataset.ok=1;el.innerHTML=`Sicher? Runen werden verbraucht – nochmal tippen`;return}
+ const need=r.r.split(' ').slice((it.socks||[]).length);if(need.some((id,k)=>(G.runes[id]||0)<need.slice(0,k+1).filter(x=>x===id).length))return note('Nicht genug Runen.');
+ for(const id of need){if(insertStone(it,{k:'r',r:id}))break;takeRune(id,1)}calc();save();if(it.rw)V.rwmsg=`Runenwort entstanden: ${it.rw}!`;render()}
+function rwHint(it){RWIT=it;if(it.q!==0||!it.sock||it.rw||!(it.socks||[]).every(s=>s.k==='r')||it.socks.length>=it.sock)return '';
  const have=it.socks.map(s=>s.r),L=RW.filter(r=>r.n_s===it.sock&&rwFits(r,it)&&r.r.split(' ').slice(0,have.length).join(' ')===have.join(' '));
  if(!L.length)return `<h2>Runenwörter</h2><p class="dim">Für ${it.sock} Sockel in dieser Basis gibt es kein Runenwort${have.length?' mit diesem Anfang':''}.</p>`;
  const rows=L.map(r=>{const need=r.r.split(' ').slice(have.length),cnt={};let miss=0;const parts=need.map(id=>{cnt[id]=(cnt[id]||0)+1;const ok=(G.runes[id]||0)>=cnt[id];if(!ok)miss++;return `<span class="${ok?'good':'bad'}">${RUNE[id].n}</span>`});
-  return {r,miss,html:`<div class="akrow"><span><b>${r.n}</b> <span class="dim">· St. ${r.lvl||1}</span></span><span>${have.map(id=>`<span class="dim">${RUNE[id].n}</span>`).concat(parts).join(' ')}</span></div>`}}).sort((a,b)=>a.miss-b.miss||(a.r.lvl||0)-(b.r.lvl||0));
+  return {r,miss,html:`<div class="akrow"><span><b>${r.n}</b> <span class="rwi" onclick="event.stopPropagation();rwInfo(${RW.indexOf(r)})">ⓘ</span> <span class="dim">· St. ${r.lvl||1}</span></span><span>${have.map(id=>`<span class="dim">${RUNE[id].n}</span>`).concat(parts).join(' ')}</span></div>${miss?'':`<button class="rwgo" onclick="rwFill(this,${RW.indexOf(r)})">✨ ${r.n} einsetzen (${need.length} Rune${need.length>1?'n':''})</button>`}`}}).sort((a,b)=>a.miss-b.miss||(a.r.lvl||0)-(b.r.lvl||0));
  return `<h2>Runenwörter</h2><p class="dim">Passend für ${it.sock} Sockel. Grün = Rune vorhanden, rot = fehlt. Reihenfolge beachten.</p><div class="box akbox">${rows.slice(0,15).map(x=>x.html).join('')}</div>${rows.length>15?`<p class="dim">… und ${rows.length-15} weitere.</p>`:''}`}
 /* Hilfe im Reiter Charakter → Einstellungen: jede Funktion kurz erklärt (aufklappbar) */
 const HELP=[
  ['🗺️ Ereignis & Reisen','<p>Im Reiter <b>Ereignis</b> spielst du: Gebiete betreten, Schritt für Schritt Begegnungen, Truhen und Ereignisse erleben, am Ende wartet oft ein Boss. In der Stadt sprichst du mit Händlern, Heilern und Quest-Gebern. Zurück in die Stadt geht es per Wegpunkt oder Stadtportal-Schriftrolle.</p>'],
  ['⚔️ Kampf & Auto-Kampf','<p>Im Kampf wählst du eine Fertigkeit und ein Ziel. <b>Auto-Kampf</b> kämpft selbstständig mit der eingestellten Hauptfertigkeit, Falle und Fluch und hört bei wenig Leben auf. Stirbst du, verlierst du Gold, wachst in der Stadt auf und das Gebiet beginnt von vorn.</p>'],
  ['🧪 Tränke & Gürtel','<p>Tränke liegen zuerst im Gürtel (Plätze hängen vom Gürtel ab). Was nicht hineinpasst, liegt im Talisman-Raster. Trinken kannst du im Kampf oder im Reiter <b>Alchemie</b>. Verjüngungstränke füllen Leben und Mana zugleich. Oben in der Leiste siehst du, wie viele Heil-, Mana- und Verjüngungstränke du hast.</p>'],
- ['🎒 Inventar & Talisman-Raster','<p><b>Rucksack:</b> Ausrüstung, die du gerade nicht trägst. Gegenstand antippen = Details, anlegen, verkaufen, identifizieren.</p><p><b>Talisman-Raster (10×4):</b> nur Talismane und übrige Tränke. Talismane wirken nur, solange sie hier liegen. Neu gefundene Talismane landen erst im <b>Rucksack</b>: antippen → „Ins Talisman-Raster legen“. Was im Raster liegt, gehört zur festen Ausrüstung und kann nicht verkauft werden – erst „Ablegen“, dann verkaufen. Mit dem Finger kannst du jedes Teil auf ein freies Feld ziehen (gold = passt, rot = passt nicht); gleich große Teile tauschen den Platz. <b>Auto sortieren</b> packt alles dicht zusammen.</p><p><b>Truhe:</b> Suchfeld und Filter (Waffen, Rüstung, Schmuck, Einzigartig & Set, Sockel & Runenwort).</p><p><b>Seltene Funde:</b> Einzigartige, Set-Gegenstände und Runen ab Pul erscheinen mit goldenem Lichtstrahl und Klang.</p>'],
- ['💎 Sockeln','<p><b>Einsetzen:</b> Gegenstand mit freiem Sockel antippen → Edelstein, Rune oder Juwel wählen. Die richtige Runen-Reihenfolge in einem normalen (weißen/grauen) Gegenstand ergibt ein <b>Runenwort</b>. Eingesetztes lässt sich nicht einzeln herausnehmen.</p><p><b>Runenwort-Hinweis:</b> Ein normaler Gegenstand mit freien Sockeln zeigt, welche Runenwörter hineinpassen; grün = Rune vorhanden, rot = fehlt.</p><p><b>Gefundene Sockel:</b> Wie in D2 fällt jeder dritte normale Gegenstand schon mit Sockeln (Normal höchstens 3, Albtraum 4, Hölle 6).</p><p><b>Sockel bekommen:</b> Larzuk (Akt 5) gegen Gold (2.000 + 100 je Charakterstufe), beliebig oft; die Quest „Belagerung von Harrogath“ schenkt je Schwierigkeitsgrad einen kostenlosen Sockel. Normal = Höchstzahl, magisch 1–2, selten/Set/Einzigartig = 1. Oder im Würfel: Rezept je Gegenstandsart (nur normale Gegenstände, 1–6 Sockel, gedeckelt), seltene Gegenstände mit 3 perfekten Schädeln + Stein von Jordan (1 Sockel).</p><p><b>Entsockeln:</b> Horadrim-Würfel: Hel-Rune + Stadtportal-Schriftrolle + Gegenstand. Die Sockel bleiben, aber <b>alles darin wird zerstört</b> (auch ein Runenwort).</p>'],
+ ['🎒 Inventar & Talisman-Raster','<p><b>Rucksack:</b> Ausrüstung, die du gerade nicht trägst. Gegenstand antippen = Details, anlegen, verkaufen, identifizieren. <b>Lange auf die Details drücken</b> = Wertebereiche [min–max] ein/aus, ★ = Höchstwert. Bild antippen = große Karte mit allen Werten (auch beim Händler und Verkaufen).</p><p><b>Rucksack-Filter:</b> Alle, Waffen, Rüstung, Schmuck, Neu (NEU-Markierung), Verkaufbar (Schrott). ▲/▼ vergleicht mit deiner getragenen Ausrüstung – auch in Beute, Händler und Verkauf. <b>📜 Alle identifizieren</b> verbraucht je Gegenstand eine Schriftrolle; bei Cain ist es kostenlos bzw. 25 Gold je Stück. Weiße/graue Gegenstände sind nie unidentifiziert.</p><p><b>Haltbarkeit</b> gibt es nicht – Gegenstände gehen nie kaputt.</p><p><b>Talisman-Raster (10×4):</b> nur Talismane und übrige Tränke. Talismane wirken nur, solange sie hier liegen. Neu gefundene Talismane landen erst im <b>Rucksack</b>: antippen → „Ins Talisman-Raster legen“. Was im Raster liegt, gehört zur festen Ausrüstung und kann nicht verkauft werden – erst „Ablegen“, dann verkaufen. Mit dem Finger kannst du jedes Teil auf ein freies Feld ziehen (gold = passt, rot = passt nicht); gleich große Teile tauschen den Platz. <b>Auto sortieren</b> packt alles dicht zusammen.</p><p><b>Truhe:</b> Suchfeld und Filter (Waffen, Rüstung, Schmuck, Einzigartig & Set, Sockel & Runenwort).</p><p><b>Seltene Funde:</b> Einzigartige, Set-Gegenstände und Runen ab Pul erscheinen mit goldenem Lichtstrahl und Klang.</p>'],
+ ['💎 Sockeln','<p><b>Einsetzen:</b> Gegenstand mit freiem Sockel antippen → Edelstein, Rune oder Juwel wählen. Die richtige Runen-Reihenfolge in einem normalen (weißen/grauen) Gegenstand ergibt ein <b>Runenwort</b>. Eingesetztes lässt sich nicht einzeln herausnehmen.</p><p><b>Runenwort-Hinweis:</b> Ein normaler Gegenstand mit freien Sockeln zeigt, welche Runenwörter hineinpassen; grün = Rune vorhanden, rot = fehlt. Sind alle Runen da, setzt <b>„✨ … einsetzen“</b> sie mit einem Tipp in der richtigen Reihenfolge ein (zweiter Tipp bestätigt). Geht im Rucksack und direkt in der Truhe. Das ⓘ hinter jedem Runenwort zeigt alle Eigenschaften mit Wertebereichen.</p><p><b>Basis:</b> nur normale (weiße/graue) Gegenstände, genau so viele Sockel wie das Runenwort Runen hat, passende Gegenstandsart. Weiße und graue Gegenstände sind nie unidentifiziert – sofort einsetzbar, kein Würfel nötig.</p><p><b>Rohlinge finden:</b> Wie in D2 fällt jeder dritte normale Gegenstand schon mit Sockeln (Normal höchstens 3, Albtraum 4, Hölle 6) – grob jeder 10. Waffen-/Rüstungsfund. Weiße ohne Sockel gibt es auch bei den Schmieden (Charsi, Fara, Hratli, Halbu, Larzuk). Die Höchstzahl hängt von Basis und Gegenstandsstufe ab.</p><p><b>Sockel bekommen:</b> Larzuk (Akt 5) gegen Gold (2.000 + 100 je Charakterstufe), beliebig oft; die Quest „Belagerung von Harrogath“ schenkt je Schwierigkeitsgrad einen kostenlosen Sockel. Normal = Höchstzahl, magisch 1–2, selten/Set/Einzigartig = 1. Oder im Würfel (nur normale Gegenstände, zufällig 1–6 Sockel, gedeckelt auf die Höchstzahl): Waffe = Ral + Amn + Perfekter Amethyst · Rüstung = Tal + Thul + Perfekter Topas · Helm = Ral + Thul + Perfekter Saphir · Schild = Tal + Amn + Perfekter Rubin; seltene Gegenstände mit 3 perfekten Schädeln + Stein von Jordan (1 Sockel).</p><p><b>Entsockeln:</b> Hel-Rune + Stadtportal-Schriftrolle – direkt in der Gegenstandsansicht (Rucksack oder Truhe, „🎲 Sockel leeren“, zweiter Tipp bestätigt) oder im Horadrim-Würfel. Die Sockel bleiben, aber <b>alles darin wird zerstört</b> (auch ein Runenwort).</p>'],
  ['🧊 Horadrim-Würfel & Herstellen','<p>Im Reiter <b>Herstellen</b>: Edelsteine und Runen aufwerten, Gegenstände neu würfeln, Handwerk, Aufwerten von Einzigartigen und Sets, Portale (Kuhlevel, Uber-Schlüssel, Uber-Tristram) und Charsis Imbue. Erst Gegenstand in den Würfel legen, dann Rezept wählen. Der Würfel funktioniert überall wie in D2, nur Portale öffnen sich in der Stadt.</p>'],
+ ['🏰 Stadt & Händler','<p>Das <b>Stadtmenü</b> (Truhe, Würfel, Reisen …) lässt sich auf- und zuklappen, damit die NPCs gleich sichtbar sind. <b>🌀 Durchs Portal zurück</b> erscheint, wenn du per Stadtportal gekommen bist, und bringt dich an dieselbe Stelle im Gebiet.</p><p><b>Verkaufen:</b> jede Zeile zeigt die Werte, ▲/▼ und den Preis; Talismane im Raster werden nicht angeboten. <b>↩ Rückkauf</b> wie in D2: die letzten 20 Verkäufe zum Verkaufspreis, bis du die Stadt verlässt. <b>Gesamte Beute / Schrott verkaufen</b> lässt Talismane, Juwelen und graue Rohlinge mit Sockeln liegen.</p><p><b>Cain</b> identifiziert alles auf einmal. <b>Larzuk</b> sockelt gegen Gold. Tränke und Schriftrollen gibt es bei Heilern und Händlern.</p>'],
+ ['☠️ Endgame','<p><b>Schreckenszonen</b> gibt es nach dem Sieg über Baal im jeweiligen Schwierigkeitsgrad – jede volle Stunde ein anderes Gebiet, Monster werden auf deine Stufe gehoben. <b>Uber-Tristram</b>: Schlüssel → Organe → Höllenfeuer-Fackel. <b>Kolossale Urahnen</b>: mit den Statuen; vor dem Kampf wählst du, wer zuletzt fällt (bestimmt das Kolossale Juwel). Aus Bosskämpfen kann man nicht fliehen.</p><p><b>Meister-Spielstand</b> (Startbildschirm): Stufe 99 mit BiS-Ausrüstung; in der Truhe alle Einzigartigen und Set-Teile, die BiS-Runenwörter und leere graue Rohlinge – alles mit Höchstwerten – dazu Runen, Edelsteine, Schlüssel und Organe zum Ausprobieren.</p>'],
  ['👥 Söldner','<p>Söldner heuerst du in der Stadt an. Du kannst ihm Waffe, Rüstung und Helm geben. Stirbt er, lässt er sich gegen Gold wiederbeleben.</p>'],
  ['📜 Quests & Schwierigkeit','<p>Quests stehen unter Charakter → Quests mit ihren Belohnungen. Nach Baal kannst du in Albtraum und Hölle weiterspielen (Monster stärker, Widerstände sinken wie in D2).</p>'],
  ['🎲 Spielmodi','<p><b>Diablo 2:</b> möglichst genau wie D2R. <b>Aschenchronik:</b> Standard mit eigenen Ereignissen. <b>D&amp;D:</b> sichtbarer W20, Initiative, Gesinnung, Rasten und Chronik. Der Modus wird beim Erstellen festgelegt.</p>'],
@@ -6335,6 +6387,15 @@ if(!J) (B.rest||B.sk.map(x=>x[0])).forEach(x=>{const id=sid(x);if(id)while(G.spt
  UNIQ.forEach(u=>{if(BASES[u.base].slot!=='charm'&&!Object.values(G.eq).some(e=>e&&e.uid===u.id))G.stash.push(uq(u.id))});
  SETS.forEach((s,si)=>s.pieces.forEach((p,pi)=>{const it=mkSetPiece(si,pi);it.unid=false;G.stash.push(it)}));
  UNIQ.filter(u=>u.sunder===1).forEach(u=>G.stash.push(uq(u.id)));
+ /* Meister-Truhe: die gängigen BiS-Runenwörter (perfekte Werte) und leere graue Rohlinge zum Selbstbauen */
+  {[['Rätsel','d_archonplate_3'],['Seelenstärke','d_archonplate_3'],['Ketten der Ehre','d_archonplate_3'],['Dornen','d_archonplate_3'],['Verrat','leichteruestung_3'],
+  ['Unendlichkeit','d_thresher_3'],['Einsicht','d_thresher_3'],['Trauer','phasenklinge_3'],['Letzter Wunsch','phasenklinge_3'],['Hand der Gerechtigkeit','phasenklinge_3'],
+  ['Ruf zu den Waffen','d_crystalsword_1'],['Geist','d_crystalsword_1'],['Geist','grossschild_3'],['Herz der Eiche','d_flail_1'],['Bestie','d_berserkeraxe_3'],['Odem der Sterbenden','d_berserkeraxe_3'],
+  ['Tod','d_berserkeraxe_3'],['Verdammnis','d_crypticaxe_3'],['Stolz','d_greatpoleaxe_3'],['Phönix','grossschild_3'],['Exil','d_sacredtarge_3'],['Traum','knochenhelm_3'],['Glaube','d_grandmatronbow_3']]
+  .forEach(([n,b])=>{try{if(BASES[b]&&RW.some(r=>r.n===n)){const it=mkRW(b,n);if(it&&it.rw)G.stash.push(it)}}catch(e){}});
+  [['d_archonplate_3',3],['d_archonplate_3',4],['leichteruestung_3',3],['d_thresher_3',4],['d_crystalsword_1',4],['d_crystalsword_1',5],['phasenklinge_3',5],['phasenklinge_3',6],
+   ['d_berserkeraxe_3',5],['d_berserkeraxe_3',6],['d_flail_1',4],['grossschild_3',4],['d_sacredtarge_3',4],['knochenhelm_3',3],['d_grandmatronbow_3',4],['d_crypticaxe_3',5],['d_greatpoleaxe_3',4]]
+  .forEach(([b,n])=>{if(!BASES[b])return;const it=mkItem(b,0,85);it.unid=false;it.sock=Math.min(n,maxSock(it));it.socks=[];if(it.sock>0)G.stash.push(it)})}
  G.org={horn:1,eye:1,brain:1};
  RUNES.forEach(r=>{G.runes[r.id]=20});
  GEMKEYS.forEach(t=>{for(let q=1;q<=5;q++)G.gems[t+q]=q>=4?10:3});
