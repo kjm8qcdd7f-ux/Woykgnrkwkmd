@@ -2804,7 +2804,7 @@ RWD('Stolz','cham sur io lo',67,['polearm','spear','javelin'],[['wLight',165],['
 RWD('Zerrissenheit','hel ko lem gul',53,['mace','polearm'],[['wMagic',205],['wFire',120]].concat(RAS(8)),['38% erlittener Schaden geht auf Mana','20% Chance, Level 16 Tornado auf Schlag zu zaubern','16% Chance, Level 21 Frostsphäre auf Angriff zu zaubern','Level 15 Eiserne Jungfrau (40 Ladungen)']);
 RWD('Geist','tal thul ort amn',25,['sword','shield'],[['allsk',2],['fcr',30],['fhr',55],['vit',22],['mana',101]],['+250 zur Verteidigung gegen Geschosse','Absorbiert 3 bis 8 Magieschaden']);
 RWD('Stimme der Vernunft','lem ko el eld',43,['mace','sword'],[['wCold',160],['pierceC',24]],['+220-350% erhöhter Schaden gegen Dämonen','+280-300% erhöhter Schaden gegen Untote','Einfrieren nicht möglich','15% Chance, Level 13 Frostsphäre auf Schlag zu zaubern','18% Chance, Level 20 Eisstoß auf Schlag zu zaubern']);
-RWD('Zorn','pul lum ber mal',63,RBW,[['wMagic',103],['wLight',140]],['+300% erhöhter Schaden gegen Dämonen','+250-300% erhöhter Schaden gegen Untote','Einfrieren nicht möglich','30% Chance, Level 1 Altern auf Schlag zu zaubern','5% Chance, Level 10 Lebensspender auf Schlag zu zaubern']);
+RWD('Wut','pul lum ber mal',63,RBW,[['wMagic',103],['wLight',140]],['+300% erhöhter Schaden gegen Dämonen','+250-300% erhöhter Schaden gegen Untote','Einfrieren nicht möglich','30% Chance, Level 1 Altern auf Schlag zu zaubern','5% Chance, Level 10 Lebensspender auf Schlag zu zaubern']);
 RWD('Knochen','sol um um',47,['body'],[['sk_nekro',2],['mana',125]],['15% Chance, Level 10 Knochenspeer auf Schlag zu zaubern','15% Chance, Level 10 Knochenrüstung bei Treffer zu zaubern']);
 RWD('Erleuchtung','pul ral sol',45,['body'],[['sk_zauberin',2]],['+1 zu Wärme','5% Chance, Level 15 Feuerball auf Schlag zu zaubern','5% Chance, Level 15 Feuersbrunst bei Treffer zu zaubern']);
 RWD('Mythos','hel amn nef',25,['body'],[['sk_barbar',2],['lak',10]],['10% Chance, Level 1 Hohn auf Schlag zu zaubern','3% Chance, Level 1 Heulen bei Treffer zu zaubern']);
@@ -2831,7 +2831,7 @@ const RWR={
 'Trauer':{haste:[30,40],dmgAdd:[340,400],pierceP:[20,25],lak:[10,15]},'Harmonie':{edmg:[200,275],wFire:[55,160],wCold:[55,160],wLight:[55,160]},'Eis':{edmg:[140,210],coldP:[25,30]},
 'Unendlichkeit':{edmg:[255,325],pierceL:[45,55]},'Letzter Wunsch':{edmg:[330,375]},'Gesetzesbringer':{wFire:[150,210],wCold:[130,180]},'Eid':{edmg:[210,340]},
 'Gehorsam':{defF:[200,300],res:[20,30]},'Phönix':{edmg:[350,400]},'Stolz':{wLight:[50,280]},'Zerrissenheit':{wMagic:[160,250],wFire:[60,180],allstat:[5,10]},
-'Geist':{fcr:[25,35],mana:[89,112]},'Stimme der Vernunft':{wCold:[100,220]},'Zorn':{wMagic:[85,120],wLight:[41,240]},'Knochen':{mana:[100,150]},'Prinzip':{life:[100,150]},'Regen':{mana:[100,150]},
+'Geist':{fcr:[25,35],mana:[89,112]},'Stimme der Vernunft':{wCold:[100,220]},'Wut':{wMagic:[85,120],wLight:[41,240]},'Knochen':{mana:[100,150]},'Prinzip':{life:[100,150]},'Regen':{mana:[100,150]},
 'Flamme':{pierceF:[10,15],mana:[50,75]},'Nebel':{edmg:[325,375]},'Besessenheit':{lifeP:[15,25],mregenP:[15,30],res:[60,70]},'Prasseln':{edmg:[40,80],wFire:[12,32]},
 'Pest':{allsk:[1,2],edmg:[220,320]},'Unbeugsamer Wille':{haste:[20,30],edmg:[300,350],ll:[8,10]},'Dornen':{poisonP:[25,50]}};
 const GRP={res:['resF','resC','resL','resP'],allstat:['str','dex','vit','ene']};
@@ -3251,8 +3251,6 @@ const DBASE_ROWS=[{"c": "grim", "q": 1, "de": "Altes Buch", "en": "Old Book", "d
  const byEn=en=>Object.keys(BASES).find(k=>BASES[k].en===en&&!BASES[k].legacy);
  const SUB={buckler:byEn('Buckler'),zauberstab:byEn('Wand')};
  Object.keys(CLASSES).forEach(c=>{const st=CLASSES[c].start;if(st)CLASSES[c].start=st.map(k=>SUB[k]||k)});
- /* Gleichnamige Basen eindeutig benennen (nur Anzeige; Schlüssel bleiben gleich, damit Spielstände passen) */
- [['Great Bow','Großbogen'],['Jo Staff','Jo-Stab'],['Trellised Armor','Gitterrüstung'],['Casque','Sturmhaube'],['Blade Bow','Sichelbogen'],['Flying Knife','Flugmesser']].forEach(([en,n])=>{const k=byEn(en);if(k)BASES[k].n=n});
  window.DBASE_BYEN=byEn;
  window.DBASE_LEGACY=oldKeys.filter(k=>BASES[k].legacy);
 })();
