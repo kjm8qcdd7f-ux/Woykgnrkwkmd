@@ -3251,6 +3251,8 @@ const DBASE_ROWS=[{"c": "grim", "q": 1, "de": "Altes Buch", "en": "Old Book", "d
  const byEn=en=>Object.keys(BASES).find(k=>BASES[k].en===en&&!BASES[k].legacy);
  const SUB={buckler:byEn('Buckler'),zauberstab:byEn('Wand')};
  Object.keys(CLASSES).forEach(c=>{const st=CLASSES[c].start;if(st)CLASSES[c].start=st.map(k=>SUB[k]||k)});
+ /* Gleichnamige Basen eindeutig benennen (nur Anzeige; Schlüssel bleiben gleich, damit Spielstände passen) */
+ [['Great Bow','Großbogen'],['Jo Staff','Jo-Stab'],['Trellised Armor','Gitterrüstung'],['Casque','Sturmhaube'],['Blade Bow','Sichelbogen'],['Flying Knife','Flugmesser']].forEach(([en,n])=>{const k=byEn(en);if(k)BASES[k].n=n});
  window.DBASE_BYEN=byEn;
  window.DBASE_LEGACY=oldKeys.filter(k=>BASES[k].legacy);
 })();
