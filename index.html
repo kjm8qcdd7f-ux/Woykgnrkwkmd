@@ -4758,7 +4758,7 @@ function accScene(){
  titleFx();
 }
 /* ===== Sicherung aller Spielstände dieses Geräts ===== */
-const GAMEVER='18.11.2026';
+const GAMEVER='19.11.2026';
 function bakT(){try{return +localStorage.getItem('d2dnd_lastbak')||0}catch(e){return 0}}
 function bakAgo(){const t=bakT();if(!t)return 'Noch keine Sicherung.';const d=Math.floor((Date.now()-t)/864e5);return 'Letzte Sicherung: '+(d<1?'heute':d===1?'gestern':'vor '+d+' Tagen')+'.'}
 /* dezente Erinnerung: nur wenn es Charaktere gibt und die letzte Sicherung über 7 Tage her ist (bzw. seit 7 Tagen keine) */
@@ -5728,8 +5728,8 @@ function viewCraft(){
 function viewAlch(){
  let h='<h2>Alchemie</h2>';
  h+=`<p>Leben: ${G.hp}/${S.maxHp} · Mana: ${G.mana}/${S.maxMana}</p>`;
- POTK.forEach(k=>{if(G.pot[k]>0||(!POTS[k].rj&&(k.endsWith('1')||k.endsWith('2'))))h+=btn(`${ico(POTIC[k])}${POTS[k].n} verwenden · ${G.pot[k]}`,()=>{if(usePot(k)){save();render()}},'',!G.pot[k]||(POTS[k].hp&&G.hp>=S.maxHp)||(POTS[k].mp&&G.mana>=S.maxMana))});
- h+=`<div class="box">Identifizierungs-Schriftrollen: <b>${G.sc.id}</b> · Stadtportale: <b>${G.sc.tp}</b><br><span class="dim">Identifizieren: Reiter Inventar → Gegenstand antippen. Kaufen bei Akara.</span></div>`;
+ POTK.forEach(k=>{/* alle Heil- und Manatrank-Stufen immer zeigen (auch mit 0), Verjüngung nur wenn vorhanden */if(G.pot[k]>0||!POTS[k].rj)h+=btn(`${ico(POTIC[k])}${POTS[k].n} verwenden · ${G.pot[k]}`,()=>{if(usePot(k)){save();render()}},'',!G.pot[k]||(POTS[k].hp&&G.hp>=S.maxHp)||(POTS[k].mp&&G.mana>=S.maxMana))});
+ h+=`<div class="box">Identifizierungs-Schriftrollen: <b>${G.sc.id}</b> · Stadtportale: <b>${G.sc.tp}</b><br><span class="dim">Identifizieren: Reiter Inventar → Gegenstand antippen. Kaufen bei ${['Akara','Drognan','Ormus','Jamella','Malah'][(G.act||1)-1]||'Akara'}. Tränke: ${(G.diff||0)===2?'in der Hölle nur Volle':(G.diff||0)===1?'in Albtraum nur Große':'in Normal je nach Akt'}.</span></div>`;
  main(h);
 }
 /* ===== Start ===== */
