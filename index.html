@@ -365,7 +365,7 @@ button.mcard .mci .ei{margin:0!important;vertical-align:0!important;display:bloc
 .shr{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:15px}.shr>span:first-child{flex:1;color:#c9b88f}.shb{color:#9a8a6a;font-size:13px;text-align:right}.shv{min-width:52px;text-align:right;color:#f0e2bf}.shy{color:#ffe66a}
 .shat .shctl{display:flex;align-items:center;gap:4px}.shat .shb{min-width:34px;text-align:center;padding:3px 6px;border:1px solid #3a2a1a;border-radius:6px;background:#0b0907;color:#f0e2bf;font-size:15px}.shat button.sm{margin:0;min-width:32px;padding:4px 2px;font-size:13px}
 .shsk{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer}.shsk>b{flex:1;font-weight:600}.shdet{padding:2px 0 8px 36px;border-bottom:1px solid #2a1d10}.shd{font-size:13px;color:#a99b78;line-height:1.4;margin-top:4px}
-.rf{color:#ff8a5a}.rc{color:#7fc2ff}.rl{color:#ffe36a}.rp{color:#8be37a}.shoph{display:flex;align-items:center;justify-content:space-between;gap:8px}.shoph h2{margin:0}.shoph button{width:auto;flex:none;padding:6px 10px;font-size:13px;margin:0}</style></head>
+.rf{color:#ff8a5a}.rc{color:#7fc2ff}.rl{color:#ffe36a}.rp{color:#8be37a}.shoph{display:flex;align-items:center;justify-content:space-between;gap:8px}.shoph h2{margin:0}.shoph button{width:auto;flex:none;padding:6px 10px;font-size:13px;margin:0}.shdum{margin:10px 0 4px}.shdum button{width:100%}</style></head>
 <body><div id="app"><header id="hud"></header><main id="main"></main><footer id="btns"></footer><nav id="tabs"></nav></div>
 <script>/* js/atlas.js */
 /* Unique-IDs im Spiel sind ab u107 um 1 verschoben (Khalims Wille belegte u106); EN-Namen, Stufen-Tabelle und Bild-Atlas zählen ohne ihn */
@@ -830,7 +830,7 @@ function wipeSave(){if(ACC&&G&&G.cid)delChar(G.cid);else try{localStorage.remove
 function exportSave(){return btoa(unescape(encodeURIComponent(JSON.stringify(G))))}
 function importSave(t){try{const g=JSON.parse(decodeURIComponent(escape(atob(t.trim()))));if(!g||!g.cls||!g.stat)return false;delete g.cid;G=g;migrate();calc();save();return true}catch(e){return false}}
 /* Spielmodi (beim Erstellen festgelegt): d2 = Diablo 2 pur, ac = Aschenchronik (Standard), dnd = D&D */
-const MODES={d2:{n:'Diablo 2',ic:'🔥',d:'D2R-Erfahrung (≈ 500 h bis 99) mit /players-Bonus, D2-Gruppengrößen, keine Würfel'},ac:{n:'Aschenchronik',ic:'⚔️',d:'Der bisherige Mix aus Diablo 2 und D&D (≈ 15 h bis 99)'},dnd:{n:'D&D',ic:'🎲',d:'Sichtbare W20-Würfe, Initiative, Proben mit steigendem SG, Rast am Lagerfeuer, Gesinnung & Inspiration, Chronik – Kampfwerte bleiben D2'}};
+const MODES={d2:{n:'Diablo 2',ic:'🔥',d:'D2R-Erfahrung (≈ 500 h bis 99) mit /players-Bonus, D2-Gruppengrößen, keine Würfel'},ac:{n:'Aschenchronik',ic:'⚔️',d:'Der bisherige Mix aus Diablo 2 und D&D (≈ 60 h bis 99, ab Stufe 70 abgeschwächter D2-Abschlag)'},dnd:{n:'D&D',ic:'🎲',d:'Sichtbare W20-Würfe, Initiative, Proben mit steigendem SG, Rast am Lagerfeuer, Gesinnung & Inspiration, Chronik – Kampfwerte bleiben D2'}};
 /* D&D: Gesinnungen (Gesetz/Chaos × Gut/Böse) */
 const ALIGN={rg:'Rechtschaffen gut',ng:'Neutral gut',cg:'Chaotisch gut',rn:'Rechtschaffen neutral',nn:'Neutral',cn:'Chaotisch neutral',re:'Rechtschaffen böse',ne:'Neutral böse',ce:'Chaotisch böse'};
 /* D&D: Chronik – wichtige Ereignisse ins Abenteuerbuch */
@@ -840,8 +840,8 @@ const d20Need=hc=>Math.max(2,Math.min(20,21-Math.round(hc/5)));
 /* Kurze Erklärung der Modi (Charaktererstellung, Einstellungen, Intro) */
 const MODEINFO={
  d2:{kurz:'So nah an Diablo II: Resurrected wie möglich – langsam, hart, ehrlich.',p:['Erfahrung wie in D2R: ab Stufe 70 deutlich weniger, ≈ 500 Stunden bis Stufe 99.','/players 1–8 wie in D2R: mehr Monsterleben und -schaden, bessere Beute – und mehr Erfahrung (× (Spieler+1)/2).','Monstergruppen in D2-Größe: eine Monsterart mit Gefolge, bis zu 10 Gegner.','Keine Würfel: kein kritischer Treffer durch eine gewürfelte 20, nur Tödlicher und Kritischer Schlag wie in D2.','Ereignisse bleiben als Geschichte, Proben laufen ohne sichtbaren Würfel. Truhen öffnen sich einfach.','Nach jedem Kampf eine kleine Erholung (5 % Leben, 10 % Mana) als Ausgleich für die feste Wegführung.']},
- ac:{kurz:'Der Standard: Diablo II mit einer Prise D&D – flotter Fortschritt, gleiche Kampfwerte.',p:['Erfahrung ≈ 15 Stunden bis Stufe 99.','Kleine gemischte Gruppen (2–4, in Hölle 3–5 Gegner).','/players erhöht Monsterleben, -schaden und Beute, aber nicht die Erfahrung.','Eine gewürfelte 20 ist zusätzlich ein kritischer Treffer – für dich und die Monster.','Ereignisse mit W20-Proben; Schwierigkeit und Belohnung wachsen mit dem Gebiet.','Nach jedem Kampf 5 % Leben und 10 % Mana zurück.']},
- dnd:{kurz:'So viel Pen-&-Paper wie möglich – die Kampfwerte bleiben trotzdem Diablo II.',p:['Jeder Angriff ist ein sichtbarer W20-Wurf; natürliche 20 trifft immer und ist kritisch, natürliche 1 ist ein Patzer.','Initiative zu Kampfbeginn (W20 + Geschick); wer verliert, wird zuerst angegriffen.','Proben mit Attribut-Modifikator gegen einen Schwierigkeitsgrad, der mit dem Gebiet wächst. Truhen: untersuchen, knacken oder aufbrechen.','Lagerfeuer: volle Erholung, aber Überfall-Gefahr. Kurze Rast: einmal pro Gebiet die Hälfte zurück.','Gesinnung: Handeln nach ihr schenkt Inspiration (Vorteil – zweimal würfeln). Gute Helden zahlen 10 % weniger beim Händler, böse finden 25 % mehr Gold, rechtschaffene rasten wachsamer, chaotische sind schneller (+2 Initiative).','Eigene Begegnungen mit moralischen Entscheidungen und eine Chronik deines Abenteuers.','Erfahrung ≈ 15 Stunden bis 99; /players ohne Erfahrungsbonus.']}};
+ ac:{kurz:'Der Standard: Diablo II mit einer Prise D&D – flotter Fortschritt, gleiche Kampfwerte.',p:['Erfahrung ≈ 60 Stunden bis Stufe 99 – ab Stufe 70 mit abgeschwächtem D2-Abschlag für hohe Stufen.','Kleine gemischte Gruppen (2–4, in Hölle 3–5 Gegner).','/players erhöht Monsterleben, -schaden und Beute, aber nicht die Erfahrung.','Eine gewürfelte 20 ist zusätzlich ein kritischer Treffer – für dich und die Monster.','Ereignisse mit W20-Proben; Schwierigkeit und Belohnung wachsen mit dem Gebiet.','Nach jedem Kampf 5 % Leben und 10 % Mana zurück.']},
+ dnd:{kurz:'So viel Pen-&-Paper wie möglich – die Kampfwerte bleiben trotzdem Diablo II.',p:['Jeder Angriff ist ein sichtbarer W20-Wurf; natürliche 20 trifft immer und ist kritisch, natürliche 1 ist ein Patzer.','Initiative zu Kampfbeginn (W20 + Geschick); wer verliert, wird zuerst angegriffen.','Proben mit Attribut-Modifikator gegen einen Schwierigkeitsgrad, der mit dem Gebiet wächst. Truhen: untersuchen, knacken oder aufbrechen.','Lagerfeuer: volle Erholung, aber Überfall-Gefahr. Kurze Rast: einmal pro Gebiet die Hälfte zurück.','Gesinnung: Handeln nach ihr schenkt Inspiration (Vorteil – zweimal würfeln). Gute Helden zahlen 10 % weniger beim Händler, böse finden 25 % mehr Gold, rechtschaffene rasten wachsamer, chaotische sind schneller (+2 Initiative).','Eigene Begegnungen mit moralischen Entscheidungen und eine Chronik deines Abenteuers.','Erfahrung ≈ 60 Stunden bis 99 (ab Stufe 70 abgeschwächter D2-Abschlag); /players ohne Erfahrungsbonus.']}};
 function modeInfoHtml(k){const m=MODES[k],i=MODEINFO[k];return `<div class="box"><h3 style="margin:0 0 4px">${m.ic} ${m.n}</h3><p style="margin:0 0 6px"><i>${i.kurz}</i></p><ul style="margin:0;padding-left:18px">${i.p.map(x=>`<li style="margin:3px 0">${x}</li>`).join('')}</ul></div>`}
 const gMode=()=>(G&&MODES[G.mode])?G.mode:'ac';
 function newGame(name,cls,hc,mode,al){
@@ -957,6 +957,7 @@ function gainXp(n){
  if(G.lvl>=99){G.xp=0;return []}
  G.xp+=n;const m=[];
  while(G.lvl<99&&G.xp>=xpNeed(G.lvl)){G.xp-=xpNeed(G.lvl);G.lvl++;G.pts+=5;G.spts+=1;m.push(`✨ <b>Stufe ${G.lvl}!</b> +5 Attributspunkte, +1 Fertigkeitspunkt.`);chron(`✨ Stufe ${G.lvl} erreicht.`)}
+ if(G.lvl>=99)G.xp=0;/* D2: auf 99 kein Erfahrungsrest */
  if(m.length){calc();G.hp=S.maxHp;G.mana=S.maxMana}
  return m;
 }
@@ -1187,7 +1188,7 @@ function mkMon(id,o={}){
  m.hp=m.max;
  if(ms0&&ms0.s&&!o.uniq&&!o.minion&&!o.summon&&ms0.l[df]<110)m.lvl+=3;
  m.ac=8+acL(el);m.atk=t.atk+(mATK0(el)-mATK0(t.lvl))+(o.champ?1:0);
- if(o.champ){m.n='Champion '+m.n;m.champ=true;m.xp=Math.round(m.xp*2);m.gold=Math.round(m.gold*2)}
+ if(o.champ){m.n='Champion '+m.n;m.champ=true;m.xp=Math.round(m.xp*3);/* D2: Champions ×3 Erfahrung */m.gold=Math.round(m.gold*2)}
  /* D2: Unique +3 Stufen, ×4/×3/×2 Leben; Diener ×2/×1,75/×1,5; Erfahrung ×5 (classic.battle.net, Monster-Boni) */
  if(o.uniq||o.minion){if(!ms)m.max=Math.round(m.max*(o.uniq?[4,3,2][df]:[2,1.75,1.5][df]));m.hp=m.max;m.lvl+=3;m.xp=Math.round(m.xp*5);m.gold=Math.round(m.gold*(o.uniq?3:1.5));if(o.uniq)m.uniq=true;else m.minion2=true}
  if(!o.summon&&typeof tzOn==='function'&&tzOn())tzAdjust(m,(o.uniq||o.minion||t.boss)?2:o.champ?1:0,o);
@@ -1458,6 +1459,7 @@ function monAct(m){
  if(m.st.stun>0){m.st.stun--;logC(`💫 ${m.n} ist betäubt.`);return}
  if(m.st.fear>0){m.st.fear--;logC(`😱 ${m.n} flieht in Panik.`);return}
  if(m.st.hard>0){m.st.hard--;logC(`🧊 ${m.n} kann nicht handeln.`);return}
+ if(C&&C.dummy)return;/* Trainingspuppe: Ziel wehrt sich nicht */
  if(m.st.freeze>0){m.st.freeze--;if(C.turn%2===0){logC(`❄️ ${m.n} ist verlangsamt.`);return}}
  {const sp=Math.max((S.M&&S.M.slowP)||0,m.fx.slowP||0);if(sp>0&&d(100)<=sp){logC(`🐌 ${m.n} ist verlangsamt (${Math.round(sp)}%).`);return}}
  if(C.fx.ward>0&&d(100)<=(C.fx.wardV||0)){logC(`🪦 ${m.n} weicht vor dem Totem zurück.`);return}
@@ -1597,10 +1599,11 @@ function rollDrops(m){
    'd2voll' = D2R-Stufenabstand + Abzug ab Stufe 70 (Werte /256 bzw. /1024 nach D2R-Daten) */
 const XPLOW={6:225,7:174,8:92,9:38,10:5},XPDN={6:207,7:159,8:110,9:61,10:13};
 const XPHI=[976,928,880,832,784,736,688,640,592,544,496,448,400,352,304,256,192,144,108,81,61,46,35,26,20,15,11,8,6,5];
-const XPMODES={spiel:'Aschenchronik (≈ 15 h bis 99)',d2voll:'Diablo 2 (≈ 500 h bis 99)'};
+const XPMODES={spiel:'Aschenchronik (≈ 60 h bis 99)',d2voll:'Diablo 2 (≈ 500 h bis 99)'};
 function xpF(ml){const mode=gMode()==='d2'?'d2voll':'spiel',cl=G.lvl;
  /* D&D: ×0,6 → mit dichteren Gruppen ≈ 15 statt 9 Stunden bis 99 */
- if(mode==='spiel')return 0.6*(cl>ml?Math.max(0.05,1-(cl-ml)*0.11):1);
+ /* Aschenchronik: ab Stufe 70 ein abgeschwächter D2-Abschlag für hohe Stufen (D2-Tabelle XPHI hoch 0,815 → ≈ 60 h bis 99: Stufe 85 ×0,32, Stufe 96 ×0,025) */
+ if(mode==='spiel')return 0.6*(cl>ml?Math.max(0.05,1-(cl-ml)*0.11):1)*(cl>=70?Math.pow(XPHI[Math.min(99,cl)-70]/1024,0.815):1);
  const d=Math.max(-10,Math.min(10,ml-cl));let f=1;
  if(d<-5)f=XPDN[-d]/256;else if(d>5)f=cl<25?XPLOW[d]/256:cl/ml;else if(d>0&&cl>=25)f=cl/ml;
  if(mode==='d2voll'&&cl>=70)f*=XPHI[Math.min(99,cl)-70]/1024;
@@ -1979,7 +1982,7 @@ SP(Z,'z_meteor','Meteor',0,24,['z_feuerball','z_feuerwand'],15,0.6,'fire',[35,12
 PS(Z,'z_feuermeister','Feuer-Beherrschung',0,30,['z_meteor'],l=>({fireP:30+7*(l-1)}));
 SM(Z,'z_hydra','Hydra',0,30,['z_feuerwand'],18,0.8,l=>({n:'Hydra',ic:'🐉',hp:999,dmg:[Math.round(RD('z_hydra',l,0,0)*synF({},l,'z_hydra')),Math.round(RD('z_hydra',l,0,1)*synF({},l,'z_hydra'))],hit:10+l,t:8,cap:2,type:'fire',multi:true,cap:2}),'hydra');
 SP(Z,'z_geladen','Combo-Blitz',1,1,[],2,0.2,'light',[1,1],[6,2.5],{bolts:3});
-mk(Z,'z_statik','Statikfeld',1,6,[],{kind:'spell',stS:1,cost:l=>9,d:l=>`Entzieht allen Gegnern 25% ihres aktuellen Lebens als Blitzschaden (durch Blitzwiderstand verringert, nicht durch Blitz-Bonus verstärkt). Tötet nie; senkt nicht unter ${['1 Leben','33% (Alptraum)','50% (Hölle)'][G.diff||0]} des Max-Lebens.`,use:(t,l)=>alive().forEach(m=>{const fl=Math.max(1,Math.ceil(m.max*[0,1/3,0.5][G.diff||0])),room=m.hp-fl;if(room<=0){logC(`⚡ Statik → ${m.n}: kein Effekt (Untergrenze)`);return}const x=dealDmg(m,Math.max(1,Math.floor(m.hp*0.25)),'light',{noLL:true,noBonus:true,cap:room});logC(`⚡ Statik → ${m.n}: <b>${x.dm}</b>${x.ex}`)})});
+mk(Z,'z_statik','Statikfeld',1,6,[],{kind:'spell',stS:1,cost:l=>9,d:l=>`Entzieht allen Gegnern 25% ihres aktuellen Lebens als Blitzschaden (durch Blitzwiderstand verringert, nicht durch Blitz-Bonus verstärkt). Tötet nie; senkt nicht unter ${['1 Leben','33% (Alptraum)','50% (Hölle)'][G.diff||0]} des Max-Lebens.`,use:(t,l)=>alive().forEach(m=>{const fl=m.puppe?m.hp:Math.max(1,Math.ceil(m.max*[0,1/3,0.5][G.diff||0])),room=m.hp-fl;if(room<=0){logC(`⚡ Statik → ${m.n}: kein Effekt (Untergrenze)`);return}const x=dealDmg(m,Math.max(1,Math.floor(m.hp*0.25)),'light',{noLL:true,noBonus:true,cap:room});logC(`⚡ Statik → ${m.n}: <b>${x.dm}</b>${x.ex}`)})});
 mk(Z,'z_telekinese','Telekinese',1,6,[],{kind:'spell',cost:l=>4,d:l=>`Ziel: ${3+2*l} Blitzschaden, 70% Betäubung.`,use:(t,l)=>{spell(t,{lo:3+l,hi:3+2*l,type:'light',msg:'Telekinese'});if(t.hp>0&&d(100)<=70)stun(t,1)}});
 SP(Z,'z_nova','Nova',1,12,['z_geladen'],8,0.5,'light',[3,2.5],[10,4],{aoe:true,syn:[['z_statik',3]]});
 SP(Z,'z_blitz','Blitzschlag',1,18,['z_geladen','z_nova'],8,0.5,'light',[8,4],[40,10],{splash:0.3});
@@ -4668,7 +4671,7 @@ function render0(){
  {const a=document.querySelector&&document.querySelector('#app');if(a&&a.classList){a.classList.toggle('fight',!!V.fightUI);a.classList.toggle('area',TAB==='event'&&!!V.areaOn)}}
  {const t=$('#tabs');if(G&&t&&t.style)t.style.display=V.fightUI?'none':'flex'}
 }
-const SKG={door:'<path d="M5 21V4l9-2v19zM16 5h3v16h-3M11 12h1.500" stroke="currentColor" stroke-width="2" fill="none"/>',swap:'<path d="M4 8h13l-3-3M20 16H7l3 3" stroke="currentColor" stroke-width="2" fill="none"/>',cow:'<path d="M4 6l3 3h10l3-3-1 7-3 2v4h-3v-3h-4v3H7v-4l-3-2z"/>',flame:'<path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3-1-4 0-7 1-10z"/>',star:'<path d="M12 2l3 7 7 .5-5.500 4.500 2 7.500L12 17l-6.500 4.500 2-7.500L2 9.500 9 9z"/>',sword:'<path d="M19 2l3 3-9 9-2-2zM9 13l2 2-3 3-2 1 1-2zM4 20l-2 2"/>',shield:'<path d="M12 2l8 3v6c0 5-3.500 9-8 11-4.500-2-8-6-8-11V5z"/>',skull:'<path d="M12 3a8 8 0 0 0-8 8c0 3 1.500 4.500 3 5.500V20h3v-2h4v2h3v-3.500c1.500-1 3-2.500 3-5.500a8 8 0 0 0-8-8z"/>'};
+const SKG={target:'<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="1.500"/>',door:'<path d="M5 21V4l9-2v19zM16 5h3v16h-3M11 12h1.500" stroke="currentColor" stroke-width="2" fill="none"/>',swap:'<path d="M4 8h13l-3-3M20 16H7l3 3" stroke="currentColor" stroke-width="2" fill="none"/>',cow:'<path d="M4 6l3 3h10l3-3-1 7-3 2v4h-3v-3h-4v3H7v-4l-3-2z"/>',flame:'<path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3-1-4 0-7 1-10z"/>',star:'<path d="M12 2l3 7 7 .5-5.500 4.500 2 7.500L12 17l-6.500 4.500 2-7.500L2 9.500 9 9z"/>',sword:'<path d="M19 2l3 3-9 9-2-2zM9 13l2 2-3 3-2 1 1-2zM4 20l-2 2"/>',shield:'<path d="M12 2l8 3v6c0 5-3.500 9-8 11-4.500-2-8-6-8-11V5z"/>',skull:'<path d="M12 3a8 8 0 0 0-8 8c0 3 1.500 4.500 3 5.500V20h3v-2h4v2h3v-3.500c1.500-1 3-2.500 3-5.500a8 8 0 0 0-8-8z"/>'};
 const skSvg=g=>`<svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">${SKG[g]||SKG.star}</svg>`;
 const skGlyph=s=>[({aura:'star',atk:'sword',buff:'shield',summon:'skull',passive:'star'})[s.kind]||'star','#cfc4a8'];
 const skIcon=(id,s,z)=>{z=z||56;const i=SKAT[id];if(i===undefined){const[g,c]=skGlyph(s);return `<span class="gl" style="color:${c}">${skSvg(g)}</span>`}return `<span class="skimg" style="width:${z}px;height:${z}px;background-size:${15*z}px auto;background-position:-${(i%15)*z}px -${Math.floor(i/15)*z}px"></span>`};
@@ -5536,7 +5539,7 @@ function sheetBuffed(fn){const snap=JSON.stringify(G),C0=C,R0=window.render,SC0=
  finally{G=JSON.parse(snap);C=C0;window.render=R0;SC=SC0;V.fightUI=FU;window.logC=lg;if(typeof AUTO!=='undefined')AUTO=AU;calc()}}
 function charSheet(){if(V.shBuff&&!V.inBuff){V.inBuff=1;try{return sheetBuffed(charSheet)}finally{V.inBuff=0}}const D=V.shD!==undefined?V.shD:(G.diff||0);V.shO=V.shO||{sk:1,at:1,lf:1,df:1,bp:1,ak:1,so:0};const O=V.shO;V.shSk=V.shSk||{};
  let res,rmx;{const d0=G.diff,hp0=G.hp,mp0=G.mana;G.diff=D;calc();res={...S.res};rmx={...(S.resMax||{})};G.diff=d0;calc();G.hp=hp0;G.mana=mp0}
- let h=`<div class="hero"><img loading="lazy" decoding="async" class="cpl" src="img/cls/${G.cls}.webp" alt=""><div><h2 style="margin:0">${G.name}</h2><div class="dim">${CLASSES[G.cls].n} · Stufe ${G.lvl}<br>EP ${G.xp}/${xpNeed(G.lvl)} · Tode ${G.deaths}</div></div></div>`;
+ let h=`<div class="hero"><img loading="lazy" decoding="async" class="cpl" src="img/cls/${G.cls}.webp" alt=""><div><h2 style="margin:0">${G.name}</h2><div class="dim">${CLASSES[G.cls].n} · Stufe ${G.lvl}<br>EP ${G.lvl>=99?'max':G.xp+'/'+xpNeed(G.lvl)} · Tode ${G.deaths}</div></div></div>`;
  h+=`<div class="shseg sh2"><button class="${V.shBuff?'':'on'}" onclick="V.shBuff=0;render()">Buffs aus</button><button class="${V.shBuff?'on':''}" onclick="V.shBuff=1;render()">Buffs an</button></div>`;
  h+=`<div class="shseg">`+['Normal','Albtraum','Hölle'].map((n,i)=>`<button class="${D===i?'on':''}" onclick="V.shD=${i};render()">${n}</button>`).join('')+`</div>`;
  /* --- Fertigkeiten --- */
@@ -5589,12 +5592,13 @@ function charSheet(){if(V.shBuff&&!V.inBuff){V.inBuff=1;try{return sheetBuffed(c
  h+=`<div class="shbox">`+shHead('so','Sonstiges');
  if(O.so)h+=shRow('Magisch-Fund',`${S.mf}%`)+shRow('Gold-Fund',`${S.gf}%`)+shRow('Lauf-/Gehgeschwindigkeit',`${S.flee||0}%`)+(S.xpP?shRow('Erfahrung',`+${S.xpP}%`):'')+(S.cheap?shRow('Händlerpreise',`−${S.cheap}%`):'')+shRow('Alle Fertigkeiten',`+${S.allsk||0}`);
  h+=`</div>`;
+ const inF=!!(C&&!C.over);h+=`<div class="shdum">`+btn(inF?'🎯 Trainingspuppe (nicht im Kampf)':'🎯 Trainingspuppe',()=>{if(C&&!C.over)return;V.dmBack=SC;V.dmChar=1;goto(dummyScene)},'',inF)+`</div>`;
  return h}
 function viewChar(){
  const t=[['stats','Werte'],['gear','Ausrüstung'],['skills','Fertigkeiten'],['quests','Quests'],['save','Einstellungen']];
  let h=`<div class="seg">${t.map(x=>btn(x[1],()=>{V.char=x[0];V.skill=null;render()},V.char===x[0]?'on':'')).join('')}</div>`;
  if(V.char==='stats'){h+=charSheet()}else if(V.char==='stats_alt_entfernt'){h+=`<p class="dim center" style="font-size:12px;margin:4px 0"><span onclick="V.oldSheet=0;render()" style="text-decoration:underline">← Charakterbogen (neue Ansicht)</span></p>`;
-  h+=`<div class="hero"><img loading="lazy" decoding="async" class="cpl" src="img/cls/${G.cls}.webp" alt=""><div><h2 style="margin:0">${G.name}</h2><div class="dim">${CLASSES[G.cls].n}<br>Stufe ${G.lvl}<br>EP ${G.xp}/${xpNeed(G.lvl)}<br>Tode ${G.deaths}</div></div></div>`;
+  h+=`<div class="hero"><img loading="lazy" decoding="async" class="cpl" src="img/cls/${G.cls}.webp" alt=""><div><h2 style="margin:0">${G.name}</h2><div class="dim">${CLASSES[G.cls].n}<br>Stufe ${G.lvl}<br>EP ${G.lvl>=99?'max':G.xp+'/'+xpNeed(G.lvl)}<br>Tode ${G.deaths}</div></div></div>`;
   h+=`<div class="box"><b>Attribute</b> ${G.pts>0?`<span class="good">· ${G.pts} Punkte frei</span>`:''}`;
   const _c=CLASSES[G.cls],_inf={str:'+1% Schaden mit Nahkampfwaffen je Punkt. Bestimmt, welche Rüstung und Waffen du tragen kannst.',dex:'+5 Angriffswert je Punkt, +1% Schaden mit Bogen, Armbrust, Wurfspeer und Klauen je Punkt, +1 Verteidigung je 4 Punkte.',vit:`+${_c.lifeVit} Leben je Punkt.`,ene:`+${_c.manaEne} Mana je Punkt.`};
   [['str','Stärke'],['dex','Geschick'],['vit','Vitalität'],['ene','Energie']].forEach(s=>{h+=`<div class="row"><span>${s[1]}: <b>${S[s[0]]}</b> <span class="dim">(Mod ${sgn(mod(S[s[0]]))})</span></span><span class="stbtns">${btn('−5',()=>{for(let i=0;i<5;i++)if(!statStep(s[0],-1))break;render()},'sm',!(V.stUndo&&V.stUndo[s[0]]>0))}<button class="sm hold" data-hold="${s[0]}:-1"${(V.stUndo&&V.stUndo[s[0]]>0)?'':' disabled'}>−1</button><button class="sm hold" data-hold="${s[0]}:1"${G.pts<1?' disabled':''}>+1</button>${btn('+5',()=>{for(let i=0;i<5;i++)if(!statStep(s[0],1))break;render()},'sm',G.pts<1)}</span></div><div class="dim" style="font-size:.8em;margin:-2px 0 8px">${_inf[s[0]]}</div>`});
@@ -5797,7 +5801,7 @@ const HELP=[
  ['🎒 Inventar & Talisman-Raster','<p><b>Rucksack:</b> Ausrüstung, die du gerade nicht trägst. Gegenstand antippen = Details, anlegen, verkaufen, identifizieren. <b>Lange auf die Details drücken</b> = Wertebereiche [min–max] ein/aus, ★ = Höchstwert. Bild antippen = große Karte mit allen Werten (auch beim Händler und Verkaufen).</p><p><b>Rucksack-Filter:</b> Alle, Waffen, Rüstung, Schmuck, Neu (NEU-Markierung), Verkaufbar (Schrott). ▲/▼ vergleicht mit deiner getragenen Ausrüstung – auch in Beute, Händler und Verkauf. <b>📜 Alle identifizieren</b> verbraucht je Gegenstand eine Schriftrolle; bei Cain ist es kostenlos bzw. 25 Gold je Stück. Weiße/graue Gegenstände sind nie unidentifiziert.</p><p><b>Wegwerfen im Talisman-Raster:</b> Trank oder Talisman mit dem Finger auf <b>Wegwerfen</b> neben „Auto sortieren“ ziehen und loslassen. Tränke sind sofort weg, Talismane und Juwelen fragen vorher nach.</p><p><b>Haltbarkeit</b> gibt es nicht – Gegenstände gehen nie kaputt.</p><p><b>Talisman-Raster (10×4):</b> nur Talismane und übrige Tränke. Talismane wirken nur, solange sie hier liegen. Neu gefundene Talismane landen erst im <b>Rucksack</b>: antippen → „Ins Talisman-Raster legen“. Was im Raster liegt, gehört zur festen Ausrüstung und kann nicht verkauft werden – erst „Ablegen“, dann verkaufen. Mit dem Finger kannst du jedes Teil auf ein freies Feld ziehen (gold = passt, rot = passt nicht); gleich große Teile tauschen den Platz. <b>Auto sortieren</b> packt alles dicht zusammen.</p><p><b>Truhe:</b> Suchfeld und Filter (Waffen, Rüstung, Schmuck, Einzigartig & Set, Sockel & Runenwort).</p><p><b>Seltene Funde:</b> Einzigartige, Set-Gegenstände und Runen ab Pul erscheinen mit goldenem Lichtstrahl und Klang.</p>'],
  ['💎 Sockeln','<p><b>Einsetzen:</b> Gegenstand mit freiem Sockel antippen → Edelstein, Rune oder Juwel wählen. Die richtige Runen-Reihenfolge in einem normalen (weißen/grauen) Gegenstand ergibt ein <b>Runenwort</b>. Eingesetztes lässt sich nicht einzeln herausnehmen.</p><p><b>Runenwort-Hinweis:</b> Ein normaler Gegenstand mit freien Sockeln zeigt, welche Runenwörter hineinpassen; grün = Rune vorhanden, rot = fehlt. Sind alle Runen da, setzt <b>„✨ … einsetzen“</b> sie mit einem Tipp in der richtigen Reihenfolge ein (zweiter Tipp bestätigt). Geht im Rucksack und direkt in der Truhe. Das ⓘ hinter jedem Runenwort zeigt alle Eigenschaften mit Wertebereichen.</p><p><b>Basis:</b> nur normale (weiße/graue) Gegenstände, genau so viele Sockel wie das Runenwort Runen hat, passende Gegenstandsart. Weiße und graue Gegenstände sind nie unidentifiziert – sofort einsetzbar, kein Würfel nötig.</p><p><b>Rohlinge finden:</b> Wie in D2 fällt jeder dritte normale Gegenstand schon mit Sockeln (Normal höchstens 3, Albtraum 4, Hölle 6) – grob jeder 10. Waffen-/Rüstungsfund. Weiße ohne Sockel gibt es auch bei den Schmieden (Charsi, Fara, Hratli, Halbu, Larzuk). Die Höchstzahl hängt von Basis und Gegenstandsstufe ab.</p><p><b>Sockel bekommen:</b> Larzuk (Akt 5) gegen Gold (2.000 + 100 je Charakterstufe), beliebig oft; die Quest „Belagerung von Harrogath“ schenkt je Schwierigkeitsgrad einen kostenlosen Sockel. Normal = Höchstzahl, magisch 1–2, selten/Set/Einzigartig = 1. Oder im Würfel (nur normale Gegenstände, zufällig 1–6 Sockel, gedeckelt auf die Höchstzahl): Waffe = Ral + Amn + Perfekter Amethyst · Rüstung = Tal + Thul + Perfekter Topas · Helm = Ral + Thul + Perfekter Saphir · Schild = Tal + Amn + Perfekter Rubin; seltene Gegenstände mit 3 perfekten Schädeln + Stein von Jordan (1 Sockel).</p><p><b>Entsockeln:</b> Hel-Rune + Stadtportal-Schriftrolle – direkt in der Gegenstandsansicht (Rucksack oder Truhe, „🎲 Sockel leeren“, zweiter Tipp bestätigt) oder im Horadrim-Würfel. Die Sockel bleiben, aber <b>alles darin wird zerstört</b> (auch ein Runenwort).</p>'],
  ['🧊 Horadrim-Würfel & Herstellen','<p>Im Reiter <b>Herstellen</b>: Edelsteine und Runen aufwerten, Gegenstände neu würfeln, Handwerk, Aufwerten von Einzigartigen und Sets, Portale (Kuhlevel, Uber-Schlüssel, Uber-Tristram) und Charsis Imbue. Erst Gegenstand in den Würfel legen, dann Rezept wählen. Der Würfel funktioniert überall wie in D2, nur Portale öffnen sich in der Stadt.</p>'],
- ['🏰 Stadt & Händler','<p>Das <b>Stadtmenü</b> (Truhe, Würfel, Reisen …) lässt sich auf- und zuklappen, damit die NPCs gleich sichtbar sind. <b>🌀 Durchs Portal zurück</b> erscheint, wenn du per Stadtportal gekommen bist, und bringt dich an dieselbe Stelle im Gebiet.</p><p><b>🔄 Neue Ware</b> oben rechts bei jedem Schmied würfelt die Ware aller Händler neu, kostenlos – wie in D2 per Wegpunkt-Wechsel (das geht weiterhin auch).</p><p><b>Verkaufen:</b> jede Zeile zeigt die Werte, ▲/▼ und den Preis; Talismane im Raster werden nicht angeboten. <b>↩ Rückkauf</b> wie in D2: die letzten 20 Verkäufe zum Verkaufspreis, bis du die Stadt verlässt. <b>Gesamte Beute / Schrott verkaufen</b> lässt Talismane, Juwelen und graue Rohlinge mit Sockeln liegen.</p><p><b>Cain</b> identifiziert alles auf einmal. <b>Larzuk</b> sockelt gegen Gold. Tränke und Schriftrollen gibt es bei Heilern und Händlern – wie in D2: Normal Akt 1–2 kleine, ab Akt 3 normale, ab Akt 4 große Tränke; in Albtraum überall nur Große, in der Hölle nur Volle. Verjüngungstränke kann man nicht kaufen (nur Beute oder Würfel: 3 Heil- + 3 Manatränke + Edelstein).</p>'],
+ ['🏰 Stadt & Händler','<p>Das <b>Stadtmenü</b> (Truhe, Würfel, Reisen …) lässt sich auf- und zuklappen, damit die NPCs gleich sichtbar sind. <b>🌀 Durchs Portal zurück</b> erscheint, wenn du per Stadtportal gekommen bist, und bringt dich an dieselbe Stelle im Gebiet.</p><p><b>🎯 Trainingspuppe</b> (Charakter → Werte, ganz unten): Ziel wählen – Puppe ohne Widerstände, Akt-Bosse, Uber, einzigartige Gegner oder jedes Monster, in Normal/Albtraum/Hölle, einzeln oder als 5er-Gruppe, auf Wunsch als Champion. Das Ziel wehrt sich nicht; dein Auto-Kampf (mit Söldner und Dienern) greift an. Du siehst Widerstände/Immunitäten, Runden bis zum Sieg, Schaden pro Runde und nach Schadensart. Nur ein Probelauf: kein Risiko, kein Verbrauch, keine Beute.</p><p><b>🔄 Neue Ware</b> oben rechts bei jedem Schmied würfelt die Ware aller Händler neu, kostenlos – wie in D2 per Wegpunkt-Wechsel (das geht weiterhin auch).</p><p><b>Verkaufen:</b> jede Zeile zeigt die Werte, ▲/▼ und den Preis; Talismane im Raster werden nicht angeboten. <b>↩ Rückkauf</b> wie in D2: die letzten 20 Verkäufe zum Verkaufspreis, bis du die Stadt verlässt. <b>Gesamte Beute / Schrott verkaufen</b> lässt Talismane, Juwelen und graue Rohlinge mit Sockeln liegen.</p><p><b>Cain</b> identifiziert alles auf einmal. <b>Larzuk</b> sockelt gegen Gold. Tränke und Schriftrollen gibt es bei Heilern und Händlern – wie in D2: Normal Akt 1–2 kleine, ab Akt 3 normale, ab Akt 4 große Tränke; in Albtraum überall nur Große, in der Hölle nur Volle. Verjüngungstränke kann man nicht kaufen (nur Beute oder Würfel: 3 Heil- + 3 Manatränke + Edelstein).</p>'],
  ['☠️ Endgame','<p><b>Schreckenszonen</b> gibt es nach dem Sieg über Baal im jeweiligen Schwierigkeitsgrad – jede volle Stunde ein anderes Gebiet, Monster werden auf deine Stufe gehoben. <b>Uber-Tristram</b>: Schlüssel → Organe → Höllenfeuer-Fackel. <b>Kolossale Urahnen</b>: mit den Statuen; vor dem Kampf wählst du, wer zuletzt fällt (bestimmt das Kolossale Juwel). Aus Bosskämpfen kann man nicht fliehen.</p><p><b>Meister-Spielstand</b> (Startbildschirm): Stufe 99 mit BiS-Ausrüstung; in der Truhe alle Einzigartigen und Set-Teile, die BiS-Runenwörter und leere graue Rohlinge – alles mit Höchstwerten – dazu Runen, Edelsteine, Schlüssel und Organe zum Ausprobieren.</p>'],
  ['👥 Söldner','<p>Söldner heuerst du in der Stadt an. Du kannst ihm Waffe, Rüstung und Helm geben. Stirbt er, lässt er sich gegen Gold wiederbeleben.</p>'],
  ['📜 Quests & Schwierigkeit','<p>Quests stehen unter Charakter → Quests mit ihren Belohnungen. Nach Baal kannst du in Albtraum und Hölle weiterspielen (Monster stärker, Widerstände sinken wie in D2).</p>'],
@@ -5919,7 +5923,7 @@ function autoStep(){
   const tr=trP&&ok(trP)&&(trapMain||((C.traps||[]).filter(x=>x.id===trP).length<(SKILLS[trP].trCap||1)&&!(SKILLS[trP].trSen&&trTot>=5)))?trP:null;
   /* 5. Statikfeld: erwarteter Abzug (25% aktuelles Leben × (1 − Blitzwiderstand), bis zur Untergrenze) über alle Gegner,
      nur wenn er größer ist als der bisher gemessene Durchschnittsschaden der Hauptfertigkeit */
-  const fl=m=>Math.max(1,Math.ceil(m.max*[0,1/3,0.5][G.diff||0]));
+  const fl=m=>m.puppe?m.hp:Math.max(1,Math.ceil(m.max*[0,1/3,0.5][G.diff||0]));
   const stExp=al.reduce((x,m)=>{const r=effRes(m,'light');return r>=100?x:x+Math.max(0,Math.min(Math.floor(m.hp*0.25*(1-r/100)),m.hp-fl(m)))},0);
   /* Hat der Spieler eine Hauptfertigkeit gewählt, bleibt sie Vorrang: Statikfeld dann nur gegen Bosse, Champions und Einzigartige
      (wie man es in D2 spielt) und nur, wenn es deutlich mehr abzieht; bei Manamangel nicht auf Statik ausweichen */
@@ -5959,6 +5963,63 @@ function lootFx(items,stones){
  const o=document.createElement('div');o.className='lootbeam';o.innerHTML=`<div class="lbray"></div><div class="lbtxt">${N.join('')}</div>`;
  o.addEventListener('click',()=>o.remove());document.body.appendChild(o);setTimeout(()=>o.remove(),3200)}
 {const _fcx=finishCombat;finishCombat=function(){const r=_fcx.apply(this,arguments);try{if(r)lootFx(r.items,r.stones)}catch(e){}return r}}
+
+/* ===== Trainingspuppe: Probekampf gegen ein frei gewähltes Ziel, das sich nicht wehrt.
+   Läuft komplett im Sandkasten (Spielstand wird vorher gesichert und danach unverändert zurückgesetzt, nichts wird gespeichert). ===== */
+function dummyIds(){if(dummyIds.c)return dummyIds.c;const seen={},B=[],U=[],S=[],M=[];
+ const ACTB=['andariel','duriel','mephisto','diablo','baal'],UB=['uber_izual','lilith','uber_duriel','uber_mephisto','uber_diablo','uber_baal'];
+ Object.keys(MON).forEach(k=>{const t=MON[k];if(!t||!t.n||/^col_|clone/.test(k)||seen[t.n])return;seen[t.n]=1;if(ACTB.includes(k))return;if(UB.includes(k))return;(t.boss?S:M).push(k)});
+ const by=a=>a.sort((x,y)=>MON[x].n.localeCompare(MON[y].n,'de'));
+ return dummyIds.c={B:ACTB.filter(k=>MON[k]),U:UB.filter(k=>MON[k]),S:by(S),M:by(M)}}
+function dummyMk(id,o){if(id==='puppe'){const m=mkMon('stachelratte',{});Object.assign(m,{demon:false,undead:false,el:[],n:'Trainingspuppe',ic:'🎯',hp:1e9,max:1e9,def:0,res:{phys:0,fire:0,cold:0,light:0,poison:0,magic:0},puppe:1});return m}return mkMon(id,o)}
+function dummyRun(D){const snap=JSON.stringify(G),C0=C,SC0=SC,FU=V.fightUI,AU=AUTO,stub={render:window.render,logC:window.logC,save:window.save,note:window.note,goto:window.goto,lvlFlash:window.lvlFlash,show:window.show,lootFx:window.lootFx},sp=typeof SND!=='undefined'&&SND.play,oD=dealDmg,oC=calc,oPA=petAct;let inPet=0;
+ const out={rounds:[],dmg:0,el:{},who:{p:0,a:0},won:0,runs:0,turns:0,res:null,hp:0};
+ try{window.render=window.logC=window.save=window.note=window.lvlFlash=window.show=window.lootFx=function(){};window.goto=function(){};if(sp)SND.play=function(){};
+  const N=D.id==='puppe'?1:3,CAP=D.id==='puppe'?20:300;
+  for(let r=0;r<N;r++){G=JSON.parse(snap);G.diff=D.df;G.at='town';G.manual=false;C=null;calc();G.hp=S.maxHp;G.mana=S.maxMana;
+   const ms=[];for(let i=0;i<D.n;i++)ms.push(dummyMk(D.id,{champ:!!D.ch&&D.id!=='puppe'}));
+   if(!r){out.res={...ms[0].res};out.hp=ms[0].max;out.def=ms[0].def;out.lvl=ms[0].lvl}
+   startCombat(ms,{boss:true,after:()=>{}});C.dummy=1;
+   if(D.id==='puppe'){/* wie Maxroll: kein prozentualer Schaden (Vernichtender Schlag/Offene Wunden) gegen 10 Mio. Leben */calc=function(){const x=oC.apply(this,arguments);S.cb=0;S.ow=0;return x};calc()}
+   dealDmg=function(m,dm,t,o){const h=m.hp;const x=oD(m,dm,t,o);if(ms.includes(m)){const d=Math.max(0,h-Math.max(0,m.hp));out.dmg+=d;const k=t||'phys';out.el[k]=(out.el[k]||0)+d;out.who[inPet?'a':'p']+=d}return x};petAct=function(){inPet=1;try{return oPA.apply(this,arguments)}finally{inPet=0}};
+   AUTO=true;let i=0;for(;i<CAP&&C&&!C.over&&ms.some(m=>m.hp>0);i++){autoStep();clearTimeout(AUTOT);AUTO=true}
+   AUTO=false;dealDmg=oD;calc=oC;petAct=oPA;out.runs++;out.turns+=i;if(ms.every(m=>m.hp<=0)){out.won++;out.rounds.push(i)}C=null}
+ }catch(e){out.err=e.message}
+ finally{dealDmg=oD;calc=oC;petAct=oPA;Object.assign(window,stub);if(sp)SND.play=sp;G=JSON.parse(snap);C=C0;SC=SC0;V.fightUI=FU;AUTO=AU;calc()}
+ return out}
+function dummyScene(){const D=V.dm=V.dm||{id:'puppe',df:G.diff||0,n:1,ch:0};const L=dummyIds(),fmt=x=>Math.round(x).toLocaleString('de-DE');
+ const opt=(k,lab)=>`<option value="${k}"${D.id===k?' selected':''}>${lab||MON[k].n}</option>`;
+ let h=`<h2>🎯 Trainingspuppe</h2><p class="dim" style="font-size:13px">Wähle ein Ziel. Es wehrt sich nicht – dein Auto-Kampf greift wie im echten Kampf an (Fertigkeiten, Söldner, Diener, Tränke). Nur ein Probelauf: kein Risiko, kein Verbrauch, keine Beute.</p>`;
+ h+=`<div class="box"><select id="dmsel" style="width:100%;font-size:15px;padding:8px;background:#1b1612;color:inherit;border:1px solid #6b5536;border-radius:6px" onchange="V.dm.id=this.value;V.dm.out=null;render()">`
+  +`<optgroup label="Puppe">${opt('puppe','🎯 Trainingspuppe (1 Mrd. Leben, keine Widerstände)')}</optgroup>`
+  +`<optgroup label="Akt-Bosse">${L.B.map(k=>opt(k)).join('')}</optgroup>`+`<optgroup label="Uber-Tristram & Organe">${L.U.map(k=>opt(k)).join('')}</optgroup>`
+  +`<optgroup label="Einzigartige Gegner">${L.S.map(k=>opt(k)).join('')}</optgroup>`+`<optgroup label="Monster A–Z">${L.M.map(k=>opt(k)).join('')}</optgroup></select>`;
+ const seg=(arr,cur,fn)=>`<div class="shseg" style="margin-top:8px;grid-template-columns:repeat(${arr.length},1fr)">`+arr.map((t,i)=>`<button class="${cur===i?'on':''}" onclick="${fn}(${i})">${t}</button>`).join('')+`</div>`;
+ window.__dmD=i=>{V.dm.df=i;V.dm.out=null;render()};window.__dmN=i=>{V.dm.n=[1,5][i];V.dm.out=null;render()};window.__dmC=i=>{V.dm.ch=i;V.dm.out=null;render()};
+ h+=seg(['Normal','Albtraum','Hölle'],D.df,'__dmD');
+ if(D.id!=='puppe'){h+=seg(['1 Gegner','Gruppe (5)'],D.n===5?1:0,'__dmN');if(!MON[D.id].boss)h+=seg(['Normal','Champion'],D.ch?1:0,'__dmC')}
+ h+=`</div>`;
+ const O=D.out;
+ if(O){if(O.err)h+=`<div class="box bad">Fehler beim Probelauf: ${O.err}</div>`;else{
+  const ic={phys:'⚔️ Physisch',fire:'🔥 Feuer',cold:'❄️ Kälte',light:'⚡ Blitz',poison:'☠️ Gift',magic:'✨ Magie'};
+  const R=O.res||{},imm=Object.keys(ic).filter(k=>(R[k]||0)>=100);
+  h+=`<div class="box"><b>${D.id==='puppe'?'Trainingspuppe':MON[D.id].n}</b>${D.n>1?' ×5':''}${D.ch?' (Champion)':''} <span class="dim">· ${['Normal','Albtraum','Hölle'][D.df]}${O.lvl?' · Stufe '+O.lvl:''}</span><br>`
+   +(D.id==='puppe'?`Leben <b>${fmt(O.hp)}</b> 😄 · Verteidigung 0<br>`:`Leben ${fmt(O.hp)}${D.n>1?' je Gegner':''} · Verteidigung ${fmt(O.def||0)}<br>`)
+   +`<span style="font-size:13px">`+Object.keys(ic).map(k=>`${ic[k].split(' ')[0]} <span class="${(R[k]||0)>=100?'bad':(R[k]||0)>0?'':'dim'}">${(R[k]||0)>=100?'immun':(R[k]||0)+'%'}</span>`).join(' · ')+`</span></div>`;
+  const per=O.turns?O.dmg/O.turns:0;
+  h+=`<div class="box">`;
+  if(D.id==='puppe')h+=`Ø Schaden pro Runde: <b class="shy">${fmt(per)}</b><br>Bis die Puppe fällt: ca. <b>${per>0?fmt(O.hp/per):'∞'}</b> Runden<br><span class="dim" style="font-size:12px">Gemessen über 20 Runden, ohne Vernichtenden Schlag und Offene Wunden</span>`;
+  else{const rr=O.rounds.slice().sort((a,b)=>a-b),av=rr.length?rr.reduce((a,b)=>a+b,0)/rr.length:0;
+   h+=O.won?`Besiegt nach Ø <b class="shy">${av.toFixed(1)}</b> Runden <span class="dim">(${rr[0]}–${rr[rr.length-1]}, ${O.won}/${O.runs} Läufe)</span>`:`<b class="bad">Nicht besiegt</b> in 300 Runden`;
+   if(O.won<O.runs&&O.won)h+=`<br><span class="bad">${O.runs-O.won} von ${O.runs} Läufen nicht geschafft</span>`;
+   h+=`<br>Ø Schaden pro Runde: <b>${fmt(per)}</b>`}
+  const tot=O.dmg||1;
+  h+=`<br><br><b>Schaden nach Art</b><br>`+Object.keys(ic).filter(k=>O.el[k]>0||imm.includes(k)).map(k=>`${ic[k]}: ${O.el[k]>0?fmt(O.el[k]/O.turns)+' / Runde ('+Math.round(O.el[k]/tot*100)+' %)':'–'}${imm.includes(k)?' <span class="bad">· Ziel immun</span>':''}`).join('<br>');
+  if(O.who.a>0)h+=`<br><br>Davon du (inkl. Fallen, Blizzard usw.): ${Math.round(O.who.p/tot*100)} % · Söldner & Diener: ${Math.round(O.who.a/tot*100)} %`;
+  h+=`</div>`}}
+ const b=[btn(O?'▶ Nochmal testen':'▶ Test starten',()=>{V.dm.out=dummyRun(V.dm);render()},'gold'),btn('◀ Zurück',()=>{V.dm.out=null;const bk=V.dmBack;V.dmBack=null;V.dmChar=0;if(bk){SC=bk;TAB='char';V.char='stats';render()}else goto(townScene)})];
+ show(h,b);
+}
 
 </script>
 <script>/* data/mopt.js */
