@@ -4715,14 +4715,28 @@ function tabs(){
 const bar=(v,m,cls)=>`<div class="bar ${cls||''}"><i style="width:${clamp(100*v/m,0,100)}%"></i><span>${Math.max(0,v)}/${m}</span></div>`;
 
 /* ===== Titel ===== */
+/* SHA-256 (synchron, ohne crypto.subtle – läuft auch ohne https) */
+const MPWH='7baeac21e41e53f63ddef64b605ab8898f721b2b73694b91dcfa81979ecdfd5f';
+function sha256h(str){const K=[],H=[];let p=2;for(let c=0;c<64;p++){let ok=1;for(let d=2;d*d<=p;d++)if(p%d===0){ok=0;break}if(ok){if(c<8)H[c]=(Math.pow(p,1/2)*4294967296)|0;K[c++]=(Math.pow(p,1/3)*4294967296)|0}}
+ const b=unescape(encodeURIComponent(String(str)));const l=b.length*8;const w=new Array((((l+64)>>9)<<4)+16).fill(0);for(let i=0;i<b.length;i++)w[i>>2]|=b.charCodeAt(i)<<((3-i%4)*8);w[l>>5]|=0x80<<(24-l%32);w[(((l+64)>>9)<<4)+15]=l;
+ const r=(x,n)=>(x>>>n)|(x<<(32-n));
+ for(let j=0;j<w.length;j+=16){const W=w.slice(j,j+16).map(x=>x|0);let [a,b2,c,d,e,f,g,h]=H;
+  for(let i=0;i<64;i++){if(i>=16){const x=W[i-15],y=W[i-2];W[i]=(((r(x,7)^r(x,18)^(x>>>3))+W[i-16]|0)+((r(y,17)^r(y,19)^(y>>>10))+W[i-7]|0))|0}
+   const t1=(h+(r(e,6)^r(e,11)^r(e,25))+((e&f)^(~e&g))+K[i]+W[i])|0,t2=((r(a,2)^r(a,13)^r(a,22))+((a&b2)^(a&c)^(b2&c)))|0;h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b2;b2=a;a=(t1+t2)|0}
+  H[0]=H[0]+a|0;H[1]=H[1]+b2|0;H[2]=H[2]+c|0;H[3]=H[3]+d|0;H[4]=H[4]+e|0;H[5]=H[5]+f|0;H[6]=H[6]+g|0;H[7]=H[7]+h|0}
+ return H.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('')}
 function titleScene(){
  ACC=null;let last='';try{last=localStorage.getItem('d2dnd_lastacc')||''}catch(e){}
- const go=btn('Das Tor betreten',()=>{const n=$('#acn').value;if(!accLogin(n)){$('#acn').placeholder='Bitte einen Namen eingeben';return}try{localStorage.setItem('d2dnd_lastacc',clean(n))}catch(e){}goto(accScene)},'ttb');
+ let gi=-1;const goFn=()=>{const n=$('#acn').value;
+  /* Meister-Account: bei jedem Einloggen Passwort (nur der SHA-256-Wert steht im Code) */
+  if(typeof MASTER_NAME!=='undefined'&&accKey(n)&&accKey(n)===accKey(MASTER_NAME)){const pw=$('#acpw'),box=$('#acpwb');if(box&&box.style.display==='none'){box.style.display='';pw&&pw.focus();return}if(!pw||sha256h(pw.value)!==MPWH){if(pw){pw.value='';pw.placeholder='Falsches Passwort';pw.focus()}return}}
+  if(!accLogin(n)){$('#acn').placeholder='Bitte einen Namen eingeben';return}try{localStorage.setItem('d2dnd_lastacc',clean(n))}catch(e){}goto(accScene)};/* Knopf bleibt nach Fehleingabe bedienbar (run() leert H) */
+ const wrap=()=>{goFn();if(ACC===null)H[gi]=wrap};const go=btn('Das Tor betreten',wrap,'ttb');gi=H.length-1;
  const cl=['paladin','barbar','zauberin','nekro','amazone','assassine','druide','hexenmeister'].map((c,i)=>`<img loading="lazy" decoding="async" src="img/cls/${c}.webp" alt="" style="animation-delay:${i*.35}s">`).join('');
  show(`<div class="tt"><div class="ttbg"><i style="background-image:url(img/loc/chaos.webp)"></i><i style="background-image:url(img/loc/thron.webp)"></i><i style="background-image:url(img/loc/durance.webp)"></i><i style="background-image:url(img/loc/weltsteinfestung.webp)"></i></div><div class="ttfog"></div><canvas id="ttc"></canvas><div class="ttvig"></div>
  <div class="ttin"><div class="ttk">Herr der Zerstörung ruft</div><h1 class="ttt">Diablo II</h1><div class="tts">Würfel · Blut · Asche</div>
  <p class="ttp">Das Lager der Jägerinnen brennt noch. Aus dem Moor kriecht, was nie hätte erwachen dürfen. Du bist ein Fremder, der nach Norden gekommen ist. Man wird dich brauchen.</p>
- <div class="ttf"><input id="acn" maxlength="20" placeholder="Name deines Accounts" value="${clean(last)}" autocomplete="off"><div class="tth">Neuer Name = neuer Account. Jeder Account hat eigene Figuren.</div></div>
+ <div class="ttf"><input id="acn" maxlength="20" placeholder="Name deines Accounts" value="${clean(last)}" autocomplete="off" oninput="{const b=document.getElementById('acpwb');if(b)b.style.display=accKey(this.value)&&accKey(this.value)===accKey(MASTER_NAME)?'':'none'}"><div class="tth">Neuer Name = neuer Account. Jeder Account hat eigene Figuren.</div><div id="acpwb" style="display:${accKey(last)&&accKey(last)===accKey(MASTER_NAME)?'':'none'};margin-top:8px"><input id="acpw" type="password" maxlength="40" placeholder="Passwort" autocomplete="off"></div></div>
  ${go}
  <div class="ttc">${cl}</div><div class="ttx">Privates Fan-Projekt · Würfel: d20 · Spielstände liegen auf diesem Gerät · Sicherung unter Charakter → Einstellungen.</div></div></div>`,[]);
  titleFx();
