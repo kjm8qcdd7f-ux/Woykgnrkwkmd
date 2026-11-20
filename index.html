@@ -72,6 +72,7 @@ html,body{margin:0;height:100%;background:#000;color:var(--txt);font:18px 'Crims
 .port{width:64px;height:64px;border:2px solid var(--gold2);background:#0d0806;display:flex;align-items:center;justify-content:center;font-size:30px;flex:none}
 .hmain{flex:1;min-width:0}
 .hname{font-family:Cinzel,serif;color:var(--gold);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.foe.dying{pointer-events:none;overflow:hidden;animation:fdie 1s ease-in forwards}.foe.dying .bar i{animation:fdiebar .35s ease-out forwards}@keyframes fdiebar{from{width:var(--w)}to{width:0}}@keyframes fdie{0%,55%{opacity:1;max-height:90px}100%{opacity:0;max-height:0;padding-top:0;padding-bottom:0;margin:0;border-width:0}}
 .bar{height:13px;background:#0a0605;border:1px solid var(--edge);margin-top:3px;position:relative}
 .bar i{display:block;height:100%;background:linear-gradient(#e04a3a,#7a1510);transition:width .25s}
 .bar.res i{background:linear-gradient(#5b9ad6,#1d3f6b)}
@@ -5431,7 +5432,7 @@ function specialStep(sp){
  if(S2){
   if(S2.wave){const L=Array.from({length:3+R(0,1)},()=>pick(poolOf(AREAS[G.at])));return show(`<h2>${S2.t}</h2><p>${S2.x}</p>`,[btn(S2.b,()=>fight(L,{intro:S2.intro,after:()=>spNext()}))])}
   if(S2.flag&&G.flags[S2.flag])return show(`<h2>${S2.t}</h2><p class="dim">Hier ist nichts mehr zu tun.</p>`,[btn('Weiter',()=>spNext())]);
-  return show(`<h2>${S2.t}</h2><p>${S2.x}</p>`,[btn(S2.b,()=>fight(S2.ids,{boss:!!S2.boss,intro:S2.intro,after:()=>{
+  return show(`<h2>${S2.t}</h2><p>${S2.x}</p>`,[btn(S2.b,()=>fight(/^siegel/.test(sp)?S2.ids.concat(Array.from({length:2+R(0,1)+((G.diff||0)===2?1:0)},()=>pick(poolOf(AREAS[G.at])))):S2.ids,{boss:!!S2.boss,intro:S2.intro+(/^siegel/.test(sp)?' Sein Gefolge folgt ihm.':''),after:()=>{
    G.flags[S2.flag]=true;Object.keys(QUESTS).forEach(id=>{const q=QUESTS[id];if((q.readyFlag===S2.flag||(q.readyAll&&q.readyAll.every(f=>G.flags[f])))&&G.q[id]==='active')G.q[id]='ready'});save();goto(msgScene,`<p>${S2.msg}</p>`,()=>spNext())}}))]);
  }
  if(sp==='wirt'){return show(`<h2>Wirts Leiche</h2><p>Zwischen den Trümmern liegt etwas Kleines, das mal ein Junge war. Daneben: ein Holzbein.</p>`,[btn('Das Bein nehmen',()=>{G.flags.wirt=true;save();goto(msgScene,'<p>Du steckst <b>Wirts Bein</b> ein. Irgendetwas daran riecht nach Heu.</p>',()=>spNext())})])}
@@ -5620,13 +5621,14 @@ function combatScene(){
  const PXHS=C.hits||[];C.hits=[];if(PXHS.length)setTimeout(()=>fxHits(PXHS),0);
  V.fightUI=true;
  const t=tgt();
- const one=(m,i)=>(H.push(()=>{C.t=i;render()}),`<div data-m="${i}" class="foe${m===t?' sel':''}${C.mons.filter(x=>x.hp>0).length===1?' big':''}" onclick="run(${H.length-1})">${imgMon(m.id)}<div class="fb"><span class="inf" onclick="event.stopPropagation();monInfo(C.mons[${i}])">ℹ️</span><b${m.uniq?' class="q4"':m.champ?' class="q1"':''}>${m.n}</b>${m.tag?`<small class="q4" style="display:block;font-size:11px">${m.tag}</small>`:''}${m.st.stun>0?' 💫':''}${m.st.fear>0?' 😱':''}${m.st.freeze>0?' ❄️':''}${m.fx.dot?' ☠️':''}
+ const one=(m,i)=>m.hp<=0?`<div data-m="${i}" class="foe dying" style="--w:${(C.pw&&C.pw[i])||0}%"><div class="fb"><b>${m.n}</b><div class="bar"><i></i><span>0/${m.max}</span></div></div></div>`:(H.push(()=>{C.t=i;render()}),`<div data-m="${i}" class="foe${m===t?' sel':''}${C.mons.filter(x=>x.hp>0).length===1?' big':''}" onclick="run(${H.length-1})">${imgMon(m.id)}<div class="fb"><span class="inf" onclick="event.stopPropagation();monInfo(C.mons[${i}])">ℹ️</span><b${m.uniq?' class="q4"':m.champ?' class="q1"':''}>${m.n}</b>${m.tag?`<small class="q4" style="display:block;font-size:11px">${m.tag}</small>`:''}${m.st.stun>0?' 💫':''}${m.st.fear>0?' 😱':''}${m.st.freeze>0?' ❄️':''}${m.fx.dot?' ☠️':''}
  <div class="bar"><i style="width:${clamp(100*m.hp/m.max,0,100)}%"></i><span>${m.hp}/${m.max} · RK ${m.ac-(m.fx.acDown||0)}</span></div></div></div>`);
  const alv=C.mons.map((m,i)=>[m,i]).filter(([m])=>m.hp>0);
  let cards;
  /* Champion-Rudel: gleiche Champions immer in einer Zeile, damit der Bildschirm aufgeräumt bleibt */
  /* gleiche Monster (auch normale, z. B. 4× Kuh) immer zu einer Zeile zusammenfassen */const chDup=(()=>{const c={};return alv.some(([m])=>!(m.uniq||m.boss||m.colK)&&(c[m.id+'|'+m.n+'|'+(m.tag||'')]=(c[m.id+'|'+m.n+'|'+(m.tag||'')]||0)+1)>1)})();
- if(alv.length<=4&&!chDup)cards=alv.map(([m,i])=>one(m,i)).join('');
+ /* gerade gestorbene Gegner: Karte bleibt kurz mit leerem Balken stehen, dann blendet sie aus */const gh=(C.vis||[]).filter(i=>C.mons[i]&&C.mons[i].hp<=0);C.pw=C.pw||{};const alvG=C.mons.map((m,i)=>[m,i]).filter(([m,i])=>m.hp>0||gh.includes(i));C.vis=alv.map(([m,i])=>i);alv.forEach(([m,i])=>{C.pw[i]=clamp(100*m.hp/m.max,0,100)});
+ if(alv.length<=4&&!chDup)cards=alvG.map(([m,i])=>one(m,i)).join('');
  else{/* Viele Gegner: gleiche Monster zu einem Stapel zusammenfassen (Antippen wechselt das Ziel innerhalb des Stapels) */
   const grp=[],ix={};alv.forEach(([m,i])=>{const k=(m.uniq||m.boss||m.colK)?'#'+i:m.id+'|'+m.n+'|'+(m.tag||'');/* gleiche Champions (z. B. 3× „Champion Gefallener“) in einer Zeile */if(ix[k]===undefined){ix[k]=grp.length;grp.push([])}grp[ix[k]].push([m,i])});
   cards=grp.map(g=>{if(g.length===1)return one(g[0][0],g[0][1]);const cur=g.findIndex(([m])=>m===t),[m,i]=g[Math.max(0,cur)];
