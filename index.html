@@ -4985,7 +4985,9 @@ function titleFx(){
   requestAnimationFrame(tick)};
  requestAnimationFrame(tick);
 }
-function accScene(){
+/* ohne Charaktere im Account bleibt keine gemeinsame Truhe übrig */
+function shClean(){try{if(ACC&&accChars().length===0){localStorage.removeItem('d2dnd_shared_'+ACC);localStorage.removeItem('d2dnd_shared_'+ACC+'_hc')}}catch(e){}}
+function accScene(){shClean();
  if(!ACC)return goto(titleScene);
  const A=accAll()[ACC],ch=accChars(),master=ACC===accKey(MASTER_NAME),b=[];
  if(master&&!ch.length&&!V.nomaster)return goto(masterScene);
@@ -4993,7 +4995,7 @@ function accScene(){
  let cards='';
  ch.forEach(c=>{const C0=CLASSES[c.cls]||{ic:'',n:c.cls},dc=DC[c.diff||0];
   cards+=`<div class="ccw">`+btn(`<span class="cci" style="background-image:linear-gradient(90deg,#0a0604 30%,rgba(10,6,4,.35) 75%,rgba(10,6,4,.1)),url(img/cls/${c.cls}.webp)"><span class="ccl">${c.lvl}</span><span class="ccn">${c.name}${c.hc?' ☠':''}</span><span class="ccs">${C0.n}</span><span class="ccd" style="color:${dc};border-color:${dc}">${DIFFN[c.diff||0]}${c.hc?' · Hardcore':''}${c.mode&&c.mode!=='ac'&&MODES[c.mode]?' · '+MODES[c.mode].ic+' '+MODES[c.mode].n:''}</span></span>`,()=>{if(loadChar(c.id))goto(G.at==='town'?townScene:areaScene)},'ccard')
-   +btn(V.delc===c.id?'Wirklich löschen?':'✕',()=>{if(V.delc===c.id){delChar(c.id);V.delc=null}else V.delc=c.id;goto(accScene)},'ccx'+(V.delc===c.id?' sure':''))+`</div>`});
+   +btn(V.delc===c.id?'Wirklich löschen?':'✕',()=>{if(V.delc===c.id){delChar(c.id);shClean();V.delc=null}else V.delc=c.id;goto(accScene)},'ccx'+(V.delc===c.id?' sure':''))+`</div>`});
  if(!ch.length)cards='<div class="ttp" style="margin-top:30px">Noch keine Helden. Leg unten deinen ersten an.</div>';
  let legacy=false;try{legacy=!!localStorage.getItem(SAVEKEY)}catch(e){}
  if(legacy)cards+=btn('Alten Spielstand in diesen Account übernehmen',()=>{if(loadSave()){delete G.cid;save();try{localStorage.removeItem(SAVEKEY)}catch(e){}goto(accScene)}},'sm');
@@ -5007,7 +5009,7 @@ function accScene(){
  titleFx();
 }
 /* ===== Sicherung aller Spielstände dieses Geräts ===== */
-const GAMEVER='21.11.2026 22:06';
+const GAMEVER='21.11.2026 22:14';
 function bakT(){try{return +localStorage.getItem('d2dnd_lastbak')||0}catch(e){return 0}}
 function bakAgo(){const t=bakT();if(!t)return 'Noch keine Sicherung.';const d=Math.floor((Date.now()-t)/864e5);return 'Letzte Sicherung: '+(d<1?'heute':d===1?'gestern':'vor '+d+' Tagen')+'.'}
 /* dezente Erinnerung: nur wenn es Charaktere gibt und die letzte Sicherung über 7 Tage her ist (bzw. seit 7 Tagen keine) */
