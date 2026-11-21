@@ -5941,8 +5941,13 @@ function invGrid(){
 /* ===== Gemeinsame Truhe (D2R: 3 geteilte Reiter für alle Charaktere des Kontos, Hardcore getrennt, Gold bis 2,5 Mio.) ===== */
 const SH_TABS=3,SH_GOLD_MAX=2500000;
 const shKey=()=>'d2dnd_shared_'+ACC+(G&&G.hc?'_hc':'');
-function shGet(){let o=null;try{o=JSON.parse(localStorage.getItem(shKey()))}catch(e){}o=o||{};o.t=o.t||[];for(let i=0;i<SH_TABS;i++)o.t[i]=o.t[i]||[];o.g=o.g||0;return o}
+function shGet(){let o=null;try{o=JSON.parse(localStorage.getItem(shKey()))}catch(e){}o=o||{};o.runes=o.runes||{};o.gems=o.gems||{};o.t=o.t||[];for(let i=0;i<SH_TABS;i++)o.t[i]=o.t[i]||[];o.g=o.g||0;return o}
 function shPut(o){try{localStorage.setItem(shKey(),JSON.stringify(o))}catch(e){note('Speichern der gemeinsamen Truhe fehlgeschlagen')}}
+/* Runen & Edelsteine in der gemeinsamen Truhe (liegen beim Charakter als Zähler, nicht als Gegenstand) */
+function shMove(kind,key,n,dir){const o=shGet();const src=dir>0?G[kind]:o[kind],dst=dir>0?o[kind]:G[kind];const m=Math.min(n,src[key]||0);if(m<=0)return;src[key]-=m;if(!src[key])delete src[key];dst[key]=(dst[key]||0)+m;shPut(o);save()}
+function shStoneBox(o){const rows=(src,dir)=>{const L=[];RUNES.forEach(x=>{const c=src.runes[x.id]||0;if(c>0)L.push(['runes',x.id,x.n,c])});GEMKEYS.forEach(t=>[1,2,3,4,5].forEach(q=>{const c=src.gems[t+q]||0;if(c>0)L.push(['gems',t+q,gemN(t,q),c])}));
+  return L.length?L.map(([k,key,n,c])=>`<div class="strow" style="display:flex;align-items:center;gap:6px;margin:3px 0"><span style="flex:1">${n} ×${c}</span>`+btn(dir>0?'1 rein':'1 raus',()=>{shMove(k,key,1,dir);render()},'')+btn(dir>0?'alle rein':'alle raus',()=>{shMove(k,key,c,dir);render()},'')+'</div>').join(''):'<p class="dim">Nichts.</p>'};
+ return `<h2>Runen & Edelsteine (gemeinsam)</h2><p class="dim">Für alle Charaktere dieses Kontos${G.hc?' (Hardcore)':''}.</p><h3>In der gemeinsamen Truhe</h3><div class="box">${rows(o,-1)}</div><h3>Bei diesem Charakter</h3><div class="box">${rows(G,1)}</div>`}
 function shTo(it,t){const o=shGet();if(o.t[t].length>=STASH_MAX)return false;removeFrom(G.inv,it.u);removeFrom(G.stash,it.u);o.t[t].push(it);shPut(o);save();return true}
 function shTake(t,i,dest){const o=shGet(),it=o.t[t][i];if(!it)return false;const c=JSON.parse(JSON.stringify(it));c.u=G.uid++;
  if(dest==='inv'){if(!canAdd(c))return false;G.inv.push(c)}else{if(G.stash.length>=STASH_MAX)return false;G.stash.push(c)}
@@ -6034,7 +6039,7 @@ function viewInv(){
   if(st===0){h+=`<p class="dim">${G.stash.length}/${STASH_MAX} · nur dieser Charakter</p>`;if(!G.stash.length)h+='<p class="dim">Leer.</p>';G.stash.forEach(it=>{h+=srow(it,()=>{V.sel=it.u;render()})})}
   else{const L=o.t[st-1];h+=`<p class="dim">${L.length}/${STASH_MAX} · für alle Charaktere dieses Kontos${G.hc?' (Hardcore)':''}. Gegenstand antippen, um ihn zu nehmen; eigene Gegenstände legst du über ihre Detailansicht hinein.</p>`;
    h+=`<p>Gold in der gemeinsamen Truhe: <b>${o.g.toLocaleString('de-DE')}</b> / ${SH_GOLD_MAX.toLocaleString('de-DE')}</p><div class="seg">`+btn('Gold einlagern',()=>{const x=shGet(),n=Math.min(G.gold,SH_GOLD_MAX-x.g);if(n>0){x.g+=n;G.gold-=n;shPut(x);save()}render()},'',!G.gold||o.g>=SH_GOLD_MAX)+btn('Gold abheben',()=>{const x=shGet();G.gold+=x.g;x.g=0;shPut(x);save();render()},'',!o.g)+`</div>`;
-   if(!L.length)h+='<p class="dim">Leer.</p>';L.forEach((it,i)=>{h+=srow(it,()=>{V.shs={t:st-1,i};render()})})}}
+   h+=shStoneBox(o);   if(!L.length)h+='<p class="dim">Leer.</p>';L.forEach((it,i)=>{h+=srow(it,()=>{V.shs={t:st-1,i};render()})})}}
  if(V.sq)setTimeout(stashQ,0);
  h+=stoneSummary();
  main(h);
