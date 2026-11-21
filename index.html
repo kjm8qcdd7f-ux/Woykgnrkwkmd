@@ -4965,7 +4965,7 @@ function titleScene(){
  <p class="ttp">Das Lager der Jägerinnen brennt noch. Aus dem Moor kriecht, was nie hätte erwachen dürfen. Du bist ein Fremder, der nach Norden gekommen ist. Man wird dich brauchen.</p>
  <div class="ttf"><input id="acn" maxlength="20" placeholder="Name deines Accounts" value="${clean(last)}" autocomplete="off" oninput="{const b=document.getElementById('acpwb');if(b)b.style.display=accKey(this.value)&&accKey(this.value)===accKey(MASTER_NAME)?'':'none'}"><div class="tth">Neuer Name = neuer Account. Jeder Account hat eigene Figuren.</div><div id="acpwb" style="display:${accKey(last)&&accKey(last)===accKey(MASTER_NAME)?'':'none'};margin-top:8px"><input id="acpw" type="password" maxlength="40" placeholder="Passwort" autocomplete="off"></div></div>
  ${go}
- <div class="ttc">${cl}</div><div class="ttx">Privates Fan-Projekt · Würfel: d20 · Spielstände liegen auf diesem Gerät · Sicherung unter Charakter → Einstellungen.</div></div></div>`,[]);
+ <div class="ttc">${cl}</div><div class="ttx">Privates Fan-Projekt · Würfel: d20 · Spielstände liegen auf diesem Gerät · Sicherung unter Charakter → Einstellungen. · Stand ${GAMEVER}</div></div></div>`,[]);
  titleFx();
 }
 function titleFx(){
@@ -5007,7 +5007,7 @@ function accScene(){
  titleFx();
 }
 /* ===== Sicherung aller Spielstände dieses Geräts ===== */
-const GAMEVER='21.11.2026';
+const GAMEVER='21.11.2026 21:15';
 function bakT(){try{return +localStorage.getItem('d2dnd_lastbak')||0}catch(e){return 0}}
 function bakAgo(){const t=bakT();if(!t)return 'Noch keine Sicherung.';const d=Math.floor((Date.now()-t)/864e5);return 'Letzte Sicherung: '+(d<1?'heute':d===1?'gestern':'vor '+d+' Tagen')+'.'}
 /* dezente Erinnerung: nur wenn es Charaktere gibt und die letzte Sicherung über 7 Tage her ist (bzw. seit 7 Tagen keine) */
