@@ -5007,7 +5007,7 @@ function accScene(){
  titleFx();
 }
 /* ===== Sicherung aller Spielstände dieses Geräts ===== */
-const GAMEVER='21.11.2026 21:19';
+const GAMEVER='21.11.2026 22:06';
 function bakT(){try{return +localStorage.getItem('d2dnd_lastbak')||0}catch(e){return 0}}
 function bakAgo(){const t=bakT();if(!t)return 'Noch keine Sicherung.';const d=Math.floor((Date.now()-t)/864e5);return 'Letzte Sicherung: '+(d<1?'heute':d===1?'gestern':'vor '+d+' Tagen')+'.'}
 /* dezente Erinnerung: nur wenn es Charaktere gibt und die letzte Sicherung über 7 Tage her ist (bzw. seit 7 Tagen keine) */
@@ -6045,7 +6045,7 @@ function viewInv(){
   if(st===0){h+=`<p class="dim">${G.stash.length}/${STASH_MAX} · nur dieser Charakter</p>`;if(!G.stash.length)h+='<p class="dim">Leer.</p>';G.stash.forEach(it=>{h+=srow(it,()=>{V.sel=it.u;render()})})}
   else{const L=o.t[st-1];h+=`<p class="dim">${L.length}/${STASH_MAX} · für alle Charaktere dieses Kontos${G.hc?' (Hardcore)':''}. Gegenstand antippen, um ihn zu nehmen; eigene Gegenstände legst du über ihre Detailansicht hinein.</p>`;
    h+=`<p>Gold in der gemeinsamen Truhe: <b>${o.g.toLocaleString('de-DE')}</b> / ${SH_GOLD_MAX.toLocaleString('de-DE')}</p><div class="seg">`+btn('Gold einlagern',()=>{const x=shGet(),n=Math.min(G.gold,SH_GOLD_MAX-x.g);if(n>0){x.g+=n;G.gold-=n;shPut(x);save()}render()},'',!G.gold||o.g>=SH_GOLD_MAX)+btn('Gold abheben',()=>{const x=shGet();G.gold+=x.g;x.g=0;shPut(x);save();render()},'',!o.g)+`</div>`;
-   h+=shStoneBox(o);   if(!L.length)h+='<p class="dim">Leer.</p>';L.forEach((it,i)=>{h+=srow(it,()=>{V.shs={t:st-1,i};render()})})}}
+   if(!L.length)h+='<p class="dim">Leer.</p>';L.forEach((it,i)=>{h+=srow(it,()=>{V.shs={t:st-1,i};render()})})}}
  if(V.sq)setTimeout(stashQ,0);
  h+=stoneSummary();
  main(h);
@@ -6583,10 +6583,19 @@ function insertSel(it,st){
  calc();save();if(it.rw&&!was)V.rwmsg=`Runenwort entstanden: ${it.rw}!`;render();
 }
 function stoneSummary(){
- let h='',any=false;
- const g=GEMKEYS.flatMap(t=>[1,2,3,4,5].filter(q=>(G.gems[t+q]||0)>0).map(q=>`${ico('gem_'+t,GEMT[t].ic)}${gemN(t,q)} ×${G.gems[t+q]}`));
- const r=RUNES.filter(x=>(G.runes[x.id]||0)>0).map(x=>`<img loading="lazy" decoding="async" src="img/item/rune_${x.id}.webp" alt="" style="width:22px;height:22px;object-fit:contain;vertical-align:middle;margin-right:4px" onerror="this.onerror=null;this.src='img/item/rune.webp'">${x.n} ×${G.runes[x.id]}`);
- if(g.length||r.length){h+=`<h2>Edelsteine & Runen</h2><div class="box">${g.concat(r).join('<br>')}</div>`}
+ let o=null;try{o=shGet()}catch(e){}
+ const q=V.shq||1,chip="padding:6px 14px;min-height:44px;border:1px solid #6a5a35;border-radius:8px;background:#1c1510;font-size:15px;cursor:pointer;color:inherit";
+ const S=o||{runes:{},gems:{}},R=[];
+ const add=(k,key,n,ic)=>{const c=(G[k]||{})[key]||0,t=(S[k]||{})[key]||0;if(c>0||t>0)R.push({k,key,n,c,t,ic})};
+ GEMKEYS.forEach(t=>[1,2,3,4,5].forEach(qq=>add('gems',t+qq,gemN(t,qq),ico('gem_'+t,GEMT[t].ic))));
+ RUNES.forEach(x=>add('runes',x.id,x.n,`<img loading="lazy" decoding="async" src="img/item/rune_${x.id}.webp" alt="" onerror="this.onerror=null;this.src='img/item/rune.webp'">`));
+ if(!R.length)return '';
+ const cols='grid-template-columns:34px 1fr 34px 94px 34px',ab=(l,dir,dis)=>`<button aria-label="${dir>0?'zur Truhe':'zum Charakter'}" ${dis?'disabled':''} style="width:44px;height:44px;border-radius:8px;border:1px solid ${dis?'#3a3022':'#6a5a35'};background:${dis?'transparent':'#2a2016'};color:${dis?'#5a4d36':'#e0c060'};font-size:22px;cursor:pointer" onclick="shMoveR('${'%K%'}','%Y%',${dir})">${l}</button>`;
+ let h=`<h2>Edelsteine & Runen</h2><p class="dim" style="margin:0 0 8px;font-size:13px">Pfeile lagern zwischen diesem Charakter und der gemeinsamen Truhe um${G.hc?' (Hardcore)':''}.</p><div style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><span class="dim">Menge</span>`+[1,10,999].map(n=>`<button style="${chip};flex:1;${q===n?'border-color:#e0c060;color:#e0c060':''}" onclick="V.shq=${n};render()">${n===999?'Alle':n}</button>`).join('')+'</div>';
+ h+=`<div style="display:grid;${cols};gap:6px;padding:6px 0;border-bottom:1px solid #6a5a35;font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.7"><span></span><span></span><span style="text-align:right">Char.</span><span></span><span>Truhe</span></div>`;
+ R.forEach(x=>{const nm=n=>n>0?`<b style="color:#e0c060;font-size:17px">${n}</b>`:'<span style="opacity:.35">0</span>';
+  h+=`<div style="display:grid;${cols};align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #2c2318"><span style="display:flex;justify-content:center">${x.ic.replace('margin-right:4px','margin:0').replace('width:22px;height:22px','width:30px;height:30px').replace('<img ','<img style="width:30px;height:30px;object-fit:contain" ')}</span><span style="font-size:15px;line-height:1.15">${x.n}</span><span style="text-align:right">${nm(x.c)}</span><span style="display:flex;gap:6px;justify-content:center">${ab('‹',-1,!o||x.t<=0).replace('%K%',x.k).replace('%Y%',x.key)}${ab('›',1,x.c<=0).replace('%K%',x.k).replace('%Y%',x.key)}</span><span>${nm(x.t)}</span></div>`});
+ if(o)h+=`<div style="display:flex;gap:8px;margin-top:12px"><button style="${chip};flex:1;font-size:14px" onclick="shAll(-1)">‹ Alles zum Charakter</button><button style="${chip};flex:1;font-size:14px" onclick="shAll(1)">Alles zur Truhe ›</button></div>`;
  return h;
 }
 /* ---------- Horadrim-Würfel ---------- */
