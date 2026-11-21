@@ -5916,7 +5916,7 @@ function viewChar(){
   h+=`<h2>Sicherung</h2><p class="dim">Das Spiel speichert nach jeder Aktion automatisch auf diesem Gerät.</p>`;
   h+=`<p class="dim" style="font-size:12px">„Alles sichern“ legt alle Accounts, Charaktere und Truhen als Datei ab (z. B. in iCloud Drive). Einzelne Charaktere gehen über „Export-Text“. ${bakAgo()}</p>`+btn('💾 Alles sichern',()=>backupAll())+btn('📂 Alles wiederherstellen',()=>restorePick());
   h+=btn('Jetzt speichern',()=>{save();render()})+btn('Export-Text anzeigen',()=>{V.exp=exportSave();render()});
-  if(V.exp)h+=btn('📋 Gesamten Text kopieren',()=>copyAll(V.exp))+`<textarea id="expta" rows="5" style="width:100%" readonly onclick="this.select()">${V.exp}</textarea>`;
+  if(V.exp)h+=btn('📋 Gesamten Text kopieren',()=>copyAll(V.exp))+btn('📄 Als Textdatei speichern / teilen',()=>exportFile(V.exp))+`<textarea id="expta" rows="5" style="width:100%" readonly onclick="this.select()">${V.exp}</textarea>`;
   h+=btn('Zur Charakterauswahl',()=>{save();G=null;V.nomaster=true;SC=accScene;TAB='event';render()});
   h+=`<p class="dim center" style="font-size:11px;opacity:.6;margin-top:14px">Version ${GAMEVER}</p>`;
  }
@@ -6049,6 +6049,11 @@ let RWIT=null;
 /* ⓘ hinter dem Runenwort: alle Eigenschaften mit Wertebereich, Runen, Stufe */
 function unsockIt(it){if(!(hasRune('hel',1)&&G.sc.tp>0))return;takeRune('hel',1);G.sc.tp--;it.aff=it.aff.filter(a=>!a.sock&&!a.rw);it.socks=[];delete it.rw;delete it.rwLvl;delete it.rwV;if(it.rlvlB!==undefined){it.rlvl=it.rlvlB;delete it.rlvlB}calc();save();note('Sockel geleert.');render()}
 /* Export-Text komplett in die Zwischenablage (iPhone: Fallback über markierte Textarea, weil clipboard je nach Browser/Webapp fehlt) */
+/* Export-Text als .txt-Datei: Teilen-Menü (Dateien, WhatsApp, Mail …) oder Download */
+function exportFile(t){const dn=new Date().toISOString().slice(0,10),nm='Aschenchronik-'+String(G.name||'Charakter').replace(/[^\w\-]+/g,'_')+'-'+dn+'.txt';
+ const dl=()=>{try{const u=URL.createObjectURL(new Blob([t],{type:'text/plain'})),a=document.createElement('a');a.href=u;a.download=nm;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500);note('Datei '+nm+' wird gespeichert.')}catch(e){alert('Speichern nicht möglich – bitte „Gesamten Text kopieren“ nutzen.')}};
+ try{const f=new File([t],nm,{type:'text/plain'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:nm}).catch(e=>{if(!e||e.name!=='AbortError')dl()});return}}catch(e){}
+ dl()}
 function copyAll(t){const ok=()=>{try{note('Text komplett kopiert ('+t.length+' Zeichen).')}catch(e){alert('Text komplett kopiert.')}};
  const fb=()=>{const ta=document.getElementById('expta')||document.createElement('textarea');if(!ta.parentNode){ta.value=t;document.body.appendChild(ta)}ta.removeAttribute('readonly');ta.focus();ta.select();try{ta.setSelectionRange(0,t.length)}catch(e){}let r=false;try{r=document.execCommand('copy')}catch(e){}ta.setAttribute('readonly','');if(!document.getElementById('expta')&&ta.parentNode)ta.parentNode.removeChild(ta);if(r)ok();else{try{alert('Kopieren nicht möglich – Text ist markiert, bitte „Kopieren“ im Menü wählen.')}catch(e){}}};
  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(ok,fb);else fb()}
