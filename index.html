@@ -5009,7 +5009,7 @@ function accScene(){shClean();
  titleFx();
 }
 /* ===== Sicherung aller Spielstände dieses Geräts ===== */
-const GAMEVER='21.11.2026 23:57';
+const GAMEVER='22.11.2026 00:37';
 function bakT(){try{return +localStorage.getItem('d2dnd_lastbak')||0}catch(e){return 0}}
 function bakAgo(){const t=bakT();if(!t)return 'Noch keine Sicherung.';const d=Math.floor((Date.now()-t)/864e5);return 'Letzte Sicherung: '+(d<1?'heute':d===1?'gestern':'vor '+d+' Tagen')+'.'}
 /* dezente Erinnerung: nur wenn es Charaktere gibt und die letzte Sicherung über 7 Tage her ist (bzw. seit 7 Tagen keine) */
@@ -6686,8 +6686,11 @@ function cubeView(){
  /* Runen aufwerten */
  /* D2 (1.11+/D2R): El–Ort 3:1, Thul–Lem 3 + Edelstein, ab Pul 2 + Edelstein (classic.battle.net Horadrim-Würfel) */
  const RUP={9:['topas',1],10:['amethyst',1],11:['saphir',1],12:['rubin',1],13:['smaragd',1],14:['diamant',1],15:['topas',2],16:['amethyst',2],17:['saphir',2],18:['rubin',2],19:['smaragd',2],20:['diamant',2],21:['topas',3],22:['amethyst',3],23:['saphir',3],24:['rubin',3],25:['smaragd',3],26:['diamant',3],27:['topas',4],28:['amethyst',4],29:['saphir',4],30:['rubin',4],31:['smaragd',4]};
+ const rIc=r=>`<img src="img/item/rune_${r.id}.webp" alt="" style="width:26px;height:26px;object-fit:contain;vertical-align:middle;margin:0 4px 0 0" onerror="this.onerror=null;this.src='img/item/rune.webp'">`;
  RUNES.forEach(r=>{if(r.i>=32)return;const nx=RUNES[r.i+1],n=r.i>=20?2:3,g=RUP[r.i];
-  if(hasRune(r.id,n)&&(!g||hasGem(g[0],g[1],1)))b.push(btn(`${n}× ${r.n}${g?' + '+gemN(g[0],g[1]):''} → ${nx.n}`,()=>{takeRune(r.id,n);if(g)takeGem(g[0],g[1],1);G.runes[nx.id]=(G.runes[nx.id]||0)+1;save();render()}))});
+  const have=G.runes[r.id]||0;if(have<=0)return;const gOk=!g||hasGem(g[0],g[1],1),ok=have>=n&&gOk;
+  const lab=`<span style="display:flex;align-items:center;gap:6px;font-size:14px;line-height:1.15;text-align:left">${rIc(r)}<span style="flex:1">${n}× ${r.n}${g?' + '+gemN(g[0],g[1]):''}<br><span class="dim" style="font-size:12px">hast ${have}${g&&!gOk?' · es fehlt: '+gemN(g[0],g[1]):have<n?' · es fehlen '+(n-have):''}</span></span><span style="color:#e0c060">→</span>${rIc(nx)}<b style="color:#e0c060">${nx.n}</b></span>`;
+  b.push(btn(lab,()=>{takeRune(r.id,n);if(g)takeGem(g[0],g[1],1);G.runes[nx.id]=(G.runes[nx.id]||0)+1;save();render()},'',!ok))});
  const nR=b.length;
  /* Tränke (cubemain.txt): 3 Heiltränke + 3 Manatränke + 1 Splitter-Edelstein → Verjüngungstrank; + 1 normaler Edelstein → Voller Verjüngungstrank; 3 Verjüngungstränke → Voller Verjüngungstrank */
  {const HK=POTH,MK=POTM,cnt=L=>L.reduce((x,k)=>x+(G.pot[k]||0),0),take=(L,n)=>{for(const k of L){while(n>0&&G.pot[k]>0){G.pot[k]--;n--}}},gemQ=q=>GEMKEYS.find(t=>hasGem(t,q,1));
