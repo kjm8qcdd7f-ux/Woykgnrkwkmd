@@ -930,7 +930,7 @@ function save(){if(!G)return;try{
 function loadChar(id){try{const s=localStorage.getItem(charKey(id));if(s){G=JSON.parse(s);G.cid=id;migrate();calc();return true}}catch(e){}return false}
 function loadSave(){try{const s=localStorage.getItem(SAVEKEY);if(s){G=JSON.parse(s);migrate();calc();return true}}catch(e){}return false}
 function delChar(id){try{localStorage.removeItem(charKey(id));const a=accAll();if(a[ACC]){a[ACC].chars=a[ACC].chars.filter(c=>c.id!==id);accPut(a)}}catch(e){}}
-function migrate(){G.act=G.act||1;if(!MODES[G.mode])G.mode='ac';if(G.xpMode&&!XPMODES[G.xpMode])G.xpMode='spiel';
+function migrate(){/* Master-Builds mit freien Talisman-Feldern einmalig auffüllen (Spielstände von vor der Änderung) */try{if(G.build&&!G.colGrid&&!G.gfill&&typeof MBUILDS!=="undefined"&&window.D2SIMP){const B=(MBUILDS[G.cls]||[]).find(x=>x.n===G.build);if(B&&B.d2s&&window.MBD2S&&MBD2S[B.d2s]&&MBD2S[B.d2s].charms){G.gfill=1;if(gridFree()>0)D2SIMP.fill(MBD2S[B.d2s])}}}catch(err){}G.act=G.act||1;if(!MODES[G.mode])G.mode='ac';if(G.xpMode&&!XPMODES[G.xpMode])G.xpMode='spiel';
  /* alte Spielstände: Tränke über Gürtel+Rucksack hinaus entfernen (größte Stapel zuerst) */
  if(G.pot&&typeof potRoom==='function'&&G.eq){let ex=potTot()-(beltSlots()+gridFree());while(ex>0){const k=Object.keys(POTS).sort((a,b)=>(G.pot[b]||0)-(G.pot[a]||0))[0];if(!(G.pot[k]>0))break;G.pot[k]--;ex--}}
  /* Unique-Stufenanforderung aus der (korrigierten) Tabelle übernehmen */
@@ -7595,7 +7595,7 @@ window.D2SIMP=(()=>{
    const au=AURA[m.aura2]||null;G.merc={t,alive:true,au,d:1,inf:true,eq:{}};['weapon','head','body'].forEach(s=>{const it=item((m.eq||{})[s]);if(it)G.merc.eq[s]=it})}
   calc();['strength','dexterity','vitality','energy'].forEach((k,i)=>{const s=['str','dex','vit','ene'][i];const need=(J.attrs[k]||0)-(G.stat[s]||0);if(need>0)addStat(s,need);else if(need<0&&J.attrs[k]){G.stat[s]=J.attrs[k]}});calc();
   return miss}
- return {item,apply,charms,lines2aff};
+ return {item,apply,charms,lines2aff,fill:fillGrid};
 })();
 
 </script>
