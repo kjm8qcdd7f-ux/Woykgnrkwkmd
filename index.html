@@ -550,18 +550,6 @@ body.bshake #app{animation:bshk .45s}@keyframes bshk{0%,100%{transform:none}15%{
 .ptile.off{opacity:.4;filter:grayscale(.6)}.ptile.off .pc{display:none}.ptile:disabled{opacity:.5}
 
 /* Fertigkeiten-Baum neu */
-.skt{background:radial-gradient(ellipse at 50% 0,#1c120b,#0c0806 70%)}
-.sk{background:none;border:0;border-radius:0;height:88px;margin:0 0 0 1.5%;justify-content:flex-start;padding:2px 0 0;color:#8a7a62;box-shadow:none}
-.sk i{width:60px;height:60px;border:2px solid #3a2e20;border-radius:12px;background:#0d0907;overflow:hidden;filter:none;box-shadow:none;transition:.2s}
-.sk i .skimg{filter:grayscale(.85) brightness(.55);border-radius:0}
-.sk small{margin-top:11px;font-size:11px;line-height:1.1;max-width:98%;height:26px;overflow:hidden;color:#8a7a62}
-.sk b{left:50%;top:47px;transform:translateX(-50%);min-width:22px;height:22px;border-radius:11px;background:#0b0807;border:1.5px solid #3a2e20;color:#8a7a62;font:700 12px Georgia,serif;display:flex;align-items:center;justify-content:center;z-index:2}
-.sk b:empty:after{content:'·'}
-.sk em{left:50%;margin-left:-26px;top:6px;bottom:auto;right:auto;color:#6a5a44;font-size:10px;text-shadow:0 0 3px #000;z-index:2}
-.sk.can{box-shadow:none!important;border:0!important;background:none!important}.sk.can i{border-color:#8a6a3a;animation:skpul 1.8s infinite}.sk.can i .skimg{filter:grayscale(.3) brightness(.85)}.sk.can small{color:#c8b48a}
-@keyframes skpul{50%{box-shadow:0 0 14px rgba(217,179,106,.55)}}
- .sk.on,.sk.on{border:0!important;background:none!important;color:#d9b36a}.sk.on i{border-color:#d9b36a;box-shadow:0 0 14px rgba(217,179,106,.4)}.sk.on i .skimg{filter:none}.sk.on small{color:#d9b36a}.sk.on b{border-color:#d9b36a;color:#d9b36a;background:#2a1b10}
-.sk.lock:not(.on){opacity:.55}
 
 /* Herstellen: Rezeptkarte */
 .rcard{text-align:left}.rct{font-size:16px;color:#d9b36a;display:flex;align-items:center;gap:8px}.rcc{margin-left:auto;font-size:12px;color:#9a8a6e}.rcc b{color:#d9b36a}
@@ -5018,10 +5006,10 @@ function skillTree(ti){
  const ids=Object.keys(SKILLS).filter(id=>SKILLS[id].tree===ti&&SKILLS[id].c===G.cls&&SKPOS[id]);
  const pos={};ids.forEach(id=>{const q=SKPOS[id];pos[id]={r:q[0]-1,c:q[1]-1}});
  const CW=100,RH=96;
- let ln='';ids.forEach(id=>SKILLS[id].pre.forEach(p=>{if(!pos[p])return;const a=pos[p],b=pos[id],x1=a.c*CW+50,y1=a.r*RH+72,x2=b.c*CW+50,y2=b.r*RH+6;const on=(G.skills[p]||0)>0,my=(y1+y2)/2;ln+=`<path d="M${x1} ${y1}C${x1} ${my} ${x2} ${my} ${x2} ${y2}" stroke="${on?'#d9b36a':'#3a2e20'}" stroke-width="${on?2.6:2}" fill="none"${on?' filter="url(#skg)"':''}/>`}));
+ let ln='';ids.forEach(id=>SKILLS[id].pre.forEach(p=>{if(!pos[p])return;const a=pos[p],b=pos[id],x1=a.c*CW+50,y1=a.r*RH+84,x2=b.c*CW+50,y2=b.r*RH+4;const on=(G.skills[p]||0)>0;ln+=`<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${on?'#c8a15a':'#4a3d26'}" stroke-width="2" fill="none" marker-end="url(#ar${on?1:0})"/>`}));
  let tiles='';ids.forEach(id=>{const s=SKILLS[id],l=G.skills[id]||0,q=pos[id],ok=canLearn(id),lock=G.lvl<s.lvl;H.push(()=>{V.skill=id;render()});
   tiles+=`<button class="sk${l>0?' on':''}${ok?' can':''}${lock&&!l?' lock':''}" style="left:${q.c*CW/3.0}%;top:${q.r*RH}px;" onclick="run(${H.length-1})"><i>${skIcon(id,s)}</i><b>${l||''}</b><small>${s.n}</small><em>${s.lvl}</em></button>`});
- return `<div class="skt" style="height:${6*RH}px"><svg viewBox="0 0 300 ${6*RH}" preserveAspectRatio="none"><defs><filter id="skg"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><marker id="ar0" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="#4a3d26"/></marker><marker id="ar1" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="#c8a15a"/></marker></defs>${ln}</svg>${tiles}</div><p class="dim center" style="font-size:12px">Zahl oben links = benötigte Stufe. Golden = gelernt · pulsierend = jetzt lernbar · dunkel = gesperrt.</p>`}
+ return `<div class="skt" style="height:${6*RH}px"><svg viewBox="0 0 300 ${6*RH}" preserveAspectRatio="none"><defs><marker id="ar0" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="#4a3d26"/></marker><marker id="ar1" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="#c8a15a"/></marker></defs>${ln}</svg>${tiles}</div><p class="dim center" style="font-size:12px">Kleine Zahl unten rechts = benötigte Stufe. Positionen, Stufen und Voraussetzungen wie im Original.</p>`}
 let LASTHP=null,LASTMP=null;
 /* Flüssige Kugeln: Pegel = Anteil, Wellen an der Oberfläche, Strudel, aufsteigende Bläschen, Glasglanz.
    --t (Sekunden seit Seitenstart) hält die Animationen beim Neuzeichnen im Takt, damit nichts ruckelt. */
@@ -5132,7 +5120,7 @@ function accScene(){shClean();
  {const car=document.getElementById('ccar');if(car){let tm;car.addEventListener('scroll',()=>{clearTimeout(tm);tm=setTimeout(()=>{const r=car.getBoundingClientRect(),m=r.left+r.width/2;let bi=0,bd=1e9;car.querySelectorAll('.cc2').forEach((e,k)=>{const q=e.getBoundingClientRect(),d=Math.abs(q.left+q.width/2-m);if(d<bd){bd=d;bi=k}});if(bi!==V.csel)ccSel(bi,0)},90)});setTimeout(()=>{const e=car.querySelectorAll('.cc2')[V.csel];if(e&&e.scrollIntoView)e.scrollIntoView({inline:'center',block:'nearest'})},40)}}
 }
 /* ===== Sicherung aller Spielstände dieses Geräts ===== */
-const GAMEVER='22.11.2026 20:20';
+const GAMEVER='22.11.2026 20:34';
 function bakT(){try{return +localStorage.getItem('d2dnd_lastbak')||0}catch(e){return 0}}
 function bakAgo(){const t=bakT();if(!t)return 'Noch keine Sicherung.';const d=Math.floor((Date.now()-t)/864e5);return 'Letzte Sicherung: '+(d<1?'heute':d===1?'gestern':'vor '+d+' Tagen')+'.'}
 /* dezente Erinnerung: nur wenn es Charaktere gibt und die letzte Sicherung über 7 Tage her ist (bzw. seit 7 Tagen keine) */
