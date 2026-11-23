@@ -148,6 +148,7 @@ button .ei{vertical-align:-5px;color:#c9a45c;margin-right:6px}
 #app.fight #btns button .skimg{vertical-align:middle;margin-right:2px}
 .mapsvg{width:100%;height:auto;display:block;margin-top:8px}
 .amap .ah .mapic{margin:0;padding:3px 10px;width:auto;min-height:0;font-size:14px;flex:none}.amap .ah{align-items:center}
+.swb{padding:8px 10px!important}.swp{display:grid;grid-template-columns:1fr 22px 1fr;gap:6px;align-items:center;width:100%;text-align:left}.sw1{display:flex;flex-direction:column;gap:3px;min-width:0}.sw1 small{opacity:.6;font-size:10px;text-transform:uppercase;letter-spacing:.1em}.sw2{display:flex;align-items:center;gap:7px;min-width:0}.sw2 .ii{width:42px;height:42px;flex:none;object-fit:contain;background:#000;border:1px solid #6a5226;padding:2px}.sw2>span{font-size:14px;line-height:1.2;overflow-wrap:anywhere}.swa{text-align:center;font-size:18px;opacity:.7}
 .tzb{font-size:15px!important;padding:6px 4px!important;border-color:#8a4fc0!important;color:#d8b4ff!important;background:linear-gradient(#2a1538,#170b22)!important}
 .wmg{position:absolute;left:8px;top:8px;right:64px;z-index:2;font-size:13px;line-height:1.3;padding:5px 9px;border:1px solid #5a3a22;border-radius:8px;background:rgba(14,10,7,.82);color:#e8dcc0;pointer-events:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .wmt button{padding:5px 2px;font-size:13px}.wmt{margin-bottom:2px}
@@ -5134,7 +5135,7 @@ function accScene(){shClean();
  {const car=document.getElementById('ccar');if(car){let tm;car.addEventListener('scroll',()=>{clearTimeout(tm);tm=setTimeout(()=>{const r=car.getBoundingClientRect(),m=r.left+r.width/2;let bi=0,bd=1e9;car.querySelectorAll('.cc2').forEach((e,k)=>{const q=e.getBoundingClientRect(),d=Math.abs(q.left+q.width/2-m);if(d<bd){bd=d;bi=k}});if(bi!==V.csel)ccSel(bi,0)},90)});setTimeout(()=>{const e=car.querySelectorAll('.cc2')[V.csel];if(e&&e.scrollIntoView)e.scrollIntoView({inline:'center',block:'nearest'})},40)}}
 }
 /* ===== Sicherung aller Spielstände dieses Geräts ===== */
-const GAMEVER='23.11.2026 04:54';
+const GAMEVER='23.11.2026 16:55';
 function bakT(){try{return +localStorage.getItem('d2dnd_lastbak')||0}catch(e){return 0}}
 function bakAgo(){const t=bakT();if(!t)return 'Noch keine Sicherung.';const d=Math.floor((Date.now()-t)/864e5);return 'Letzte Sicherung: '+(d<1?'heute':d===1?'gestern':'vor '+d+' Tagen')+'.'}
 /* dezente Erinnerung: nur wenn es Charaktere gibt und die letzte Sicherung über 7 Tage her ist (bzw. seit 7 Tagen keine) */
@@ -5872,7 +5873,7 @@ function winRest(L,spec){
  const full=(window.__winSw&&window.__winSw.full||[]).filter(it=>!G.inv.includes(it));
  const worst=()=>{const c=G.inv.filter(i=>!isGrid(i));c.sort((a,b)=>((a.q||0)-(b.q||0))||((a.ilvl||0)-(b.ilvl||0)));return c[0]};
  const b=[];
- full.forEach(it=>{const w=worst();if(!w)return;b.push(btn(`Tausche: ${iname(it)} ⇄ ${iname(w)}`,()=>{const w2=worst();if(!w2)return;removeFrom(G.inv,w2.u);if(canAdd(it))G.inv.push(it);calc();save();goto(winRest,L,spec)}))});
+ full.forEach(it=>{const w=worst();if(!w)return;const sw=(l,x)=>`<span class="sw1"><small>${l}</small><span class="sw2">${imgIt(x)}<span class="${x.rw?'qr':'q'+x.q}">${itemName(x)}</span></span></span>`;b.push(btn(`<span class="swp">${sw('Neu aufnehmen',it)}<span class="swa">⇄</span>${sw('Ersetzt',w)}</span>`,()=>{const w2=worst();if(!w2)return;removeFrom(G.inv,w2.u);if(canAdd(it))G.inv.push(it);calc();save();goto(winRest,L,spec)},'swb'))});
  b.push(btn('Weiter',spec.after||(()=>goto(areaScene))));
  show(L.join('')+(full.length?'<p class="bad">Rucksack voll. Tausche gegen deinen schwächsten Gegenstand oder lass es liegen.</p>':''),b);
 }
@@ -7292,10 +7293,11 @@ if(!J) (B.rest||B.sk.map(x=>x[0])).forEach(x=>{const id=sid(x);if(id)while(G.spt
 function masterScene(){V.mtab=V.mtab||'bis';const T=V.mtab;
  const seg=`<div class="seg fseg">`+[['bis','Endgame BiS'],['st','Starter']].map(([k,n])=>btn(n,()=>{V.mtab=k;render()},T===k?'on':'')).join('')+`</div>`;
  const avail=c=>T==='bis'||starterList(c.id).length;
- const cl=Object.values(CLASSES).filter(c=>c.avail&&avail(c)).map(c=>btn(`<img loading="lazy" decoding="async" class="mcp" src="img/cls/${c.id}.webp" alt=""><span style="min-width:0;text-align:left;-webkit-hyphens:auto;hyphens:auto" lang="de"><b>${c.n}</b>${T==='st'?`<br><span class="dim" style="font-size:12px">Stufe ${STARTD2S[starterList(c.id)[0]].lvl} · ${STARTLBL[c.id]||starterMain(STARTD2S[starterList(c.id)[0]])}</span>`:''}</span>`,()=>{if(T==='st'){starterGame(starterList(c.id)[0]);goto(townScene)}else goto(masterBuilds,c.id)},'mcard')).join('');
+ const cl=Object.values(CLASSES).filter(c=>c.avail&&avail(c)).map(c=>btn(`<img loading="lazy" decoding="async" class="mcp" src="img/cls/${c.id}.webp" alt=""><span style="min-width:0;text-align:left;-webkit-hyphens:auto;hyphens:auto" lang="de"><b>${c.n}</b>${T==='st'?`<br><span class="dim" style="font-size:12px">Stufe ${STARTD2S[starterList(c.id)[0]].lvl} · ${STARTLBL[c.id]||starterMain(STARTD2S[starterList(c.id)[0]])}</span>`:''}</span>`,()=>{if(T==='st'){(V.stAuto?autoStarterGame:starterGame)(starterList(c.id)[0]);goto(V.stAuto?msgScene:townScene,...(V.stAuto?[`<h2>☠ Auto-Lauf</h2><p>${CLASSES[c.id].n} beginnt auf Stufe 1. Der Autopilot spielt von Normal bis zum Ende der Hölle: Fertigkeiten, Attribute und Ausrüstung folgen dem Plan der Starter-Datei, Stufe für Stufe. Steuern kannst du ihn über den ☠-Knopf am rechten Rand.</p>`,()=>goto(townScene)]:[]))}else goto(masterBuilds,c.id)},'mcard')).join('');
  const txt=T==='bis'?`Stufe 99, Hölle, alle Akte fertig, beste Ausrüstung. Name: <b>${MASTER_NAME}</b>. Ersetzt den aktuellen Spielstand im Browser, vorher exportieren.`
   :`Je Klasse ein Leveling-Spielstand auf Stufe 75, 1:1 aus den .d2s-Dateien (Maxroll-Leveling-Guides): Stufe, Fertigkeiten, Attribute und Ausrüstung genau wie im Spielstand. Schwierigkeit und Akt passend zur Stufe, keine Meister-Truhe. Name: <b>${MASTER_NAME}</b>.`;
- show(`<h2>Meister-Spielstand</h2>${seg}<p class="dim" style="font-size:13px;margin:6px 0 8px">${txt}</p><div class="mgrid">${cl}</div>`,
+ const am=T==='st'?`<div class="seg fseg">`+[[false,'🎯 Selbst spielen (Stufe 75)'],[true,'☠ Auto ab Stufe 1 bis Spielende']].map(([v,n])=>btn(n,()=>{V.stAuto=v;render()},!!V.stAuto===v?'on':'')).join('')+`</div>`+(V.stAuto?`<p class="dim" style="font-size:13px;margin:0 0 8px">Der Charakter startet auf Stufe 1 und wird vom Autopiloten durch alle drei Schwierigkeiten gespielt. Punkte und Ausrüstung kommen nach dem Plan der Starter-Datei, sobald Stufe und Attribute reichen.</p>`:''):'';
+ show(`<h2>Meister-Spielstand</h2>${seg}${am}<p class="dim" style="font-size:13px;margin:6px 0 8px">${txt}</p><div class="mgrid">${cl}</div>`,
  [btn('Eigenen Build hochladen (.d2s)',d2sUpload),btn('Zurück',()=>{V.nomaster=true;goto(accScene)})]);
 }
 /* je Klasse genau ein Starter auf Stufe 75 */
@@ -7330,6 +7332,16 @@ function starterGame(key){const J=STARTD2S[key];const cls=J.cls;window.MBD2S=win
  /* Gürtel: die Tränke, die der Händler in dieser Schwierigkeit verkauft (halb Heil, halb Mana) */
  G.pot={h1:0,h2:0,h3:0,h4:0,h5:0,m1:0,m2:0,m3:0,m4:0,m5:0,r1:0,r2:0};G.potV=2;calc();{const n=beltSlots(),h=d>=2?'h5':d===1?'h4':a>=4?'h4':a>=3?'h3':'h2',m=h.replace('h','m');G.pot[h]=Math.ceil(n/2);G.pot[m]=Math.floor(n/2)}
  G.sc={id:5,tp:5};calc();G.hp=S.maxHp;G.mana=S.maxMana;save()}
+/* Auto-Starter: Stufe 1, Plan (Fertigkeiten, Attribute, Ausrüstung, Hauptfertigkeit) aus der Starter-Datei; der Autopilot (js/autopilot.js) setzt ihn Stufe für Stufe um */
+function autoStarterGame(key){
+ starterGame(key);const J=STARTD2S[key],tmp=G.cid;
+ const plan={cls:G.cls,skills:JSON.parse(JSON.stringify(G.skills)),stat:{...G.stat},eq:JSON.parse(JSON.stringify(G.eq)),autoSk:G.autoSk||null,autoTr:G.autoTr||null,autoCu:G.autoCu||null};
+ const cls=G.cls,nm=G.build;
+ newGame(MASTER_NAME,cls,false);
+ try{if(tmp&&tmp!==G.cid)delChar(tmp)}catch(e){}
+ G.mb='stauto:'+key;G.build='Auto ab Stufe 1: '+(STARTLBL[cls]||starterMain(J));G.apAuto=true;G.apPlan=plan;G.apGot={};G.manual=false;
+ try{if(ACC)accChars().filter(c=>c.mb===G.mb&&c.id!==G.cid).forEach(c=>delChar(c.id))}catch(e){}
+ save()}
 function masterBuilds(cls){
  const TC={'S++':'#ff3df0','S+':'#c86bff',S:'#ff4d4d',A:'#ff9a3d',B:'#ffd24a',C:'#5fd3b5',D:'#6fa8ff',E:'#a0a0a0'};const NB=Object.values(MBUILDS).reduce((t,L)=>t+L.length,0);
  /* nach eigenem Ranking sortiert (bester zuerst); Abzeichen mit fester Breite */const bl=MBUILDS[cls].map((b,i)=>[b,i]).sort((x,y)=>((x[0].rk||{}).p||99)-((y[0].rk||{}).p||99)).map(([b,i])=>btn(`<span style="display:flex;align-items:center;gap:8px">${b.tier?`<span style="flex:none;width:40px;text-align:center;white-space:nowrap;padding:2px 0;border-radius:4px;font-weight:700;color:#111;background:${TC[b.tier]||'#888'}">${b.tier}</span>`:''}<span style="flex:1;display:flex;flex-direction:column;gap:2px"><b>${b.n}</b>${b.rk?`<span class="dim" style="font-size:12px">Platz ${b.rk.p} von ${NB} · Gruppen Platz ${b.rk.g} · Uber ${b.rk.u}/${b.rk.n||10}</span>`:''}<span class="dim">${b.d}</span></span></span>`,()=>{masterGame(cls,i);goto(townScene)},'mcard mb')).join('');
@@ -8197,7 +8209,7 @@ function mapScene(act,sel,keep){
  }
  let tabs='';for(let a=1;a<=(G.maxAct||1);a++){tabs+=btn(`Akt ${a}`,()=>wmJump(a,sel),a===act?'sel':'')}
  const inf='';
- let tzb='';if(tr){const g=tzGroup();if(g[0]&&AREAS[g[0]]&&(typeof tzUnlocked!=='function'||tzUnlocked())){g.filter(k=>AREAS[k]).forEach(k=>{const ok=G.wps[k]||k===ACT_START[AREAS[k].act];tzb+=btn(`☠️ ${AREAS[k].n} · ${tzMinLeft()} Min. ▶`,ok?()=>enterArea(k):()=>wmJump(AREAS[k].act,k),'tzb')})}}
+ let tzb='';if(tr){const g=tzGroup();if(g[0]&&AREAS[g[0]]&&(typeof tzUnlocked!=='function'||tzUnlocked())){g.filter(k=>AREAS[k]).forEach(k=>{tzb+=btn(`☠️ ${AREAS[k].n} · ${tzMinLeft()} Min. ▶`,()=>enterArea(k),'tzb')})}}
  show(`${tr?'':'<h2>Weltkarte</h2>'}${tzb}<div class="seg wmt">${tabs}</div>${svg}`,[panel,...acts,btn('◀ Zurück',()=>G.at==='town'?goto(townScene):goto(areaScene))]);
  {const bt=document.getElementById('btns');if(bt&&acts.length)bt.style.gridTemplateColumns='1fr 1fr'}
  wmInit(act,sel,keep);
@@ -8597,6 +8609,341 @@ function supScene(){V.supBusy=false;const [it,where]=V.supIt||[];if(!it)return g
  <p style="margin:4px 0">Als kleines Dankeschön liegt ${where} jetzt:</p></div>`+itemBlock(it)+`<p class="center" style="margin:8px 0 0">Mit freundlichen Grüßen<br><i>Ihr Entwickler-Team</i></p>`,[btn('Vielen Dank!',()=>{V.supIt=null;TAB='inv';SC=townScene;render()})])}
 /* Haken: nach jedem Szenenwechsel prüfen */
 {const _gt=goto;goto=function(fn,...a){const r=_gt(fn,...a);try{if(fn!==donerBday)donerCheck()}catch(e){}try{if(fn!==supScene&&fn!==donerBday)supCheck()}catch(e){}return r}}
+
+</script>
+<script>/* js/autopilot.js */
+/* Autopilot: spielt das Spiel über die echten Buttons durch und meldet Hänger und Fehler */
+(function(){
+const AP=window.AP={on:false,spd:1,n:0,same:0,sig:'',sigT:0,log:[],err:[],unk:{},hang:[],last:'',mode:'',
+ st:{fights:0,wins:0,deaths:0,clicks:0,rec:0,towns:0,quests:0,rooms:0,acts:0},t0:0,tk:null,fi:0,fl:0,dn:false};
+const $=s=>document.querySelector(s);
+const vis=()=>[...document.querySelectorAll('button')].filter(b=>b.offsetParent&&!b.disabled&&!b.closest('#tabs')&&!b.closest('#apui'));
+const lab=b=>(b.textContent||'').replace(/\s+/g,' ').trim();
+const clk=(rx,bs)=>{bs=bs||vis();const b=bs.find(x=>rx.test(lab(x)));if(b){AP.st.clicks++;b.click();return lab(b)}return null};
+const el=()=>Math.round((Date.now()-AP.t0)/1000);
+function say(k,m){AP.log.push(el()+'s · '+k+' '+(m||''));if(AP.log.length>300)AP.log.shift();ui()}
+AP.say=say;
+addEventListener('error',e=>{const m=(e.message||'')+' @'+(e.filename||'').split('/').pop()+':'+e.lineno;AP.err.push(m);say('⚠ FEHLER',m)});
+addEventListener('unhandledrejection',e=>{const m='Promise: '+(e.reason&&e.reason.message||e.reason);AP.err.push(m);say('⚠ FEHLER',m)});
+const AVOID=/zurück|abbrechen|löschen|neues spiel|schwierigkeit wechseln|beenden|menü|aufgeben|verkaufen|speichern|export|hochlad|sicherung|fliehen|stoppen|portal|respec|neu verteilen|glücksspiel|kaufen|kuh|endgame|farm/i;
+const NAV=/^[▶◀]|karte|wegpunkt|stadtportal|neu betreten/i;
+
+/* ===== Spielwissen ===== */
+const ar=()=>(typeof AREAS!=='undefined'&&AREAS[G.at])||null;
+const adj=()=>{const o={};Object.keys(AREAS).forEach(id=>{const a=AREAS[id];const add=(x,y)=>{if(!AREAS[x]||!AREAS[y])return;(o[x]=o[x]||new Set()).add(y);(o[y]=o[y]||new Set()).add(x)};(a.next||[]).forEach(n=>add(id,n));if(a.back)add(id,a.back)});return o};
+function distFrom(T){const A=adj(),d={};d[T]=0;const q=[T];while(q.length){const x=q.shift();(A[x]||[]).forEach(y=>{if(d[y]===undefined){d[y]=d[x]+1;q.push(y)}})}return d}
+const done=id=>!!(G.prog[id]&&G.prog[id].done);
+function unlocked(id){const a=AREAS[id];return !a.need||needOk(a)}
+function questNpc(){ /* bereit zur Abgabe > verfügbar */
+ const ids=Object.keys(QUESTS).filter(id=>QUESTS[id].act===G.act).sort((a,b)=>(QUESTS[a].n2||0)-(QUESTS[b].n2||0));
+ const rd=ids.find(id=>G.q[id]==='ready');if(rd)return QUESTS[rd].giver;
+ const av=ids.find(id=>qAvail(id));if(av)return QUESTS[av].giver;
+ /* Cain-Zwischenschritte (Schriftrolle deuten, Stab, Khalims Wille) */
+ if(qGoals().N.size)return [...qGoals().N][0];
+ return null}
+function pickFarm(at){const A=AREAS[at];if(!A)return null;const c=Object.keys(AREAS).filter(id=>id!==at&&AREAS[id].act===A.act&&unlocked(id)&&(AREAS[id].lvl||0)<=(A.lvl||99));
+ c.sort((x,y)=>(AREAS[y].lvl||0)-(AREAS[x].lvl||0));return c[0]||null}
+function farmArea(){
+ if(!AP.farmLv){for(const k of Object.keys(AP.dA||{})){if(AP.dA[k]>=4&&AREAS[k]&&!(G.prog[k]&&G.prog[k].done)){const f=pickFarm(k);AP.dA[k]=0;if(f){AP.farmLv=G.lvl+2;AP.farmId=f;AP.st.farms=(AP.st.farms||0)+1;say('🌾 FARM',(AREAS[f].n||f)+' bis Stufe '+AP.farmLv+' (zu oft gefallen in '+(AREAS[k].n||k)+')');break}}}}
+ if(AP.farmLv&&G.lvl>=AP.farmLv){AP.farmLv=0;AP.farmId=null;say('🌾 FARM Ende','Stufe '+G.lvl)}
+ return AP.farmLv?AP.farmId:null}
+function targetArea(){
+ const fa=farmArea();if(fa)return fa;
+ const g=qGoals();let c=[...g.A].filter(id=>AREAS[id]&&!done(id)&&unlocked(id));
+ if(!c.length)c=[...g.A].filter(id=>AREAS[id]&&unlocked(id));
+ if(!c.length)return null;
+ /* nächstes Ziel vom aktuellen Ort aus */
+ const here=G.at==='town'?ACT_START[G.act]:G.at;
+ let best=null,bd=1e9;c.forEach(id=>{const d=distFrom(id)[here];if(d!==undefined&&d<bd){bd=d;best=id}});return best||c[0]}
+function actFinished(){return Object.keys(QUESTS).filter(id=>QUESTS[id].act===G.act).every(id=>G.q[id]==='done')}
+const healNpc=()=>TOWNS[G.act].npcs.find(id=>NPCS[id].roles.includes('heal'));
+const travelNpc=()=>TOWNS[G.act].npcs.find(id=>NPCS[id].to);
+const needHeal=()=>G.hp<S.maxHp*0.9||G.mana<S.maxMana*0.5;
+const potCount=()=>POTH.reduce((x,k)=>x+(G.pot[k]||0),0);
+const lowPots=()=>potCount()<6&&G.gold>=3000&&potRoom()>0;
+
+/* ===== Szenen-Erkennung ===== */
+const isTown=()=>!!$('.tgrid');
+const isArea=()=>!!$('.amap');
+const isMap=()=>!!$('.wmt');
+const isNpc=()=>G.at==='town'&&!isTown()&&!isMap()&&vis().some(b=>/Zurück/.test(lab(b)));
+
+/* ===== Handlungen ===== */
+function openMap(){
+ let r=clk(/^Aufbrechen/);if(r)return 'karte (Aufbrechen)';
+ r=clk(/Menü/);if(r)return 'Menü öffnen';
+ const b=document.querySelector('button.mapic');if(b&&b.offsetParent){b.click();return 'karte'}
+ return null}
+function goMap(sel){ /* wählt auf der Weltkarte das Ziel und geht hin */
+ const act=sel==='town'?G.act:AREAS[sel].act;
+ try{mapScene(act,sel)}catch(e){AP.err.push('map: '+e.message);say('⚠ KARTE',e.message)}
+ return 'karte→'+sel}
+function exploreRoom(){
+ const a=ar(),p=G.prog[G.at];if(!p)return null;
+ if(!p.m||!p.m.r)return clk(/Raum betreten|Weiter/)||null;
+ const m=p.m;const vis_=i=>!!m.r[i].v;
+ const ex=m.r.filter((y,j)=>y.v&&j>0&&y.k!=='boss').length;
+ const bossOk=!a.boss||p.s>=a.steps;
+ /* bevorzugt: unerkundete Nachbarn des aktuellen Raums, Boss erst wenn freigeschaltet */
+ const cand=m.r.map((x,i)=>i).filter(i=>!vis_(i)&&roomAdj(m,m.cur,i)&&(m.r[i].k!=='boss'||bossOk));
+ if(!cand.length){
+  /* kein direkter Nachbar: zu einem erkundeten Raum mit unerkundetem Nachbarn zurückgehen */
+  const back=m.r.map((x,i)=>i).filter(i=>vis_(i)&&i!==m.cur&&m.r.some((y,j)=>!vis_(j)&&roomAdj(m,i,j)&&(y.k!=='boss'||bossOk)));
+  if(back.length){RSEL=back[0];areaScene();setTimeout(()=>clk(/Dorthin zurück|Raum betreten/),30);return 'Raum '+back[0]+' (zurück)'}
+  return null}
+ RSEL=cand[0];areaScene();
+ setTimeout(()=>{if(!clk(/Raum betreten|Dem Boss entgegentreten/))AP.fl++},30);
+ AP.st.rooms++;return 'Raum '+cand[0]+' ['+p.s+'/'+areaTotal(a)+' cur='+m.cur+' v='+m.r.map(x=>x.v?1:0).join('')+']';
+}
+
+
+/* ===== Auto-Starter: Plan aus der Starter-Datei Stufe für Stufe umsetzen ===== */
+function applyPlan(){
+ const P=G.apPlan;if(!P||!G.apAuto)return;
+ const B=CLASSES[G.cls].base,K=['str','dex','vit','ene'];
+ /* Attributspunkte im Verhältnis des Endstands */
+ if(G.pts>0){const need={};K.forEach(k=>need[k]=Math.max(0,(P.stat[k]||0)-(B[k]||0)));
+  for(let i=0;i<500&&G.pts>0;i++){let best='vit',bv=-1;K.forEach(k=>{const inv=G.stat[k]-(B[k]||0);if(need[k]<=inv)return;const v=need[k]/(inv+1);if(v>bv){bv=v;best=k}});addStat(best,1)}}
+ /* Fertigkeitspunkte: gleichmäßig nach Anteil am Endstand, nur was Stufe und Voraussetzungen erlauben */
+ for(let i=0;i<200&&G.spts>0;i++){
+  const c=Object.keys(P.skills).filter(k=>SKILLS[k]&&(G.skills[k]||0)<P.skills[k]);
+  let L=c.filter(canLearn);
+  if(!L.length){let got=false;for(const k of c){for(const q of (SKILLS[k].pre||[])){if((G.skills[q]||0)<1&&canLearn(q)){learn(q);got=true;break}}if(got)break}if(got)continue;break}
+  L.sort((a,b)=>((G.skills[a]||0)/P.skills[a])-((G.skills[b]||0)/P.skills[b])||SKILLS[a].lvl-SKILLS[b].lvl);learn(L[0])}
+ /* Ausrüstung: sobald Stufe und Attribute reichen, kommt das Teil aus dem Plan an (bessere ersetzt schlechtere) */
+ G.apGot=G.apGot||{};
+ Object.keys(P.eq).forEach(sl=>{const it=P.eq[sl];if(!it||G.apGot[sl])return;
+  if(reqLvl(it)>G.lvl)return;const c=JSON.parse(JSON.stringify(it));c.u=G.uid++;c.unid=false;
+  if(canEquip(c))return;if(!canAdd(c))return;
+  G.inv.push(c);const e=equipItem(c,false,sl);if(e){removeFrom(G.inv,c.u);return}G.apGot[sl]=1;say('AUSRÜSTUNG',(typeof itemName==='function'?itemName(c):c.base)+' angelegt')});
+ /* Hauptfertigkeit: die des Plans, sobald gelernt – davor die stärkste gelernte Angriffsfertigkeit */
+ const ok=k=>{const s=SKILLS[k];return s&&!s.trS&&!s.cuS&&(s.kind==='atk'||((s.kind==='spell'||s.kind==='trap')&&s.ty))};
+ if(P.autoSk&&(G.skills[P.autoSk]||0)>0)G.autoSk=P.autoSk;
+ else if(!G.autoSk||!(G.skills[G.autoSk]>0)){const L=Object.keys(G.skills).filter(k=>G.skills[k]>0&&ok(k)).sort((a,b)=>G.skills[b]-G.skills[a]);if(L.length)G.autoSk=L[0]}
+ if(P.autoTr&&(G.skills[P.autoTr]||0)>0)G.autoTr=P.autoTr;
+ if(P.autoCu&&(G.skills[P.autoCu]||0)>0)G.autoCu=P.autoCu;
+}
+
+/* ===== Hauptschritt ===== */
+function step(){
+ if(typeof G==='undefined'||!G||!G.name)return 'kein Spiel';
+ if(G.flags&&G.flags.act5done&&G.diff>=2&&!AP.dn){AP.dn=true;say('✅ FERTIG','Alle Akte in Hölle abgeschlossen');AP.on=false;return 'fertig'}
+ try{if(G.apAuto&&!(typeof C!=='undefined'&&C&&!C.over))applyPlan()}catch(e){AP.err.push('Plan: '+e.message);say('⚠ PLAN',e.message)}
+ /* Kampf */
+ if(typeof C!=='undefined'&&C&&!C.over){
+  if(AP.cobj!==C){AP.cobj=C;AP.fkT=Date.now();if(AUTO){AP.st.leak=(AP.st.leak||0)+1;clearTimeout(AUTOT);autoStep();return 'Kampf (Auto wieder angestoßen)'}}
+  {const fk=(C.log?C.log.length:0)+'|'+Math.round(G.hp)+'|'+(C.mons||[]).map(m=>m.hp).join(',');
+   if(fk!==AP.fk){AP.fk=fk;AP.fkT=Date.now()}
+   else if(AUTO&&(Date.now()-AP.fkT)/1000>(window.NOSTAGE?12:25)/Math.min(AP.spd,4)){AP.fkT=Date.now();AP.st.kick=(AP.st.kick||0)+1;say('KAMPF-ANSTOSS','Auto-Kampf stand still · '+(AP.st.kick)+'× · '+fk.slice(0,60));AP.soft=(AP.soft||[]);AP.soft.push({t:el(),at:G.at,hp:G.hp});clearTimeout(AUTOT);AUTO=true;autoStep();return 'Kampf-Anstoß'}}
+  if(!AUTO){
+   const need=G.hp<S.maxHp*0.4;
+   if(need&&potCount()>0){const r=clk(/Heiltrank/);if(r)return r}
+   if(G.hp<S.maxHp*0.3&&potCount()===0){
+    if(!C.boss){const r=clk(/Fliehen/);if(r){say('FLUCHT','keine Tränke');return r}}
+    /* kein Trank mehr, Boss: von Hand mit der Hauptfertigkeit weiterkämpfen (Auto stoppt sonst) */
+    const sk=b=>{const t=lab(b).replace(/^[^A-Za-zÄÖÜäöü]+/,'');const k=Object.keys(SKILLS).find(k=>SKILLS[k].c===G.cls&&t.indexOf(SKILLS[k].n+' L')===0);return k?SKILLS[k]:null};
+    const sb=vis().filter(b=>{if(b.disabled||!/ L\d+( |$)/.test(lab(b))||/Aura|✓/.test(lab(b)))return false;const s=sk(b);return s&&(s.kind==='atk'||((s.kind==='spell'||s.kind==='trap')&&s.ty&&!s.uonly))});
+    const m1=sb.find(b=>/⭐/.test(lab(b)))||sb[0];
+    if(m1){AP.st.manual=(AP.st.manual||0)+1;m1.click();return 'Skill von Hand'}
+    if(typeof CM!=='undefined'&&CM!=='sk'){const r=clk(/Fertigkeiten/);if(r)return r}
+    const r2=clk(/Angriff/);if(r2){AP.st.manual=(AP.st.manual||0)+1;return r2}}
+   if(AP.fi++%3===2){const r=clk(/Angriff/);if(r)return r}
+   if(AP.cnt!==C){AP.cnt=C;AP.st.fights++}autoStart()}
+  return 'Kampf';
+ }
+ const bs=vis(),L=bs.map(lab);
+ if(!bs.length)return 'leer';
+ let r;
+ /* Fünf Steine: Reihenfolge von Cain */
+ if(vis().some(b=>/^Stein \d$/.test(lab(b)))){const o=G.flags.cairnOrder||[1,2,3,4,5];const m=/\((\d)\/5\)/.exec(($('#main')||{}).textContent||'');const k=m?+m[1]:0;const r=clk(new RegExp('^Stein '+o[k]+'$'));if(r)return 'Stein '+o[k]+' ('+k+'/5)'}
+ /* a) Weiter/OK-Szenen (Geschichten, Siegbildschirm, Meldungen) */
+ if(!isTown()&&!isArea()&&!isMap()&&!isNpc()){
+  if(/Sieg!|Gefallen|gestorben/.test(($('#main')||{}).textContent||'')){}
+  r=clk(/^(weiter|fertig|ok|verstanden|schließen|ins lager|annehmen|fortfahren|los|zum lager|weitergehen|zurück zum)\b/i);if(r)return 'weiter: '+r+' «'+L.join(' | ').slice(0,90)+'»'+(document.querySelector('.amap')?' [amap]':'')+(document.querySelector('.tgrid')?' [town]':'');
+ }
+ /* b) Stadt */
+ if(isTown()){
+  AP.st.towns++;
+  /* offenes Portal ins Gebiet zurück */
+  const portal=bs.find(b=>/Durchs Portal zurück/.test(lab(b)));
+  const qn=questNpc();
+  const need=needHeal()||lowPots();
+  const tgt=targetArea();
+  const goOn=()=>{ /* Richtung Ziel */
+   if(!tgt&&actFinished()){const t=travelNpc();if(t&&!AP.actTry){AP.mode='npc';AP.cur=t;return npcTile(t)}}
+   if(portal&&G.tpBack&&(tgt===G.tpBack||!done(G.tpBack))){portal.click();return 'Portal zurück'}
+   { /* Ziel bestimmen: erreichbar aus der Stadt sind Startgebiet und Wegpunkte */
+    let t=tgt||Object.keys(AREAS).filter(id=>AREAS[id].act===G.act&&unlocked(id)&&!done(id)).sort((x,y)=>(distFrom(x)[ACT_START[G.act]]||99)-(distFrom(y)[ACT_START[G.act]]||99))[0]||ACT_START[G.act];
+    const d=distFrom(t);const opts=[ACT_START[G.act],...Object.keys(G.wps).filter(w=>AREAS[w]&&AREAS[w].act===G.act)];
+    opts.sort((x,y)=>(d[x]===undefined?99:d[x])-(d[y]===undefined?99:d[y]));
+    AP.dest=opts[0];AP.sel=null;}
+   return openMap()||'?'};
+  if(qn&&AP.qSkip!==progKey()){
+   const pk=progKey();if(AP.qk!==pk+qn){AP.qk=pk+qn;AP.qn=0}AP.qn++;
+   if(AP.qn>4){AP.qSkip=pk;AP.qn=0;AP.err.push('Quest-NPC '+qn+' ohne Fortschritt');say('⚠ QUEST','NPC '+qn+' bringt keinen Fortschritt – übersprungen');}
+   else{AP.mode='npc';AP.cur=qn;return 'Stadt→'+npcTile(qn)}}
+  if(need&&!AP.healed){AP.mode='npc';AP.cur=healNpc();return 'Stadt→heilen: '+npcTile(healNpc())}
+  AP.healed=false;
+  return goOn();
+ }
+ /* c) NPC-Szene */
+ if(isNpc()){
+  r=clk(/^❗|^!\s|^✅|Auftrag:|Abgeben:|übergeben|zusammensetzen|deuten|überreichen|Horadrim|Khalim/);if(r){AP.st.quests++;return 'Quest: '+r}
+  if(AP.mode==='npc'){
+   if(needHeal()){r=clk(/Heilen/);if(r)return r}
+   if(potCount()<14&&G.gold>=3000&&potRoom()>0&&!AP.shop){AP.shop=1;r=clk(/Tränke & Schriftrollen kaufen/);if(r)return r}
+   if(AP.cur&&NPCS[AP.cur].to&&actFinished()&&!AP.actTry){r=clk(/Reise nach Akt/);if(r){AP.actTry=0;AP.st.acts++;say('AKT','→ '+r);return r}}
+  }
+  /* Trankladen: Heil-/Manatränke und Stadtportale auffüllen */
+  if(vis().some(b=>/Stadtportal-Schriftrolle/.test(lab(b)))){
+   const hN=POTH.reduce((x,k)=>x+(G.pot[k]||0),0),mN=POTM.reduce((x,k)=>x+(G.pot[k]||0),0);
+   if(hN<14){r=clk(/Heiltrank/);if(r)return 'kaufe Heiltrank'}
+   if(mN<6){r=clk(/Manatrank/);if(r)return 'kaufe Manatrank'}
+   r=clk(/Heiltrank/);if(r)return 'kaufe Heiltrank'
+   if((G.sc.tp||0)<8){r=clk(/Stadtportal-Schriftrolle/);if(r)return 'kaufe Portal'}
+   if((G.sc.id||0)<3){r=clk(/Identifizierungs/);if(r)return 'kaufe IdSchr'}
+  }
+  AP.healed=true;AP.shop=0;AP.mode='';
+  r=clk(/Zurück/);if(r)return 'NPC fertig';
+ }
+ /* d) Karte */
+ if(isMap()){
+  const dest=AP.dest;
+  if(dest){
+   if(AP.sel!==dest){AP.sel=dest;return goMap(dest)}
+   r=clk(/Hingehen|▶ Stadt/);if(r){AP.dest=null;AP.sel=null;AP.tT=Date.now();return 'reise: '+r}
+   say('⚠ KARTE','kein „Hingehen“ für '+dest+' (Fallback)');AP.err.push('Karte: kein Hingehen für '+dest);const d0=dest;AP.dest=null;AP.sel=null;
+   if(d0==='town')goto(townScene);else travelTo(d0);return 'fallback '+d0}
+  if(Date.now()-(AP.tT||0)<2500)return 'Reise läuft';
+  r=clk(/Zurück/);return r||'karte?';
+ }
+ /* e) Gebiet */
+ if(isArea()){
+  const id=G.at,a=AREAS[id],p=G.prog[id];
+  const tgt=targetArea(),qn=questNpc();
+  /* Sonderobjekte (Steine, Leichen, Bäume ...) – Knöpfe ohne Navigationspfeil und mit ❗ */
+  if(p.done&&farmArea()===id){r=clk(/Neu betreten/);if(r)return 'Farm: '+r}
+  if(p.done){r=clk(/❗|!/,bs.filter(b=>!NAV.test(lab(b))&&!AVOID.test(lab(b))));if(r)return 'Spezial: '+r}
+  if(!p.done&&(G.hp<S.maxHp*0.5||lowPots())&&(G.sc.tp||0)>0&&!AP.noTp){
+   r=clk(/Stadtportal/);if(r){AP.st.tp=(AP.st.tp||0)+1;return 'Portal zur Stadt: '+r}}
+  if(!p.done){
+   /* Erst dieses Gebiet, aber braucht ein Questziel anderswo schon vorher Stadt? Nein: erkunden */
+   {const fa2=farmArea();if(fa2&&fa2!==id){r=clk(/Wegpunkt: in die Stadt/)||clk(/Stadtportal/);if(r)return 'Farm: zur Stadt';AP.dest=fa2;return goMap(fa2)}}
+   r=exploreRoom();if(r)return r;
+   r=clk(/Raum betreten|Dem Boss/);if(r)return r;
+   if(p.s>=areaTotal(a)){p.done=true;areaScene();return 'fertig markiert'}
+   return 'erkunde?'}
+  /* Gebiet fertig: Quest abgeben (Stadt) oder weiterreisen */
+  const canTown=!!(G.wps[id]||(G.sc.tp||0)>0);
+  if(canTown&&((qn&&AP.qSkip!==progKey())||needHeal()||(!tgt&&actFinished()))){
+   r=clk(/Wegpunkt: in die Stadt/)||clk(/Stadtportal/);if(r)return 'zur Stadt: '+r;
+   AP.dest='town';return goMap('town')}
+  if(tgt&&tgt!==id){
+   /* nächster Schritt Richtung Ziel */
+   const d=distFrom(tgt);const opts=[];
+   (a.next||[]).forEach(n=>{if(AREAS[n]&&unlocked(n))opts.push(n)});if(a.back)opts.push(a.back);
+   if(G.wps[id])Object.keys(G.wps).forEach(w=>{if(w!==id&&AREAS[w])opts.push(w)});
+   opts.sort((x,y)=>(d[x]===undefined?99:d[x])-(d[y]===undefined?99:d[y]));
+   if(opts.length){AP.dest=opts[0];return goMap(opts[0])}
+  }
+  if(tgt===id){ /* Ziel ist dieses Gebiet und es ist fertig: Quest abgeben */
+   r=clk(/Wegpunkt: in die Stadt/)||clk(/Stadtportal/);if(r)return 'Ziel fertig → Stadt';
+  }
+  /* sonst nächstes Gebiet vorwärts */
+  const nx=(a.next||[]).find(n=>AREAS[n]&&unlocked(n)&&!done(n));
+  if(nx){AP.dest=nx;return goMap(nx)}
+  r=clk(/Wegpunkt: in die Stadt/)||clk(/Stadtportal/);if(r)return 'Stadt (nichts zu tun)';
+  AP.dest='town';return goMap('town');
+ }
+ /* f) unbekannt: erster nicht gefährlicher Button, protokolliert */
+ const key=(G.at||'')+' :: '+L.join(' | ');AP.unk[key]=(AP.unk[key]||0)+1;
+ const b=bs.find(x=>!AVOID.test(lab(x)))||bs[0];
+ AP.st.clicks++;b.click();return '? '+lab(b);
+}
+function npcTile(id){
+ const n=NPCS[id];const bs=vis();
+ const b=bs.find(x=>x.textContent.replace(/\s+/g,' ').trim().startsWith(n.n));
+ if(b){AP.st.clicks++;b.click();return n.n}
+ return '(Kachel '+n.n+' fehlt)'}
+
+/* ===== Wächter gegen Hänger ===== */
+function dump(){
+ const bs=vis().map(lab);
+ return {at:G&&G.at,act:G&&G.act,hp:G&&G.hp,fight:!!(typeof C!=='undefined'&&C&&!C.over),auto:typeof AUTO!=='undefined'&&AUTO,btns:bs.slice(0,12),text:(($('#main')||{}).textContent||'').replace(/\s+/g,' ').slice(0,160)}}
+function watchdog(sig){
+ if(sig===AP.sig){AP.same++}else{AP.same=0;AP.sig=sig;AP.sigT=Date.now()}
+ const stuckS=(Date.now()-AP.sigT)/1000;
+ const lim=(typeof C!=='undefined'&&C&&!C.over)?90:25; /* Kämpfe dauern länger */
+ if(stuckS>lim){
+  AP.st.rec++;const d=dump();AP.hang.push({t:el(),...d,level:AP.st.rec});say('⚠ HÄNGER','Stufe '+AP.st.rec+' · '+(G.at)+' · '+d.btns.slice(0,3).join(' / '));
+  AP.sigT=Date.now();
+  /* Wiederherstellung: abwechselnd andere Knöpfe, Stadt, Gebiet neu */
+  try{
+   const k=AP.st.rec%4;
+   if(typeof C!=='undefined'&&C&&!C.over){AUTO=false;clearTimeout(AUTOT);render()}
+   else if(k===1){const b=vis().find(x=>!AVOID.test(lab(x)));if(b)b.click()}
+   else if(k===2){goto(townScene)}
+   else if(k===3){G.at==='town'?goto(townScene):goto(areaScene)}
+   else{const b=vis().filter(x=>!/Zurück/.test(lab(x)))[0];if(b)b.click()}
+  }catch(e){AP.err.push('rec: '+e.message)}
+ }
+}
+function progKey(){let p=0;try{Object.values(G.prog||{}).forEach(x=>{p+=(x.s||0)+(x.done?100:0)})}catch(e){}
+ return [G.lvl,G.xp,G.kills,G.act,G.diff,G.at,p,Object.values(G.q||{}).join('')].join('|')}
+function loopDog(){
+ const k=progKey();if(k!==AP.pk){AP.pk=k;AP.pkT=Date.now();return}
+ if((Date.now()-AP.pkT)/1000>(90/Math.min(AP.spd,4))*(AP.spd>1?1:1)){ /* kein Fortschritt über längere Zeit trotz Aktivität */
+  AP.pkT=Date.now();AP.st.rec++;const d=dump();AP.hang.push({t:el(),kind:'Schleife',...d,last:AP.last});say('⚠ SCHLEIFE','kein Fortschritt · '+G.at+' · '+AP.last);
+  try{if(typeof C!=='undefined'&&C&&!C.over){}else{AP.healed=false;AP.shop=0;AP.mode='';AP.dest=null;G.at==='town'?goto(townScene):goto(areaScene)}}catch(e){}
+ }}
+function tick(){
+ if(!AP.on)return;
+ AP.n++;
+ let r;try{r=step()}catch(e){AP.err.push('AP: '+e.message+' '+(e.stack||'').split('\n')[1]);say('⚠ AP-FEHLER',e.message);r='fehler'}
+ const fc=(typeof C!=='undefined'&&C&&!C.over);
+ const sig=(G&&G.at)+'|'+vis().map(lab).join('~')+'|'+(fc?C.log&&C.log.length+':'+G.hp:'')+(typeof AUTO!=='undefined'&&AUTO?'A':'');
+ try{watchdog(sig);loopDog()}catch(e){}
+ if(r&&r!==AP.last){AP.last=r;if(!/^(Kampf|leer)/.test(r))say('›',r)}
+ ui();
+ AP.tk=setTimeout(tick,Math.max(50,(fc?400:550)/AP.spd));
+}
+AP.start=()=>{if(AP.on)return;AP.userStop=false;
+ try{if(!AP.hk){AP.hk=1;const d0=window.deadScene;window.deadScene=function(){AP.st.deaths++;AP.dA=AP.dA||{};AP.dA[G.at]=(AP.dA[G.at]||0)+1;AP.dk=(AP.dk&&AP.dk.at===G.at)?{at:G.at,n:AP.dk.n+1}:{at:G.at,n:1};say('☠ GEFALLEN',(G.at==='town'?'Stadt':(AREAS[G.at]||{}).n||G.at)+' · '+AP.dk.n+'×');return d0.apply(this,arguments)};
+  const w0=window.winScene;window.winScene=function(){AP.st.wins++;AP.dk=null;return w0.apply(this,arguments)}}}catch(e){}
+ try{if(G&&(G.autoHp||40)<60)G.autoHp=60}catch(e){}
+ AP.on=true;AP.t0=AP.t0||Date.now();say('START','Autopilot an');tick()};
+AP.stop=()=>{AP.userStop=true;AP.on=false;clearTimeout(AP.tk);say('STOP','');ui()};
+
+/* ===== Steuerfeld ===== */
+function ui(){
+ try{
+ if(typeof G==='undefined'||!G||!G.name||!(G.apAuto||/^st:/.test(G.mb||''))){const o=$('#apui');if(o)o.remove();return}
+ let u=$('#apui');
+ if(!u){u=document.createElement('div');u.id='apui';
+  u.style.cssText='position:fixed;right:6px;top:calc(env(safe-area-inset-top) + 76px);z-index:99999;font:12px/1.3 -apple-system,system-ui,sans-serif;color:#e8d9b5;display:flex;flex-direction:column;align-items:flex-end';
+  document.body.appendChild(u);u.dataset.open='0'}
+ const open=u.dataset.open==='1';
+ const s=AP.st,a=G.at==='town'?'Stadt':(AREAS[G.at]||{}).n||G.at;
+ const head=`<button id="apt" style="all:unset;cursor:pointer;display:block;background:${AP.on?'#7a2a14':'rgba(30,20,10,.82)'};border:1px solid #c9a24a;border-radius:20px;padding:5px 9px;color:#f3e2b3;font-weight:600;font-size:15px;opacity:${open||AP.on?1:.75}"><svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:-5px" aria-hidden="true"><path d="M4 11C4 5.5 7.6 2.5 12 2.5S20 5.5 20 11v3.2c0 .8-.4 1.5-1.1 1.9l-1.4.8V19c0 .8-.6 1.5-1.4 1.5h-1V18h-1.6v2.5h-3V18H9.9v2.5h-1C8.1 20.5 7.5 19.8 7.5 19v-2.1l-1.4-.8C5.4 15.7 4 15 4 14.2z" fill="${AP.on?'#e8c76a':'#b8964a'}" stroke="#3a2a10" stroke-width="1"/><path d="M4.2 8.5C2.6 7.6 1.6 5.6 1.6 3.4 3.8 4 5.2 5.4 5.9 7zM19.8 8.5c1.6-.9 2.6-2.9 2.6-5.1-2.2.6-3.6 2-4.3 3.6z" fill="#c9a24a" stroke="#3a2a10" stroke-width=".8"/><path d="M6.6 10.6c1.6-.3 3.2.3 4.2 1.7-1.5 1.1-3.3 1.1-4.7.2zM17.4 10.6c-1.6-.3-3.2.3-4.2 1.7 1.5 1.1 3.3 1.1 4.7.2z" fill="${AP.on?'#ff3b1a':'#2a1608'}">${AP.on?'<animate attributeName="opacity" values="1;.35;1" dur="1.4s" repeatCount="indefinite"/>':''}</path></svg>${AP.on?' <span style="font-size:11px">läuft</span>':''}${AP.err.length||AP.hang.length?` <span style="color:#ffb09a;font-size:11px">⚠${AP.err.length+AP.hang.length}</span>`:''}</button>`;
+ let body='';
+ if(open){
+  body=`<div style="margin-top:6px;width:min(86vw,330px);max-height:46vh;overflow:auto;background:rgba(14,9,5,.96);border:1px solid #c9a24a;border-radius:10px;padding:9px">
+  <div style="display:flex;gap:6px;margin-bottom:7px">
+   <button id="apg" style="all:unset;cursor:pointer;flex:1;text-align:center;padding:7px;border-radius:7px;background:${AP.on?'#7a2a14':'#3b6a2a'};color:#fff;font-weight:700">${AP.on?'⏹ Stopp':'▶ Start'}</button>
+   <button id="aps" style="all:unset;cursor:pointer;padding:7px 10px;border-radius:7px;background:#3a2a18;border:1px solid #6a5226">×${AP.spd}</button>
+  </div>
+  <div>Akt ${G.act} · ${DIFFN[G.diff||0]} · ${a} · Stufe ${G.lvl}</div>
+  <div style="opacity:.8">Kämpfe ${s.fights} · Quests ${s.quests} · Räume ${s.rooms} · Akte ${s.acts}</div>
+  <div style="opacity:.8">Fehler <b style="color:${AP.err.length?'#ff8a6a':'#9fd48a'}">${AP.err.length}</b> · Hänger <b style="color:${AP.hang.length?'#ff8a6a':'#9fd48a'}">${AP.hang.length}</b></div>
+  <div style="margin-top:6px;font-size:11px;opacity:.85;white-space:pre-wrap">${AP.log.slice(-12).reverse().map(x=>x.replace(/</g,'&lt;')).join('\n')}</div></div>`}
+ const sig=head+body+open+AP.on+AP.spd;if(u._s===sig)return;u._s=sig;u.innerHTML=head+body;
+ $('#apt').onclick=()=>{u.dataset.open=open?'0':'1';u._s='';ui()};
+ const g=$('#apg');if(g)g.onclick=()=>{AP.on?AP.stop():AP.start();u._s='';ui()};
+ const sp=$('#aps');if(sp)sp.onclick=()=>{AP.spd=AP.spd>=4?1:AP.spd*2;try{localStorage.setItem('apspd',AP.spd)}catch(e){}try{if(window.PXB&&PXB.TS)PXB.tm=Math.min(PXB.TS.length-1,AP.spd>=4?PXB.TS.length-1:PXB.tm)}catch(e){};u._s='';ui()};
+ }catch(e){}
+}
+setInterval(()=>{ui();try{if(typeof G!=='undefined'&&G&&G.apAuto&&G.name&&!AP.on&&!AP.userStop&&!AP.dn&&!(G.flags&&G.flags.act5done&&G.diff>=2)){try{const v=+localStorage.getItem('apspd');if(v)AP.spd=v}catch(e){}AP.start()}}catch(e){}},1500);
+})();
 
 </script>
 <script>
