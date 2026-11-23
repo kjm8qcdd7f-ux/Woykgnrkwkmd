@@ -5134,7 +5134,7 @@ function accScene(){shClean();
  {const car=document.getElementById('ccar');if(car){let tm;car.addEventListener('scroll',()=>{clearTimeout(tm);tm=setTimeout(()=>{const r=car.getBoundingClientRect(),m=r.left+r.width/2;let bi=0,bd=1e9;car.querySelectorAll('.cc2').forEach((e,k)=>{const q=e.getBoundingClientRect(),d=Math.abs(q.left+q.width/2-m);if(d<bd){bd=d;bi=k}});if(bi!==V.csel)ccSel(bi,0)},90)});setTimeout(()=>{const e=car.querySelectorAll('.cc2')[V.csel];if(e&&e.scrollIntoView)e.scrollIntoView({inline:'center',block:'nearest'})},40)}}
 }
 /* ===== Sicherung aller Spielstände dieses Geräts ===== */
-const GAMEVER='23.11.2026 04:30';
+const GAMEVER='23.11.2026 04:54';
 function bakT(){try{return +localStorage.getItem('d2dnd_lastbak')||0}catch(e){return 0}}
 function bakAgo(){const t=bakT();if(!t)return 'Noch keine Sicherung.';const d=Math.floor((Date.now()-t)/864e5);return 'Letzte Sicherung: '+(d<1?'heute':d===1?'gestern':'vor '+d+' Tagen')+'.'}
 /* dezente Erinnerung: nur wenn es Charaktere gibt und die letzte Sicherung über 7 Tage her ist (bzw. seit 7 Tagen keine) */
@@ -6661,10 +6661,8 @@ GFX.start=function(){
  GFX.raf=requestAnimationFrame(tick)};
 GFX.stop=function(){if(GFX.raf){cancelAnimationFrame(GFX.raf);GFX.raf=0}GFX.ps=[];if(GFX.cv){GFX.cv.remove();GFX.cv=null}};
 (function(){const go=()=>GFX.apply();if(document.body)go();else document.addEventListener('DOMContentLoaded',go)})();
-/* iPhone als Home-Bildschirm-App: beginnt die Seite schon unter der Statusleiste, darf oben kein zweiter Sicherheitsabstand dazukommen (sonst großer leerer Streifen) */
-(function(){const fix=()=>{try{const st=navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);const r=document.documentElement.style;
- if(st&&innerHeight>innerWidth){const full=Math.max(screen.width||0,screen.height||0);const gap=full-innerHeight;if(gap>=30&&gap<=80)r.setProperty('--sat','0px');else r.removeProperty('--sat')}else r.removeProperty('--sat')}catch(e){}};
- fix();addEventListener('resize',fix);addEventListener('orientationchange',()=>setTimeout(fix,300))})();
+/* iPhone als Home-Bildschirm-App (black-translucent): die Seite reicht immer bis unter die Statusleiste bzw. Dynamic Island, der Sicherheitsabstand oben kommt aus env(safe-area-inset-top). Früher wurde er bei 30-80 px Differenz zwischen Bildschirm- und Fensterhöhe auf 0 gesetzt – diese Differenz ist aber der untere Home-Indikator, dadurch lag der Kopf unter der Statusleiste. */
+(function(){try{document.documentElement.style.removeProperty('--sat')}catch(e){}})();
 
 </script>
 <script>/* data/mopt.js */
