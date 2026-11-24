@@ -1367,8 +1367,9 @@ function unequip(sl){const it=G.eq[sl];if(!it)return;if(!canAdd(it))return 'Inve
 let VENDKEY=null;
 function vendKey(en){if(!VENDKEY){VENDKEY={};Object.keys(BASES).forEach(k=>{const b=BASES[k];if(!b.en)return;const e=b.en.trim();if(!VENDKEY[e]||(BASES[VENDKEY[e]].legacy&&!b.legacy))VENDKEY[e]=k})}const e=String(en).trim();return VENDKEY[e]||VENDKEY[{Saber:'Sabre',Kriss:'Kris'}[e]]}
 function hasVendor(who){return typeof D2VEND!=='undefined'&&!!D2VEND[who]}
+const SHOPQ=1;
 function shopStock(who){
- const st=G.shops[who];if(st&&st.ref===G.shopRef&&st.lvl===G.lvl&&st.v===3&&st.df===(G.diff||0))return st.items;
+ const st=G.shops[who];if(st&&st.ref===G.shopRef&&st.lvl===G.lvl&&st.v===4&&st.df===(G.diff||0))return st.items;
  /* D2: Händler-Gegenstandsstufe = Charakterstufe + 5; in Normal je Akt gedeckelt (12/20/28/36/45), in Albtraum/Hölle ohne Deckel */
  const df=G.diff||0,il=Math.min(99,Math.max(1,df===0?Math.min(G.lvl+5,[12,20,28,36,45][(G.act||1)-1]||45):G.lvl+5));const items=[];
  const L=hasVendor(who)?D2VEND[who]:[];
@@ -1376,14 +1377,22 @@ function shopStock(who){
   let nm=en;if(df>0&&typeof D2VUPG!=='undefined'&&D2VUPG[en])nm=D2VUPG[en][df-1]||en;
   const k=vendKey(nm);if(!k)return;const B=BASES[k];if(B.only&&B.only!==G.cls)return;if((B.dl||0)>il)return;
   const n=R(mn,Math.max(mn,mx)),m=R(mmn,Math.max(mmn,mmx));
-  for(let i=0;i<n;i++){const it=mkItem(k,0,il);it.unid=false;
+  /* D2 (V1.09 NPC-Items): in Albtraum/Hölle kann jede Ware zur Edel-/Elite-Version aufgewertet werden. Je Stück: Ilvl=Clvl-5+Rnd(0..9);
+     Edel-Chance=(Ilvl-Qlvl)/2 %, Elite-Chance=(Ilvl-Qlvl)/4 % (nur wenn nicht Edel). Akt 1/2 in Hölle: nicht aufgewertet (classic.battle.net);
+     Elite nie in Akt 1/2, Edel in Akt 1 selten. Wurfwaffen ausgenommen (eigene Regel). */
+  const up=kk=>{if(df<1||!BASES[kk]||BASES[kk].tier!==1)return kk;const act=G.act||1;if(df===2&&act<=2)return kk;
+   const ir=G.lvl-5+R(0,9),k2=BASES[kk+'_2'],k3=BASES[kk+'_3'];if(!k2&&!k3)return kk;
+   const qs=x=>Math.round(x*SHOPQ);
+   if(k2&&(act!==1||d(4)===1)&&ir>qs(k2.dl)&&Math.random()*100<(ir-qs(k2.dl))/2)return kk+'_2';
+   if(k3&&act>=3&&ir>qs(k3.dl)&&Math.random()*100<(ir-qs(k3.dl))/4)return kk+'_3';return kk};
+  for(let i=0;i<n;i++){const kk=up(k),it=mkItem(kk,0,il);it.unid=false;
    /* normale Waffen/Rüstungen können mit Sockeln kommen (wie Funde: 1/3, 1 bis Maximum nach Basis + ilvl) */
    if(!it.sock&&['weapon','body','head','offhand'].includes(B.slot)&&maxSock(it)>0&&d(3)===1){it.sock=R(1,maxSock(it));it.socks=[]}items.push(it)}
-  for(let i=0;i<m;i++){const it=mkItem(k,1,ml>=255?il:Math.min(il,Math.max(1,ml)));it.ilvl=il;it.unid=false;items.push(it)}
+  for(let i=0;i<m;i++){const it=mkItem(up(k),1,ml>=255?il:Math.min(il,Math.max(1,ml)));it.ilvl=il;it.unid=false;items.push(it)}
  });
  /* D2: Waffen-Reiter vor Rüstungs-Reiter */
  items.sort((a,b)=>(BASES[a.base].slot==='weapon'?0:1)-(BASES[b.base].slot==='weapon'?0:1));
- G.shops[who]={ref:G.shopRef,lvl:G.lvl,v:3,df,items};return items;
+ G.shops[who]={ref:G.shopRef,lvl:G.lvl,v:4,df,items};return items;
 }
 
 
@@ -4531,7 +4540,7 @@ function d2Auto(name){
  return D2ATC[name]=L;
 }
 /* Spiel ist gestaucht (~600 Kills statt ~15000 bis Lv98): Seltenheit/Beute entsprechend angehoben. q = Qualitaetsfaktor, n = Teiler fuer die NoDrop-Gewichte */
-/* Beschleunigung normale Monster: ×15 (Abstimmung 20.11.2026, vorher ×40) */const D2K={q:15,s:15,n:3,r:10};/* Bosse: ×2 statt ×40 (Abstimmung 20.11.2026: ≈1 Unique + 0,7 Sets je Mephisto-Kill in der Hölle, 9 % der Läufe ohne Unique/Set) */const D2KB={q:2,s:2};
+/* Beschleunigung normale Monster: ×15 (Abstimmung 20.11.2026, vorher ×40) */let D2MAX=6;const D2K={q:15,s:15,n:3,r:20};/* Bosse: ×2 statt ×40 (Abstimmung 20.11.2026: ≈1 Unique + 0,7 Sets je Mephisto-Kill in der Hölle, 9 % der Läufe ohne Unique/Set) */const D2KB={q:4,s:4};
 const D2RND=n=>Math.floor(Math.random()*n);
 function d2Mf(mf,f){return f?mf*f/(mf+f):mf}
 function d2Chance(base,div,min,ilvl,qlvl,mf,f,qf,raw){
@@ -4603,7 +4612,7 @@ function d2Tc(name,ilvl,mf,qf,out,dep){
  const tc=TCX[name];if(!tc||dep>40){if(!tc)d2Leaf(name,ilvl,mf,qf,out);return}
  if(tc[9]&&!d2Cond(tc[9]))return;
  const q=[tc[2]||qf[0],tc[3]||qf[1],tc[4]||qf[2],tc[5]||qf[3]],it=tc[6];
- const run=n=>{if(d2Cnt(out)>=6)return;const x=it[n];if(TCX[x[0]])d2Tc(x[0],ilvl,mf,q,out,dep+1);else d2Leaf(x[0],ilvl,mf,q,out)};
+ const run=n=>{if(d2Cnt(out)>=D2MAX)return;const x=it[n];if(TCX[x[0]])d2Tc(x[0],ilvl,mf,q,out,dep+1);else d2Leaf(x[0],ilvl,mf,q,out)};
  if(tc[0]<0){let n=-tc[0];for(let i=0;i<it.length&&n>0;i++)for(let k=0;k<it[i][1]&&n>0;k++,n--)run(i);return}
  let nd=tc[1]/D2K.n;const wt=x=>/^Runes/.test(x[0])?x[1]*D2K.r:x[1];
  /* D2 /players: NoDrop' = Summe / (((NoDrop+Summe)/NoDrop)^N − 1), N = 1 + ⌊(Spieler−1)/2⌋ (7 = 8 Spieler) */
@@ -5139,7 +5148,7 @@ function accScene(){shClean();
  {const car=document.getElementById('ccar');if(car){let tm;car.addEventListener('scroll',()=>{clearTimeout(tm);tm=setTimeout(()=>{const r=car.getBoundingClientRect(),m=r.left+r.width/2;let bi=0,bd=1e9;car.querySelectorAll('.cc2').forEach((e,k)=>{const q=e.getBoundingClientRect(),d=Math.abs(q.left+q.width/2-m);if(d<bd){bd=d;bi=k}});if(bi!==V.csel)ccSel(bi,0)},90)});setTimeout(()=>{const e=car.querySelectorAll('.cc2')[V.csel];if(e&&e.scrollIntoView)e.scrollIntoView({inline:'center',block:'nearest'})},40)}}
 }
 /* ===== Sicherung aller Spielstände dieses Geräts ===== */
-const GAMEVER='23.11.2026 19:09';
+const GAMEVER='24.11.2026 15:42';
 function bakT(){try{return +localStorage.getItem('d2dnd_lastbak')||0}catch(e){return 0}}
 function bakAgo(){const t=bakT();if(!t)return 'Noch keine Sicherung.';const d=Math.floor((Date.now()-t)/864e5);return 'Letzte Sicherung: '+(d<1?'heute':d===1?'gestern':'vor '+d+' Tagen')+'.'}
 /* dezente Erinnerung: nur wenn es Charaktere gibt und die letzte Sicherung über 7 Tage her ist (bzw. seit 7 Tagen keine) */
@@ -8664,7 +8673,7 @@ function questNpc(){ /* bereit zur Abgabe > verfügbar */
 function pickFarm(at){const A=AREAS[at];if(!A)return null;const c=Object.keys(AREAS).filter(id=>id!==at&&AREAS[id].act===A.act&&unlocked(id)&&(AREAS[id].lvl||0)<=(A.lvl||99));
  c.sort((x,y)=>(AREAS[y].lvl||0)-(AREAS[x].lvl||0));return c[0]||null}
 function farmArea(){
- if(!AP.farmLv){for(const k of Object.keys(AP.dA||{})){if(AP.dA[k]>=4&&AREAS[k]&&!(G.prog[k]&&G.prog[k].done)){const f=pickFarm(k);AP.dA[k]=0;if(f){AP.farmLv=G.lvl+2;AP.farmId=f;AP.st.farms=(AP.st.farms||0)+1;say('🌾 FARM',(AREAS[f].n||f)+' bis Stufe '+AP.farmLv+' (zu oft gefallen in '+(AREAS[k].n||k)+')');break}}}}
+ if(!AP.farmLv){for(const k of Object.keys(AP.dA||{})){if(AP.dA[k]>=4&&AREAS[k]&&!(G.prog[k]&&G.prog[k].done)){const f=pickFarm(k);AP.dA[k]=0;AP.cyc=AP.cyc||{};AP.cyc[k]=(AP.cyc[k]||0)+1;if(AP.cyc[k]>=5){AP.blocked=k;say('⛔ ZU SCHWACH',(AREAS[k]&&AREAS[k].n||k)+': trotz '+(AP.cyc[k]-1)+' Farm-Runden nicht zu schaffen (Stufe '+G.lvl+', '+Math.round(S.maxHp)+' Leben). Ausrüstung fehlt – Autopilot hält an.');try{AP.stop()}catch(e){}return null}if(f){AP.farmLv=G.lvl>=70?999:G.lvl+2;AP.farmId=f;AP.farmRuns=0;AP.farmMax=Math.min(96,(AP.farmMax||6)*2);AP.st.farms=(AP.st.farms||0)+1;say('🌾 FARM',(AREAS[f].n||f)+' bis Stufe '+AP.farmLv+' (zu oft gefallen in '+(AREAS[k].n||k)+')');break}}}}
  if(AP.farmLv&&G.lvl>=AP.farmLv){AP.farmLv=0;AP.farmId=null;say('🌾 FARM Ende','Stufe '+G.lvl)}
  return AP.farmLv?AP.farmId:null}
 function targetArea(){
@@ -8680,7 +8689,7 @@ const healNpc=()=>TOWNS[G.act].npcs.find(id=>NPCS[id].roles.includes('heal'));
 const travelNpc=()=>TOWNS[G.act].npcs.find(id=>NPCS[id].to);
 const needHeal=()=>G.hp<S.maxHp*0.9||G.mana<S.maxMana*0.5;
 const potCount=()=>POTH.reduce((x,k)=>x+(G.pot[k]||0),0);
-const lowPots=()=>potCount()<6&&G.gold>=3000&&potRoom()>0;
+const lowPots=()=>potCount()<6&&G.gold>=500&&potRoom()>0;
 
 /* ===== Szenen-Erkennung ===== */
 const isTown=()=>!!$('.tgrid');
@@ -8725,11 +8734,15 @@ function applyPlan(){
  if(G.pts>0){const need={};K.forEach(k=>need[k]=Math.max(0,(P.stat[k]||0)-(B[k]||0)));
   for(let i=0;i<500&&G.pts>0;i++){let best='vit',bv=-1;K.forEach(k=>{const inv=G.stat[k]-(B[k]||0);if(need[k]<=inv)return;const v=need[k]/(inv+1);if(v>bv){bv=v;best=k}});addStat(best,1)}}
  /* Fertigkeitspunkte: gleichmäßig nach Anteil am Endstand, nur was Stufe und Voraussetzungen erlauben */
+ /* Wie ein Mensch: erst die wichtigsten Fertigkeiten (höchster Endwert, also Hauptangriff und Synergien), Voraussetzungen jeweils zuerst mit 1 Punkt */
  for(let i=0;i<200&&G.spts>0;i++){
-  const c=Object.keys(P.skills).filter(k=>SKILLS[k]&&(G.skills[k]||0)<P.skills[k]);
-  let L=c.filter(canLearn);
-  if(!L.length){let got=false;for(const k of c){for(const q of (SKILLS[k].pre||[])){if((G.skills[q]||0)<1&&canLearn(q)){learn(q);got=true;break}}if(got)break}if(got)continue;break}
-  L.sort((a,b)=>((G.skills[a]||0)/P.skills[a])-((G.skills[b]||0)/P.skills[b])||SKILLS[a].lvl-SKILLS[b].lvl);learn(L[0])}
+  const c=Object.keys(P.skills).filter(k=>SKILLS[k]&&(G.skills[k]||0)<P.skills[k]).sort((a,b)=>(P.skills[b]-(G.skills[b]||0))-(P.skills[a]-(G.skills[a]||0))||(P.skills[b]-P.skills[a]));
+  let did=false;
+  for(const k of c){
+   if(canLearn(k)){learn(k);did=true;break}
+   const q=(SKILLS[k].pre||[]).find(q=>(G.skills[q]||0)<1&&canLearn(q));if(q){learn(q);did=true;break}
+  }
+  if(!did)break}
  /* Ausrüstung: sobald Stufe und Attribute reichen, kommt das Teil aus dem Plan an (bessere ersetzt schlechtere) */
  G.apGot=G.apGot||{};
  Object.keys(P.eq).forEach(sl=>{const it=P.eq[sl];if(!it||G.apGot[sl])return;
@@ -8738,16 +8751,56 @@ function applyPlan(){
   G.inv.push(c);const e=equipItem(c,false,sl);if(e){removeFrom(G.inv,c.u);return}G.apGot[sl]=1;say('AUSRÜSTUNG',(typeof itemName==='function'?itemName(c):c.base)+' angelegt')});
  /* Hauptfertigkeit: die des Plans, sobald gelernt – davor die stärkste gelernte Angriffsfertigkeit */
  const ok=k=>{const s=SKILLS[k];return s&&!s.trS&&!s.cuS&&(s.kind==='atk'||((s.kind==='spell'||s.kind==='trap')&&s.ty))};
- if(P.autoSk&&(G.skills[P.autoSk]||0)>0)G.autoSk=P.autoSk;
+ const corp=k=>/Kadaver|Leichen|Leichnam/.test((SKILLS[k]||{}).n||'');
+ if(P.autoSk&&(G.skills[P.autoSk]||0)>0&&!corp(P.autoSk))G.autoSk=P.autoSk;
+ else if(P.autoSk&&corp(P.autoSk)){const L=Object.keys(G.skills).filter(k=>G.skills[k]>0&&ok(k)&&!corp(k)).sort((a,b)=>((P.skills[b]||0)-(P.skills[a]||0))||(G.skills[b]-G.skills[a]));if(L.length)G.autoSk=L[0]}
  else if(!G.autoSk||!(G.skills[G.autoSk]>0)){const L=Object.keys(G.skills).filter(k=>G.skills[k]>0&&ok(k)).sort((a,b)=>G.skills[b]-G.skills[a]);if(L.length)G.autoSk=L[0]}
  if(P.autoTr&&(G.skills[P.autoTr]||0)>0)G.autoTr=P.autoTr;
  if(P.autoCu&&(G.skills[P.autoCu]||0)>0)G.autoCu=P.autoCu;
 }
 
+AP.applyPlan=applyPlan;
+/* ===== Beute: gefundene Ausrüstung bewerten, identifizieren, anlegen, Ramsch verkaufen (nur in der Stadt) ===== */
+function pw(){const d=Math.max(1,((S.dmgMin||0)+(S.dmgMax||0))/2*(1+(S.edmg||0)/100)+(S.dmgAdd||0));const r=S.res||{};const rs=(r.fire||0)+(r.cold||0)+(r.light||0)+(r.poison||0);
+ return Math.pow(d,0.7)*S.maxHp*(1+Math.max(-150,rs)/150)*(1+(S.allsk||0)*0.06)*(1+(S.fcr||0)/300)*(1+(S.ac||0)/1500)*(1+(S.ll||0)/200)}
+function gearUp(){
+ if(typeof C!=='undefined'&&C&&!C.over)return;
+ const hp0=G.hp,mp0=G.mana;let did=0;
+ /* identifizieren: erst Schriftrollen, dann Cain (25 Gold) */
+ for(const i of G.inv.filter(i=>i.unid)){if((G.sc&&G.sc.id)>0)G.sc.id--;else if(G.flags.cainFree){}else if(G.gold>=25&&G.act&&G.at==='town')G.gold-=25;else break;i.unid=false;did++}
+ if(did){calc();G.hp=hp0;G.mana=mp0}
+ AP.badIt=AP.badIt||{};
+ for(let round=0;round<14;round++){
+  const base=Math.max(1,pw());let best=null;
+  for(const it of G.inv.slice()){
+   const B=BASES[it.base];if(!B||!B.slot||['charm','jewel','gem','rune'].includes(B.slot)||it.unid||AP.badIt[it.u])continue;
+   if(reqLvl(it)>G.lvl||canEquip(it))continue;
+   const sls=B.slot==='ring'?['ring1','ring2']:[slotFor(it)];
+   for(const sl of sls){
+    const eq0=G.eq;G.eq={...eq0,[sl]:it};if(B.two)G.eq.offhand=null;
+    let p=0;try{calc();p=pw()}catch(e){p=0}
+    G.eq=eq0;try{calc()}catch(e){}
+    if(p>base*1.03&&(!best||p>best.p))best={it,sl,p}
+   }
+  }
+  if(!best)break;
+  const r=equipItem(best.it,false,best.sl);
+  if(r){AP.badIt[best.it.u]=1;continue}
+  AP.st.gear=(AP.st.gear||0)+1;say('⚔ AUSRÜSTUNG',itemName(best.it)+' → '+best.sl+' (+'+Math.round((best.p/base-1)*100)+'%)');calc();
+ }
+ /* Ramsch verkaufen, wenn der Rucksack fast voll ist */
+ try{const junk=G.inv.filter(i=>{const B=BASES[i.base];return B&&B.slot&&!['charm','jewel','gem','rune'].includes(B.slot)&&!i.unid});
+  const cap=typeof canAdd==='function'?0:0;
+  if(junk.length>24){junk.sort((a,b)=>((a.q||0)-(b.q||0))||((a.ilvl||0)-(b.ilvl||0)));let g=0;for(const i of junk.slice(0,junk.length-12)){if(typeof sellOne==='function')g+=sellOne(i.u)||0}if(g)say('💰 VERKAUFT',junk.length-12+' Teile, +'+g+' Gold');save()}}catch(e){AP.err.push('Verkauf: '+e.message)}
+ G.hp=Math.min(hp0,S.maxHp);G.mana=Math.min(mp0,S.maxMana);
+}
+AP.gearUp=gearUp;
+
 /* ===== Hauptschritt ===== */
 function step(){
  if(typeof G==='undefined'||!G||!G.name)return 'kein Spiel';
  if(G.flags&&G.flags.act5done&&G.diff>=2&&!AP.dn){AP.dn=true;say('✅ FERTIG','Alle Akte in Hölle abgeschlossen');AP.on=false;return 'fertig'}
+ try{if(G.at==='town'&&Date.now()-(AP.gT||0)>3000&&!(typeof C!=='undefined'&&C&&!C.over)){AP.gT=Date.now();gearUp()}}catch(e){AP.err.push('Gear: '+e.message);say('⚠ GEAR',e.message)}
  try{if(G.apAuto&&!(typeof C!=='undefined'&&C&&!C.over))applyPlan()}catch(e){AP.err.push('Plan: '+e.message);say('⚠ PLAN',e.message)}
  /* Kampf */
  if(typeof C!=='undefined'&&C&&!C.over){
@@ -8790,6 +8843,7 @@ function step(){
   const need=needHeal()||lowPots();
   const tgt=targetArea();
   const goOn=()=>{ /* Richtung Ziel */
+   if(G.flags&&G.flags.act5done&&G.diff<2&&TOWNS[G.act].npcs.includes('cain')&&(AP.dtry||0)<6){AP.dtry=(AP.dtry||0)+1;AP.mode='npc';AP.cur='cain';return npcTile('cain')}
    if(!tgt&&actFinished()){const t=travelNpc();if(t&&!AP.actTry){AP.mode='npc';AP.cur=t;return npcTile(t)}}
    if(portal&&G.tpBack&&(tgt===G.tpBack||!done(G.tpBack))){portal.click();return 'Portal zurück'}
    { /* Ziel bestimmen: erreichbar aus der Stadt sind Startgebiet und Wegpunkte */
@@ -8808,10 +8862,11 @@ function step(){
  }
  /* c) NPC-Szene */
  if(isNpc()){
+  if(G.flags&&G.flags.act5done&&G.diff<2){r=clk(/(Alptraum|Albtraum|Hölle) beginnen|▶.*beginnen/);if(r){say('SCHWIERIGKEIT',r);AP.dtry=0;AP.farmMax=6;AP.farmLv=0;AP.farmId=null;AP.qSkip=null;return r}}
   r=clk(/^❗|^!\s|^✅|Auftrag:|Abgeben:|übergeben|zusammensetzen|deuten|überreichen|Horadrim|Khalim/);if(r){AP.st.quests++;return 'Quest: '+r}
   if(AP.mode==='npc'){
    if(needHeal()){r=clk(/Heilen/);if(r)return r}
-   if(potCount()<14&&G.gold>=3000&&potRoom()>0&&!AP.shop){AP.shop=1;r=clk(/Tränke & Schriftrollen kaufen/);if(r)return r}
+   if(potCount()<14&&G.gold>=500&&potRoom()>0&&!AP.shop){AP.shop=1;r=clk(/Tränke & Schriftrollen kaufen/);if(r)return r}
    if(AP.cur&&NPCS[AP.cur].to&&actFinished()&&!AP.actTry){r=clk(/Reise nach Akt/);if(r){AP.actTry=0;AP.st.acts++;say('AKT','→ '+r);return r}}
   }
   /* Trankladen: Heil-/Manatränke und Stadtportale auffüllen */
@@ -8842,7 +8897,7 @@ function step(){
   const id=G.at,a=AREAS[id],p=G.prog[id];
   const tgt=targetArea(),qn=questNpc();
   /* Sonderobjekte (Steine, Leichen, Bäume ...) – Knöpfe ohne Navigationspfeil und mit ❗ */
-  if(p.done&&farmArea()===id){r=clk(/Neu betreten/);if(r)return 'Farm: '+r}
+  if(p.done&&farmArea()===id){AP.farmRuns=(AP.farmRuns||0)+1;if(AP.farmRuns>(AP.farmMax||12)){AP.farmLv=0;AP.farmId=null;AP.farmRuns=0;say('🌾 FARM Ende',(AP.farmMax||12)+' Läufe, weiter mit der Aufgabe')}else{r=clk(/Neu betreten/);if(r)return 'Farm: '+r}}
   if(p.done){r=clk(/❗|!/,bs.filter(b=>!NAV.test(lab(b))&&!AVOID.test(lab(b))));if(r)return 'Spezial: '+r}
   if(!p.done&&(G.hp<S.maxHp*0.5||lowPots())&&(G.sc.tp||0)>0&&!AP.noTp){
    r=clk(/Stadtportal/);if(r){AP.st.tp=(AP.st.tp||0)+1;return 'Portal zur Stadt: '+r}}
@@ -8928,7 +8983,7 @@ function tick(){
  AP.tk=setTimeout(tick,Math.max(50,(fc?400:550)/AP.spd));
 }
 AP.start=()=>{if(AP.on)return;AP.userStop=false;
- try{if(!AP.hk){AP.hk=1;const d0=window.deadScene;window.deadScene=function(){AP.st.deaths++;AP.dA=AP.dA||{};AP.dA[G.at]=(AP.dA[G.at]||0)+1;AP.dk=(AP.dk&&AP.dk.at===G.at)?{at:G.at,n:AP.dk.n+1}:{at:G.at,n:1};say('☠ GEFALLEN',(G.at==='town'?'Stadt':(AREAS[G.at]||{}).n||G.at)+' · '+AP.dk.n+'×');return d0.apply(this,arguments)};
+ try{if(!AP.hk){AP.hk=1;const d0=window.deadScene;window.deadScene=function(){try{if(typeof C!=='undefined'&&C){AP.dl={at:G.at,lvl:G.lvl,diff:G.diff,maxHp:Math.round(S.maxHp),def:S.def,ac:S.ac,res:JSON.stringify(S.res),dmg:Math.round((S.dmgMin+S.dmgMax)/2),edmg:S.edmg,mons:(C.mons||[]).map(m=>(m.n||m.name||m.key)+':'+Math.round(m.hp)+'/'+Math.round(m.max||m.mhp||0)+' d'+JSON.stringify(m.dmg||m.d||'')).join(' ; '),pets:(C.pets||[]).length,log:(C.log||[]).slice(-6).join(' / ').replace(/<[^>]+>/g,'')};AP.dls=(AP.dls||[]);AP.dls.push(AP.dl);if(AP.dls.length>40)AP.dls.shift()}}catch(e){}AP.st.deaths++;AP.dA=AP.dA||{};AP.dA[G.at]=(AP.dA[G.at]||0)+1;AP.dk=(AP.dk&&AP.dk.at===G.at)?{at:G.at,n:AP.dk.n+1}:{at:G.at,n:1};say('☠ GEFALLEN',(G.at==='town'?'Stadt':(AREAS[G.at]||{}).n||G.at)+' · '+AP.dk.n+'×');return d0.apply(this,arguments)};
   const w0=window.winScene;window.winScene=function(){AP.st.wins++;AP.dk=null;return w0.apply(this,arguments)}}}catch(e){}
  try{if(G&&(G.autoHp||40)<60)G.autoHp=60}catch(e){}
  AP.on=true;AP.t0=AP.t0||Date.now();say('START','Autopilot an');tick()};
