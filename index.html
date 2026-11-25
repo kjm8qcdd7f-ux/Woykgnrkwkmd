@@ -1021,7 +1021,7 @@ const statLine0=a=>{const v=a.v;if(a.stat.startsWith('sk_'))return `+${v} zu Fer
 const statLine=a=>statLine0(a)+(a.need?` (Nur mit ${a.need} oder mehr Set-Items)`:'');
 const xpNeed=l=>12*l*l+40*l;
 const SAVEKEY='d2dnd_save_v1';
-const POTS={/* D2 misc.txt hp1-hp5/mp1-mp5 (hpregen/manarecovery, cost) */h1:{n:'Schwacher Heiltrank',hp:30,price:30},h2:{n:'Leichter Heiltrank',hp:60,price:75},h3:{n:'Heiltrank',hp:100,price:125},h4:{n:'Großer Heiltrank',hp:180,price:250},h5:{n:'Super-Heiltrank',hp:320,price:500},m1:{n:'Schwacher Manatrank',mp:20,price:60},m2:{n:'Leichter Manatrank',mp:40,price:150},m3:{n:'Manatrank',mp:80,price:300},m4:{n:'Großer Manatrank',mp:150,price:500},m5:{n:'Super-Manatrank',mp:250,price:1000},/* D2: Verjüngungstränke stellen sofort 35 % bzw. 100 % Leben und Mana her; nicht käuflich (Beute: Schatzklassen rvs/rvl in TreasureClassEx, Würfel: cubemain.txt) */r1:{n:'Verjüngungstrank',rj:35,price:0},r2:{n:'Voller Verjüngungstrank',rj:100,price:0}};
+const POTS={/* D2 misc.txt hp1-hp5/mp1-mp5 (hpregen/manarecovery, cost) */h1:{n:'Schwacher Heiltrank',hp:30,price:30},h2:{n:'Leichter Heiltrank',hp:60,price:75},h3:{n:'Heiltrank',hp:100,price:125},h4:{n:'Großer Heiltrank',hp:180,price:250},h5:{n:'Super-Heiltrank',hp:320,price:500},m1:{n:'Schwacher Manatrank',mp:20,price:60},m2:{n:'Leichter Manatrank',mp:40,price:150},m3:{n:'Manatrank',mp:80,price:300},m4:{n:'Großer Manatrank',mp:150,price:500},m5:{n:'Super-Manatrank',mp:250,price:1000},/* D2: Verjüngungstränke stellen sofort 35 % bzw. 100 % Leben und Mana her; nicht käuflich (Beute: Schatzklassen rvs/rvl in TreasureClassEx, Würfel: cubemain.txt) */r1:{n:'Verjüngungstrank',rj:35,price:15000},r2:{n:'Voller Verjüngungstrank',rj:100,price:50000}};
 const POTK=['h1','h2','h3','h4','h5','m1','m2','m3','m4','m5','r1','r2'];const POTH=['h1','h2','h3','h4','h5'],POTM=['m1','m2','m3','m4','m5'];
 const INV_MAX=40,STASH_MAX=120;
 let G=null,S=null,C=null,S0={};
@@ -1053,8 +1053,6 @@ function migrate(){if(G)delete G.pity;/* Master-Builds mit freien Talisman-Felde
  {const fx=x=>{if(x&&x.uid){const d=UNIQ.find(q=>q.id===x.uid);if(d&&d.rlvl)x.rlvl=d.rlvl}};(G.inv||[]).forEach(fx);(G.stash||[]).forEach(fx);if(G.eq)Object.values(G.eq).forEach(fx);if(G.merc&&G.merc.eq)Object.values(G.merc.eq).forEach(fx)}
  G.gems=G.gems||{};G.runes=G.runes||{};G.keys=G.keys||{};G.org=G.org||{};G.portals=G.portals||{};if(G.pot&&!G.potV){/* alte 4 Stufen (Klein/Heil/Groß/Voll) → D2 5 Stufen */const o=G.pot;['h','m'].forEach(t=>{o[t+'5']=(o[t+'5']||0)+(o[t+'4']||0);o[t+'4']=o[t+'3']||0;o[t+'3']=o[t+'2']||0;o[t+'2']=0});G.pgp={}}G.potV=2;POTK.forEach(k=>{G.pot[k]=G.pot[k]||0});G.diff=G.diff||0;G.maxDiff=Math.max(G.maxDiff||0,G.diff);G.ds=G.ds||{};G.flags=G.flags||{};G.q=G.q||{}}
 function wipeSave(){if(ACC&&G&&G.cid)delChar(G.cid);else try{localStorage.removeItem(SAVEKEY)}catch(e){}}
-function exportSave(){return btoa(unescape(encodeURIComponent(JSON.stringify(G))))}
-function importSave(t){try{const g=JSON.parse(decodeURIComponent(escape(atob(t.trim()))));if(!g||!g.cls||!g.stat)return false;delete g.cid;G=g;migrate();calc();save();return true}catch(e){return false}}
 /* Spielmodi (beim Erstellen festgelegt): d2 = Diablo 2 pur, ac = Aschenchronik (Standard), dnd = D&D */
 const MODES={d2:{n:'Diablo 2',ic:'🔥',d:'D2R-Erfahrung (≈ 500 h bis 99) mit /players-Bonus, D2-Gruppengrößen, keine Würfel'},ac:{n:'Aschenchronik',ic:'⚔️',d:'Der bisherige Mix aus Diablo 2 und D&D (≈ 60 h bis 99, ab Stufe 70 abgeschwächter D2-Abschlag)'},dnd:{n:'D&D',ic:'🎲',d:'Sichtbare W20-Würfe, Initiative, Proben mit steigendem SG, Rast am Lagerfeuer, Gesinnung & Inspiration, Chronik – Kampfwerte bleiben D2'}};
 /* D&D: Gesinnungen (Gesetz/Chaos × Gut/Böse) */
@@ -5180,8 +5178,7 @@ function accScene(){shClean();
  if(legacy)cards+=btn('Alten Spielstand in diesen Account übernehmen',()=>{if(loadSave()){delete G.cid;save();try{localStorage.removeItem(SAVEKEY)}catch(e){}goto(accScene)}},'sm');
  if(ch.length){b.push(btn('Das Tor betreten',()=>{const c=ch[V.csel];if(c&&loadChar(c.id))goto(G.at==='town'?townScene:areaScene)},'ttb'));}
  b.push(btn('➕ Neuer Held',()=>goto(createScene),'ttb2'));
- b.push(master?btn('⭐ Meister',()=>goto(masterScene)):btn('Importieren',()=>goto(importScene)));
- if(master)b.push(btn('Importieren',()=>goto(importScene)));
+ if(master)b.push(btn('⭐ Meister',()=>goto(masterScene)));
  b.push(btn('Abmelden',()=>goto(titleScene)));
  show(`<div class="tt"><div class="ttbg"><i style="background-image:url(img/loc/${['harrogath','lager','festung','kurasthafen'][ch.length%4]}.webp)"></i></div><div class="ttfog"></div><canvas id="ttc"></canvas><div class="ttvig"></div>
  <div class="ttin" style="justify-content:flex-start;padding-top:22px;gap:10px"><div class="ttk">${master?'Meister-Account':'Account'}</div><h1 class="ttt" style="font-size:clamp(30px,10vw,48px)">${A.name}</h1><div class="tts">Wähle deinen Helden</div><div class="ccl2">${cards}</div>${bakHint(ch.length)}</div></div>`,b);
@@ -5231,10 +5228,6 @@ function classPickScene(){const c=V.cr||{md:'ac',al:'nn'};
 }
 function modeHelpScene(){show(`<h2>Die drei Spielmodi</h2><p class="dim">Der Modus wird beim Erstellen gewählt und gilt für diesen Charakter dauerhaft. Gemeinsame Truhe, Konto und Meister sind für alle Modi gleich. Monster, Gegenstände, Fertigkeiten und Mechaniken folgen in allen Modi Diablo II.</p>${['d2','ac','dnd'].map(modeInfoHtml).join('')}`,[btn('Zurück',()=>goto(createScene))])}
 function modeIntroScene(){const k=gMode();show(`<h2>Dein Spielmodus</h2>${modeInfoHtml(k)}${k==='dnd'?`<p>Deine Gesinnung: <b>${ALIGN[G.al||'nn']}</b></p>`:''}<p class="dim">Alles noch einmal nachlesen: Charakter → Einstellungen.</p>`,[btn('Das Abenteuer beginnt',()=>goto(introScene))])}
-function importScene(){
- show(`<h2>Importieren</h2><p class="dim">Füge hier den exportierten Spielstand-Text ein.</p><textarea id="imp" rows="6" style="width:100%"></textarea>`,
- [btn('Importieren',()=>{if(importSave($('#imp').value))goto(G.at==='town'?townScene:areaScene);else{note('Spielstand konnte nicht gelesen werden.')}}),btn('Zurück',()=>goto(accScene))]);
-}
 function introScene(){
  show(`<h2>Akt 1 – Das Lager der Jägerinnen</h2>
  <p>Du erreichst die Palisaden im Morgengrauen. Auf den Wehrgängen stehen Frauen mit Bögen, die dich mustern, als wärst du das Letzte, was sie heute sehen wollen.</p>
@@ -5417,8 +5410,8 @@ function cainId(){
  (un.length>1?[btn(`🔎 Alle identifizieren (${un.length})${G.flags.cainFree?'':' · '+un.length*25+' 🪙'}`,()=>{for(const i of un){if(!G.flags.cainFree){if(G.gold<25)break;G.gold-=25}i.unid=false}calc();save();goto(cainId)},'gold',!G.flags.cainFree&&G.gold<25)]:[]).concat(un.map(i=>btn(`${itemName(i)}`,()=>{if(!G.flags.cainFree){if(G.gold<25)return;G.gold-=25}i.unid=false;save();goto(cainId)},'',!G.flags.cainFree&&G.gold<25))).concat([btn('◀ Zurück',()=>goto(npcScene,'cain'))]));
 }
 function potShop(w){
- const b=[];/* D2 1:1 (misc.txt Händlerspalten + NightmareUpgrade/HellUpgrade): Normal Akt 1–2 Schwach/Leicht, Akt 3 + Heiltrank, Akt 4–5 + Groß; Albtraum: alle Tränke werden zu Groß; Hölle: alle zu Super */const dfc=G.diff||0;const av=dfc>=2?['h5','m5']:dfc===1?['h4','m4']:G.act>=4?['h1','h2','h3','h4','m1','m2','m3','m4']:G.act>=3?['h1','h2','h3','m1','m2','m3']:['h1','h2','m1','m2'];
- av.forEach(k=>{const p=POTS[k];b.push(btn(`${ico(POTIC[k])}${p.n} (${p.price} 🪙) · hast ${G.pot[k]}`,()=>{if(!addPot(k))return;G.gold-=p.price;save();goto(potShop,w)},'',G.gold<p.price||potRoom()<1))});
+ const b=[];/* D2 1:1 (misc.txt Händlerspalten + NightmareUpgrade/HellUpgrade): Normal Akt 1–2 Schwach/Leicht, Akt 3 + Heiltrank, Akt 4–5 + Groß; Albtraum: alle Tränke werden zu Groß; Hölle: alle zu Super *//* Bewusste Abweichung (Wunsch): alle Tranksorten überall kaufbar, Verjüngung teuer (15.000 / 50.000) */const av=['h5','h4','h3','h2','h1','m5','m4','m3','m2','m1','r1','r2'];
+ av.forEach(k=>{const p=POTS[k];b.push(btn(`${ico(POTIC[k])}${p.n} (${p.price} 🪙) · hast ${G.pot[k]||0}`,()=>{if(!addPot(k))return;G.gold-=p.price;save();goto(potShop,w)},'',G.gold<p.price||potRoom()<1))});
  b.push(btn(`Identifizierungs-Schriftrolle (20 🪙) · hast ${G.sc.id}`,()=>{G.gold-=20;G.sc.id++;save();goto(potShop,w)},'',G.gold<20));
  b.push(btn(`Stadtportal-Schriftrolle (35 🪙) · hast ${G.sc.tp}`,()=>{G.gold-=35;G.sc.tp++;save();goto(potShop,w)},'',G.gold<35));
  b.push(btn('◀ Zurück',()=>goto(npcScene,w)));
@@ -5910,6 +5903,7 @@ function idLoot(u,el){const it=G.inv.find(x=>x.u===u);if(!it||!it.unid||(G.sc.id
 function sellLoot(u,el){const g=sellOne(u);save();goldHud();const b=el&&el.closest('.lbtns');if(b){b.dataset.done=1;b.innerHTML=emo(`<span class="dim">${g?'verkauft +'+g+' 🪙':'nicht mehr da'}</span>`)}else if(el)el.outerHTML=emo(`<span class="dim">verkauft +${g} 🪙</span>`);lootRefresh()}
 function sellLootList(list,el,all){let g=0;const keep=all?(list||[]).filter(u=>!lootBulk(u)):[];(list||[]).forEach(u=>{if(all&&!lootBulk(u))return;g+=sellOne(u)});save();goldHud();if(all){document.querySelectorAll('#main .lbtns').forEach(b=>{if(keep.some(u=>b.innerHTML.includes('('+u+',')||b.innerHTML.includes('('+u+')')))return;b.dataset.done=1;b.innerHTML='<span class="dim">verkauft</span>'});document.querySelectorAll('#main .lsell').forEach(b=>{if(b===el)return;const oc=b.getAttribute('onclick')||'';if(keep.some(u=>oc.includes('('+u+',')||oc.includes('('+u+')')))return;b.outerHTML='<span class="dim">verkauft</span>'})}if(el&&el.isConnected)el.outerHTML=emo(`<span class="good">verkauft +${g} 🪙</span>`);lootRefresh()}
 function winScene(){
+ if(typeof C==='undefined'||!C)return;/* doppelt ausgelöst (Bühne + Zeitlimit): nur einmal auswerten */
  const spec=C.spec;if(spec&&spec.boss){try{const f=document.createElement('div');f.className='pxflash';document.body.appendChild(f);setTimeout(()=>f.remove(),800);document.body.classList.add('bshake');setTimeout(()=>document.body.classList.remove('bshake'),500)}catch(e){}}
  const r=finishCombat();
  if(typeof heraldCheck==='function')try{heraldCheck(spec)}catch(e){console.error(e)}
@@ -6117,9 +6111,8 @@ function viewChar(){
   if(gMode()!=='d2')h+=`<h2>Würfeln</h2>`+btn(G.manual!==false?'🎲 Selbst würfeln: AN':'🎲 Selbst würfeln: AUS',()=>{G.manual=G.manual===false;save();render()});
   h+=fold('hlpAll','❓ Hilfe',HELP.map(([t,x],i)=>fold('hlp'+i,t,`<div class="box" style="text-align:left">${x}</div>`,false)).join(''),false);
   h+=`<h2>Sicherung</h2><p class="dim">Das Spiel speichert nach jeder Aktion automatisch auf diesem Gerät.</p>`;
-  h+=`<p class="dim" style="font-size:12px">„Alles sichern“ legt alle Accounts, Charaktere und Truhen als Datei ab (z. B. in iCloud Drive). Einzelne Charaktere gehen über „Export-Text“. ${bakAgo()}</p>`+btn('💾 Alles sichern',()=>backupAll())+btn('📂 Alles wiederherstellen',()=>restorePick());
-  h+=btn('Jetzt speichern',()=>{save();render()})+btn('Export-Text anzeigen',()=>{V.exp=exportSave();render()});
-  if(V.exp)h+=btn('📋 Gesamten Text kopieren',()=>copyAll(V.exp))+btn('📄 Als Textdatei speichern / teilen',()=>exportFile(V.exp))+`<textarea id="expta" rows="5" style="width:100%" readonly onclick="this.select()">${V.exp}</textarea>`;
+  h+=`<p class="dim" style="font-size:12px">„Alles sichern“ legt alle Accounts, Charaktere und Truhen als Datei ab (z. B. in iCloud Drive). ${bakAgo()}</p>`+btn('💾 Alles sichern',()=>backupAll())+btn('📂 Alles wiederherstellen',()=>restorePick());
+  h+=btn('Jetzt speichern',()=>{save();render()}); 
   h+=btn('Zur Charakterauswahl',()=>{save();G=null;V.nomaster=true;SC=accScene;TAB='event';render()});
   h+=`<p class="dim center" style="font-size:11px;opacity:.6;margin-top:14px">Version ${GAMEVER}</p>`;
  }
@@ -6265,15 +6258,6 @@ function stashQ(){const q=(V.sq||'').trim().toLowerCase();document.querySelector
 let RWIT=null;
 /* ⓘ hinter dem Runenwort: alle Eigenschaften mit Wertebereich, Runen, Stufe */
 function unsockIt(it){if(!(hasRune('hel',1)&&G.sc.tp>0))return;takeRune('hel',1);G.sc.tp--;it.aff=it.aff.filter(a=>!a.sock&&!a.rw);it.socks=[];delete it.rw;delete it.rwLvl;delete it.rwV;if(it.rlvlB!==undefined){it.rlvl=it.rlvlB;delete it.rlvlB}calc();save();note('Sockel geleert.');render()}
-/* Export-Text komplett in die Zwischenablage (iPhone: Fallback über markierte Textarea, weil clipboard je nach Browser/Webapp fehlt) */
-/* Export-Text als .txt-Datei: Teilen-Menü (Dateien, WhatsApp, Mail …) oder Download */
-function exportFile(t){const dn=new Date().toISOString().slice(0,10),nm='Aschenchronik-'+String(G.name||'Charakter').replace(/[^\w\-]+/g,'_')+'-'+dn+'.txt';
- const dl=()=>{try{const u=URL.createObjectURL(new Blob([t],{type:'text/plain'})),a=document.createElement('a');a.href=u;a.download=nm;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500);note('Datei '+nm+' wird gespeichert.')}catch(e){alert('Speichern nicht möglich – bitte „Gesamten Text kopieren“ nutzen.')}};
- try{const f=new File([t],nm,{type:'text/plain'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:nm}).catch(e=>{if(!e||e.name!=='AbortError')dl()});return}}catch(e){}
- dl()}
-function copyAll(t){const ok=()=>{try{note('Text komplett kopiert ('+t.length+' Zeichen).')}catch(e){alert('Text komplett kopiert.')}};
- const fb=()=>{const ta=document.getElementById('expta')||document.createElement('textarea');if(!ta.parentNode){ta.value=t;document.body.appendChild(ta)}ta.removeAttribute('readonly');ta.focus();ta.select();try{ta.setSelectionRange(0,t.length)}catch(e){}let r=false;try{r=document.execCommand('copy')}catch(e){}ta.setAttribute('readonly','');if(!document.getElementById('expta')&&ta.parentNode)ta.parentNode.removeChild(ta);if(r)ok();else{try{alert('Kopieren nicht möglich – Text ist markiert, bitte „Kopieren“ im Menü wählen.')}catch(e){}}};
- if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(ok,fb);else fb()}
 function rwInfo(i){const r=RW[i];if(!r)return;const L=[];
  const sl=(k,v)=>(k==='resAll'||k==='res4')?`Alle Widerstandsarten +${v}`:statLine({stat:k,v});
  const num=t=>{const m=String(t).replace(/<[^>]*>/g,'').match(/-?\d+(?:[.,]\d+)?/);return m?m[0]:''};
@@ -6306,7 +6290,7 @@ const HELP=[
  ['📜 Quests & Schwierigkeit','<p>Quests stehen unter Charakter → Quests mit ihren Belohnungen. Nach Baal kannst du in Albtraum und Hölle weiterspielen (Monster stärker, Widerstände sinken wie in D2).</p>'],
  ['🎲 Spielmodi','<p><b>Diablo 2:</b> möglichst genau wie D2R. <b>Aschenchronik:</b> Standard mit eigenen Ereignissen. <b>D&amp;D:</b> sichtbarer W20, Initiative, Gesinnung, Rasten und Chronik. Der Modus wird beim Erstellen festgelegt.</p>'],
  ['👥 Spieleranzahl','<p>Wie /players in D2R: mehr Leben und Schaden bei Monstern, mehr Beute. Einstellbar hier in den Einstellungen.</p>'],
- ['💾 Speichern & Sichern','<p>Der Spielstand wird nach jeder Aktion automatisch auf diesem Gerät gespeichert. iOS kann Webseiten-Daten löschen – deshalb ab und zu <b>Alles sichern</b> (Einstellungen → Sicherung): alle Accounts, Charaktere und Truhen landen in einer Datei, die du z. B. in iCloud Drive ablegst. <b>Alles wiederherstellen</b> holt sie zurück, auch auf einem anderen Gerät. Einzelne Charaktere gehen weiter über „Export-Text“.</p>']];
+ ['💾 Speichern & Sichern','<p>Der Spielstand wird nach jeder Aktion automatisch auf diesem Gerät gespeichert. iOS kann Webseiten-Daten löschen – deshalb ab und zu <b>Alles sichern</b> (Einstellungen → Sicherung): alle Accounts, Charaktere und Truhen landen in einer Datei, die du z. B. in iCloud Drive ablegst. <b>Alles wiederherstellen</b> holt sie zurück, auch auf einem anderen Gerät.</p>']];
 function viewCraft(){
  let h='<h2>Herstellen</h2>';
  if(G.flags.imbue&&!G.flags.imbued&&G.at==='town'){
@@ -6415,7 +6399,7 @@ function autoStep(){
   /* Einzelziel (z. B. Boss allein): Fertigkeit, die nur andere Gegner trifft, gegen die Einzelziel-Variante tauschen (Blitzendes Unheil → Geladener Schlag) */
   if(dm&&SKILLS[dm].single&&al.length===1&&sk(SKILLS[dm].single)>=1&&ok(SKILLS[dm].single))dm=SKILLS[dm].single;
   /* Alle übrigen Gegner gegen das Element der Hauptfertigkeit immun: auf eine andere Schadensfertigkeit ausweichen, falls vorhanden (sonst erledigt der Söldner sie) */
-  if(dm&&SKILLS[dm].ty&&al.length&&al.every(m=>immTo(m,SKILLS[dm].ty))){const alt=dms.filter(id=>id!==dm&&!(SKILLS[id].ty&&al.every(m=>immTo(m,SKILLS[id].ty)))).sort((x,y)=>sk(y)-sk(x))[0];if(alt)dm=alt;else if(G.hp<S.maxHp*0.6&&!a&&!C.boss){/* D2: gegen Immune ohne zweites Element weicht man aus (Teleport/Vorbeilaufen) – Auto-Kampf flieht, statt wirkungslos weiterzuzaubern */C.log.push('🏃 Alle Gegner sind immun gegen deine Fertigkeiten – Auto-Kampf versucht zu fliehen.');return flee()}}
+  if(dm&&SKILLS[dm].ty&&al.length&&al.every(m=>immTo(m,SKILLS[dm].ty))){const alt=dms.filter(id=>id!==dm&&!(SKILLS[id].ty&&al.every(m=>immTo(m,SKILLS[id].ty)))).sort((x,y)=>sk(y)-sk(x))[0];if(alt)dm=alt;else if((G.hp<S.maxHp*0.6||!(C.pets||[]).some(p=>p.key==='merc'&&p.hp>0)||(C.immT=(C.immT||0)+1)>6)&&!a&&!C.boss){/* D2: gegen Immune ohne zweites Element weicht man aus (Teleport/Vorbeilaufen) – Auto-Kampf flieht, statt wirkungslos weiterzuzaubern */C.log.push('🏃 Alle Gegner sind immun gegen deine Fertigkeiten – Auto-Kampf versucht zu fliehen.');return flee()}}
   /* Gestaltwandlung, wenn die Hauptfertigkeit eine Tiergestalt braucht */
   const shs=sks.filter(id=>SKILLS[id].shS),hs=G.autoSk&&SKILLS[G.autoSk]&&sk(G.autoSk)>=1?SKILLS[G.autoSk]:null;
   const sh=!C.shape&&shs.length&&hs&&hs.can&&!hs.can()?shs.sort((x,y)=>sk(y)-sk(x)).find(ok):null;
@@ -9043,21 +9027,28 @@ function questNpc(){ /* bereit zur Abgabe > verfügbar */
  /* Cain-Zwischenschritte (Schriftrolle deuten, Stab, Khalims Wille) */
  if(qGoals().N.size)return [...qGoals().N][0];
  return null}
+/* Nebenaufträge (für den Aktabschluss nicht nötig): werden ausgelassen, wenn der Charakter dort festhängt – wie ein Mensch, der Höllenschmiede/Gräfin/Nihlathak später nachholt */
+const FINALB=['andariel','duriel','mephisto','diablo','baal'];
+function optQ(q){if(!AP._req){const R=new Set();const add=x=>{if(R.has(x)||!QUESTS[x])return;R.add(x);(QUESTS[x].pre||[]).forEach(add)};Object.keys(QUESTS).forEach(x=>{if(FINALB.includes(QUESTS[x].boss))add(x)});AP._req=R}return !!QUESTS[q]&&!AP._req.has(q)}
+const qSkipped=q=>!!(AP.skipQ&&AP.skipQ[(G.diff||0)+':'+q]);
 function pickFarm(at){const A=AREAS[at];if(!A)return null;const c=Object.keys(AREAS).filter(id=>id!==at&&AREAS[id].act===A.act&&unlocked(id)&&(AREAS[id].lvl||0)<=(A.lvl||99));
- c.sort((x,y)=>(AREAS[y].lvl||0)-(AREAS[x].lvl||0));return c[0]||null}
+ /* wie ein Mensch: dort farmen, wo man sicher gewinnt (Siege, kaum Tode) – nicht im nächstschwereren Gebiet weitersterben */
+ const ad=AP.ad||{},aw=AP.aw||{},safe=id=>(aw[id]||0)>=(ad[id]||0)*8;
+ const sc=c.filter(safe);const L=sc.length?sc:c;
+ L.sort((x,y)=>(AREAS[y].lvl||0)-(AREAS[x].lvl||0)||((ad[x]||0)-(ad[y]||0)));return L[0]||null}
 function farmArea(){
- if(!AP.farmLv){for(const k of Object.keys(AP.dA||{})){if(AP.dA[k]>=4&&AREAS[k]&&!(G.prog[k]&&G.prog[k].done)){const f=pickFarm(k);AP.dA[k]=0;AP.cyc=AP.cyc||{};AP.cyc[k]=(AP.cyc[k]||0)+1;if(AP.cyc[k]>=5){if(G.diff===2&&typeof ENDRUNS!=='undefined'&&typeof endRunOk==='function'&&(AP.bfR||0)<3&&ENDRUNS.some(endRunOk)){AP.bfR=(AP.bfR||0)+1;AP.cyc[k]=0;AP.bf={runs:0,max:15*AP.bfR,untilLvl:Math.min(99,G.lvl+3)};say('🗡️ BOSS-FARM','Runde '+AP.bfR+': bis '+AP.bf.max+' Boss-Läufe für Ausrüstung ('+(AREAS[k].n||k)+' zu stark)');return null}AP.blocked=k;say('⛔ ZU SCHWACH',(AREAS[k]&&AREAS[k].n||k)+': trotz '+(AP.cyc[k]-1)+' Farm-Runden nicht zu schaffen (Stufe '+G.lvl+', '+Math.round(S.maxHp)+' Leben). Ausrüstung fehlt – Autopilot hält an.');try{AP.stop()}catch(e){}return null}if(f){AP.farmLv=G.lvl>=70?999:G.lvl+2;AP.farmId=f;AP.farmRuns=0;AP.farmMax=Math.min(96,(AP.farmMax||6)*2);AP.st.farms=(AP.st.farms||0)+1;say('🌾 FARM',(AREAS[f].n||f)+' bis Stufe '+AP.farmLv+' (zu oft gefallen in '+(AREAS[k].n||k)+')');break}}}}
+ if(!AP.farmLv){for(const k of Object.keys(AP.dA||{})){if(AP.dA[k]>=4&&AREAS[k]&&!(G.prog[k]&&G.prog[k].done)){const f=pickFarm(k);AP.dA[k]=0;AP.cyc=AP.cyc||{};AP.cyc[k]=(AP.cyc[k]||0)+1;{const q=AREAS[k].quest;if(q&&optQ(q)&&G.q[q]!=='done'&&AP.cyc[k]>=3){AP.skipQ=AP.skipQ||{};AP.skipQ[(G.diff||0)+':'+q]=1;AP.cyc[k]=0;say('⏭ AUSGELASSEN',QUESTS[q].n+' (Nebenauftrag, '+(AREAS[k].n||k)+' zu stark) – später nachholen');return null}}if(AP.cyc[k]>=5){if(G.diff===2&&typeof ENDRUNS!=='undefined'&&typeof endRunOk==='function'&&(AP.bfR||0)<3&&ENDRUNS.some(endRunOk)){AP.bfR=(AP.bfR||0)+1;AP.cyc[k]=0;AP.bf={runs:0,max:15*AP.bfR,untilLvl:Math.min(99,G.lvl+3)};say('🗡️ BOSS-FARM','Runde '+AP.bfR+': bis '+AP.bf.max+' Boss-Läufe für Ausrüstung ('+(AREAS[k].n||k)+' zu stark)');return null}if(G.lvl<99&&f){AP.cyc[k]=3;AP.farmLv=Math.min(99,G.lvl+2);AP.farmId=f;AP.farmRuns=0;AP.farmMax=96;say('🌾 LANGE FARMEN',(AREAS[f].n||f)+' bis Stufe '+AP.farmLv+' – '+(AREAS[k].n||k)+' noch zu stark');return f}AP.blocked=k;say('⛔ ZU SCHWACH',(AREAS[k]&&AREAS[k].n||k)+': trotz '+(AP.cyc[k]-1)+' Farm-Runden nicht zu schaffen (Stufe '+G.lvl+', '+Math.round(S.maxHp)+' Leben). Ausrüstung fehlt – Autopilot hält an.');try{AP.stop()}catch(e){}return null}if(f){AP.farmLv=G.lvl>=70?999:G.lvl+2;AP.farmId=f;AP.farmRuns=0;AP.farmMax=Math.min(96,(AP.farmMax||6)*2);AP.st.farms=(AP.st.farms||0)+1;say('🌾 FARM',(AREAS[f].n||f)+' bis Stufe '+AP.farmLv+' (zu oft gefallen in '+(AREAS[k].n||k)+')');break}}}}
  if(AP.farmLv&&G.lvl>=AP.farmLv){AP.farmLv=0;AP.farmId=null;say('🌾 FARM Ende','Stufe '+G.lvl)}
  return AP.farmLv?AP.farmId:null}
 function targetArea(){
  const fa=farmArea();if(fa)return fa;
- const g=qGoals();let c=[...g.A].filter(id=>AREAS[id]&&!done(id)&&unlocked(id));
- if(!c.length)c=[...g.A].filter(id=>AREAS[id]&&unlocked(id));
+ const g=qGoals(),nsk=id=>!(AREAS[id].quest&&qSkipped(AREAS[id].quest));let c=[...g.A].filter(id=>AREAS[id]&&!done(id)&&unlocked(id)&&nsk(id));
+ if(!c.length)c=[...g.A].filter(id=>AREAS[id]&&unlocked(id)&&nsk(id));
  if(!c.length)return null;
  /* nächstes Ziel vom aktuellen Ort aus */
  const here=G.at==='town'?ACT_START[G.act]:G.at;
  let best=null,bd=1e9;c.forEach(id=>{const d=distFrom(id)[here];if(d!==undefined&&d<bd){bd=d;best=id}});return best||c[0]}
-function actFinished(){return Object.keys(QUESTS).filter(id=>QUESTS[id].act===G.act).every(id=>G.q[id]==='done')}
+function actFinished(){return Object.keys(QUESTS).filter(id=>QUESTS[id].act===G.act).every(id=>G.q[id]==='done'||qSkipped(id))}
 const healNpc=()=>TOWNS[G.act].npcs.find(id=>NPCS[id].roles.includes('heal'));
 const travelNpc=()=>TOWNS[G.act].npcs.find(id=>NPCS[id].to);
 const needHeal=()=>G.hp<S.maxHp*0.9||G.mana<S.maxMana*0.5;
@@ -9120,7 +9111,10 @@ const LVST={barbar:l=>[Math.min(20+2*l,120),Math.min(20+l*.5,50)],paladin:l=>[Ma
 /* Waffen, die der Autopilot beim Leveln trägt (Bögen nur für Amazonen, Klauen nur für Assassinen …) */
 const LVW={barbar:/^(axe|sword|mace|polearm|hammer|spear|throw|knife|scepter)$/,paladin:/^(axe|sword|mace|scepter|hammer|knife|spear)$/,amazone:/^(bow|xbow|javelin|spear)$/,
  assassine:/^(claw|knife|sword|axe|mace)$/,druide:/^(staff|mace|axe|sword|hammer|spear|polearm)$/,zauberin:/^(staff|orb|wand|knife|sword|mace)$/,nekro:/^(wand|knife|staff|sword|mace)$/,hexenmeister:/^(knife|sword|wand|staff|mace|scepter|axe)$/};
-AP.wOk=it=>{try{const B=BASES[it.base];if(!B||B.slot!=='weapon'||!LVW[G.cls])return true;return LVW[G.cls].test(B.type||'')}catch(e){return true}};
+AP.wOk=it=>{try{const B=BASES[it.base];if(!B||B.slot!=='weapon'||!LVW[G.cls])return true;if(!LVW[G.cls].test(B.type||''))return false;
+ /* Waffe muss zur Hauptfertigkeit passen (z. B. Blitzendes Unheil: nur Wurfspieße werfen, Streuen: Bogen) */
+ const ms=SKILLS[G.autoSk]||(G.apPlan&&SKILLS[G.apPlan.autoSk]);if(G.apSw&&ms&&Array.isArray(ms.need)){let ty=ms.need;if(ms.thr)ty=ty.filter(t=>t==='javelin'||t==='throw'||t==='knife');if(ty.length&&!ty.includes(B.type))return false}
+ return true}catch(e){return true}};
 function lvLearn(id,tgt){const s=SKILLS[id];if(!s||G.lvl<s.lvl)return false;
  for(const q of (s.pre||[]))if(!(G.skills[q]>0)){if(!lvLearn(q,1))return false;if(G.spts<1)return true}
  if((G.skills[id]||0)>=tgt||!canLearn(id))return false;learn(id);return true}
@@ -9145,6 +9139,9 @@ function applyPlan(){
    for(let i=0;i<500&&G.pts>0;i++){calc();if(S.str<ms)addStat('str',1);else if(S.dex<md)addStat('dex',1);else break}}catch(e){}}
  const B=CLASSES[G.cls].base,K=['str','dex','vit','ene'];
  /* Attributspunkte im Verhältnis des Endstands */
+ /* wie ein Mensch: erst Stärke/Geschick für Ausrüstung und Trefferchance (Leveling-Ziele), dann im Verhältnis des Endstands */
+ if(G.pts>0&&LVST[G.cls]){const [st,dx]=LVST[G.cls](G.lvl),ms=SKILLS[P.autoSk]||SKILLS[G.autoSk],atk=!!(ms&&ms.kind==='atk');
+  for(let i=0;i<500&&G.pts>0;i++){if(G.stat.str<st)addStat('str',1);else if(atk&&G.stat.dex<dx)addStat('dex',1);else break}}
  if(G.pts>0){const need={};K.forEach(k=>need[k]=Math.max(0,(P.stat[k]||0)-(B[k]||0)));
   for(let i=0;i<500&&G.pts>0;i++){let best='vit',bv=-1;K.forEach(k=>{const inv=G.stat[k]-(B[k]||0);if(need[k]<=inv)return;const v=need[k]/(inv+1);if(v>bv){bv=v;best=k}});addStat(best,1)}}
  /* Fertigkeitspunkte: gleichmäßig nach Anteil am Endstand, nur was Stufe und Voraussetzungen erlauben */
@@ -9176,10 +9173,17 @@ function applyPlan(){
 
 AP.applyPlan=applyPlan;
 /* ===== Beute: gefundene Ausrüstung bewerten, identifizieren, anlegen, Ramsch verkaufen (nur in der Stadt) ===== */
-function pw(){const d=Math.max(1,((S.dmgMin||0)+(S.dmgMax||0))/2*(1+(S.edmg||0)/100)+(S.dmgAdd||0));const r=S.res||{};const rs=(r.fire||0)+(r.cold||0)+(r.light||0)+(r.poison||0);
- return Math.pow(d,0.7)*S.maxHp*(1+Math.max(-150,rs)/150)*(1+(S.allsk||0)*0.06)*(1+(S.fcr||0)/300)*(1+(S.ac||0)/1500)/(1-0.5*Math.min(0.6,(S.def||0)/((S.def||0)+40*G.lvl+100)))*(1+(S.ll||0)/200)}
+function pw(){const ms=G.autoSk&&SKILLS[G.autoSk],cast=!!(ms&&ms.kind!=='atk');
+ /* Zauber/Fallen/Hammer: Schaden kommt aus der Fertigkeitsstufe (+Fertigkeiten), nicht aus der Waffe */
+ const d=cast?Math.pow(1.09,Math.min(60,sk(G.autoSk)))*20:Math.max(1,((S.dmgMin||0)+(S.dmgMax||0))/2*(1+(S.edmg||0)/100)+(S.dmgAdd||0));const r=S.res||{};const rs=(r.fire||0)+(r.cold||0)+(r.light||0)+(r.poison||0);
+ return Math.pow(d,0.7)*S.maxHp*(1+Math.max(-150,rs)/150)*(cast?1:(1+(S.allsk||0)*0.06))*(1+(S.fcr||0)/300)*(1+(S.ac||0)/1500)/(1-0.5*Math.min(0.6,(S.def||0)/((S.def||0)+40*G.lvl+100)))*(1+(S.ll||0)/200)}
+function fixWeapon(){const w=G.eq.weapon;if(!G.apAuto||!w||AP.wOk(w))return;
+ let best=null,bp=-1;for(const it of [...G.inv,...(G.stash||[])]){const B=BASES[it.base];if(!B||B.slot!=='weapon'||it.unid||!AP.wOk(it)||canEquip(it))continue;
+  const eq0=G.eq;G.eq={...eq0,weapon:it};let p=0;try{calc();p=pw()}catch(e){}G.eq=eq0;try{calc()}catch(e){}if(p>bp){bp=p;best=it}}
+ if(best){if((G.stash||[]).includes(best)){removeFrom(G.stash,best.u);G.inv.push(best)}if(!equipItem(best,false,'weapon'))gsay('⚔ WAFFE PASST',itemName(best)+' für '+((SKILLS[G.autoSk]||{}).n||''))}}
 function gearUp(){
  if(typeof C!=='undefined'&&C&&!C.over)return;
+ try{fixWeapon()}catch(e){}
  const hp0=G.hp,mp0=G.mana;let did=0;
  /* identifizieren: erst Schriftrollen, dann Cain (25 Gold) */
  for(const i of G.inv.filter(i=>i.unid)){if((G.sc&&G.sc.id)>0)G.sc.id--;else if(G.flags.cainFree){}else if(G.gold>=25&&G.act&&G.at==='town')G.gold-=25;else break;i.unid=false;did++}
@@ -9218,6 +9222,7 @@ function gainOf(it){ /* beste Steigerung, wenn dieser Gegenstand angelegt würde
  const B=BASES[it.base];if(!B||!B.slot||['charm','jewel','gem','rune'].includes(B.slot)||it.unid)return null;
  if(G.apAuto&&!AP.wOk(it))return null;
  const rq=itReq(it);if((rq.str&&S.str<rq.str)||(rq.dex&&S.dex<rq.dex)||(reqLvl(it)>G.lvl)||(B.only&&B.only!==G.cls))return null;
+ if(B.slot==='weapon'&&G.eq.weapon&&!AP.wOk(G.eq.weapon)&&slotFor(it)==='weapon')return {sl:'weapon',p:1e9,g:2};
  const base=Math.max(1,pw());let best=null;
  const sls=B.slot==='ring'?['ring1','ring2']:[slotFor(it)];
  for(const sl of sls){const eq0=G.eq;G.eq={...eq0,[sl]:it};if(B.two)G.eq.offhand=null;let p=0;try{calc();p=pw()}catch(e){p=0}G.eq=eq0;try{calc()}catch(e){}
@@ -9267,10 +9272,13 @@ function shopBrain(){let n=0;const res=apReserve();
    for(const it of st.slice()){if(!(it.q>=1||(it.sock&&it.q===0)))continue;const pr=buyPrice(it);if(pr>G.gold-res)continue;
     let g=gainOf(it),c=it;
     if(it.sock&&it.q===0){const b=rwTry(it);if(b&&(!g||b.g.p>g.p)){g=b.g;c=null}}
-    if(!g||g.g<1.05||!canAdd(it))continue;
-    G.gold-=pr;removeFrom(st,it.u);G.inv.push(it);n++;gsay('🛒 GEKAUFT',itemName(it)+' ('+pr+') +'+Math.round((g.g-1)*100)+'%');
+    if(!g||g.g<1.05||!canAdd(it)||canEquip(it))continue;
+    G.gold-=pr;removeFrom(st,it.u);G.inv.push(it);
     if(c===null)rwBrain();
-    gearUp()}
+    gearUp();
+    /* nur behalten, wenn es wirklich angelegt wurde – sonst sofort zurückgeben (kein Fehlkauf-Kreislauf) */
+    if(!Object.values(G.eq).includes(it)&&c!==null){removeFrom(G.inv,it.u);st.push(it);G.gold+=pr;continue}
+    n++;gsay('🛒 GEKAUFT',itemName(it)+' ('+pr+') +'+Math.round((g.g-1)*100)+'%')}
    if(G.gold<res*3)break;G.shopRef++}}
  return n}
 function gambleBrain(){const gw=TOWNS[G.act].npcs.find(id=>NPCS[id].roles.includes('gamble'));if(!gw||G.lvl<20)return 0;
@@ -9299,12 +9307,23 @@ function charmBrain(){let n=0; /* wie ein Mensch: gute Talismane ins Raster, sch
  /* übrige Talismane im Rucksack verkaufen (Platz für Beute), Einzigartige behalten */
  try{let g=0,k=0;for(const c of G.inv.slice()){const B=BASES[c.base];if(B&&B.slot==='charm'&&c.rs&&!c.unid&&c.q<3&&typeof sellOne==='function'){g+=sellOne(c.u)||0;k++}}if(k)say('💰 TALISMANE',k+' verkauft, +'+g)}catch(e){}
  return n}
+function sellBrain(){ /* wie ein Mensch: alles verkaufen, was weder jetzt noch bald hilft (Gold für Söldner, Händler, Glücksspiel) */
+ let g=0,k=0,keepRw=0,keepF=0;
+ for(const it of G.inv.slice()){const B=BASES[it.base];if(!B||!B.slot||['charm','jewel','gem','rune'].includes(B.slot)||it.unid||B.quest||it.quest)continue;
+  if(it.q===0&&it.sock>=2&&!(it.socks||[]).length&&keepRw<6&&RW.some(r=>r.n_s===it.sock&&rwFits(r,it))){keepRw++;continue}
+  if(it.q>=3&&reqLvl(it)>G.lvl&&keepF<8){keepF++;continue}
+  const gn=gainOf(it);if(gn&&gn.g>1.0)continue;
+  if(G.merc&&MSLOTS.some(sl=>{const s2=B.slot==='weapon'?'weapon':B.slot;return s2===sl&&mercCanWear(it,G.merc.t)&&mScore(it,G.merc.t)>mScore((G.merc.eq||{})[sl],G.merc.t)}))continue;
+  if(typeof sellOne==='function'){const x=sellOne(it.u)||0;if(x||!G.inv.includes(it)){g+=x;k++}}}
+ if(k)gsay('💰 VERKAUFT',k+' Teile, +'+g+' Gold');return g}
 function townBrain(){if(!G.apAuto||G.at!=='town'||(typeof C!=='undefined'&&C&&!C.over))return;
  const hp0=G.hp,mp0=G.mana;
  try{mercBrain()}catch(e){AP.err.push('Merc: '+e.message)}
  try{cubeRunes();rwBrain()}catch(e){AP.err.push('RW: '+e.message)}
  try{gearUp()}catch(e){}
  try{charmBrain()}catch(e){AP.err.push('Charm: '+e.message)}
+ try{mercGearUp()}catch(e){AP.err.push('MercGear: '+e.message)}
+ try{sellBrain()}catch(e){AP.err.push('Sell: '+e.message)}
  try{shopBrain()}catch(e){AP.err.push('Shop: '+e.message)}
  try{gambleBrain()}catch(e){AP.err.push('Gamble: '+e.message)}
  try{mercGearUp()}catch(e){AP.err.push('MercGear: '+e.message)}
@@ -9397,9 +9416,12 @@ function step(){
   /* Trankladen: Heil-/Manatränke und Stadtportale auffüllen */
   if(vis().some(b=>/Stadtportal-Schriftrolle/.test(lab(b)))){
    const hN=POTH.reduce((x,k)=>x+(G.pot[k]||0),0),mN=POTM.reduce((x,k)=>x+(G.pot[k]||0),0);
-   if(hN<14){r=clk(/Heiltrank/);if(r)return 'kaufe Heiltrank'}
-   if(mN<6){r=clk(/Manatrank/);if(r)return 'kaufe Manatrank'}
-   r=clk(/Heiltrank/);if(r)return 'kaufe Heiltrank'
+   /* Trankstufe wie bisher in D2 üblich (Normal je Akt, Albtraum Groß, Hölle Super) – nicht das teuerste nehmen */
+   const tier=(G.diff||0)>=2?5:(G.diff||0)===1?4:G.act>=4?4:G.act>=3?3:2,rx=k=>new RegExp('(^|\\s)'+POTS[k].n+' \\(');
+   if(hN<14){r=clk(rx('h'+tier));if(r)return 'kaufe Heiltrank'}
+   if(mN<6){r=clk(rx('m'+tier));if(r)return 'kaufe Manatrank'}
+   r=clk(rx('h'+tier));if(r)return 'kaufe Heiltrank'
+   if((G.pot.r2||0)<4&&G.gold>300000+(G.diff||0)*100000){r=clk(/Voller Verjüngungstrank/);if(r)return 'kaufe vollen Verjüngungstrank'}
    if((G.sc.tp||0)<8){r=clk(/Stadtportal-Schriftrolle/);if(r)return 'kaufe Portal'}
    if((G.sc.id||0)<3){r=clk(/Identifizierungs/);if(r)return 'kaufe IdSchr'}
   }
@@ -9420,13 +9442,15 @@ function step(){
  /* e) Gebiet */
  if(isArea()){
   const id=G.at,a=AREAS[id],p=G.prog[id];
+  /* ausgelassener Nebenauftrag: Boss stehen lassen, sobald der Weg frei ist */
+  const pd=p.done||(a.quest&&qSkipped(a.quest)&&a.boss&&p.s>=a.steps);
   const tgt=targetArea(),qn=questNpc();
   /* Sonderobjekte (Steine, Leichen, Bäume ...) – Knöpfe ohne Navigationspfeil und mit ❗ */
-  if(p.done&&farmArea()===id){AP.farmRuns=(AP.farmRuns||0)+1;if(AP.farmRuns>(AP.farmMax||12)){AP.farmLv=0;AP.farmId=null;AP.farmRuns=0;say('🌾 FARM Ende',(AP.farmMax||12)+' Läufe, weiter mit der Aufgabe')}else{r=clk(/Neu betreten/);if(r)return 'Farm: '+r}}
-  if(p.done){const AN=Object.values(AREAS).map(x=>x.n).filter(Boolean);r=clk(/❗|!/,bs.filter(b=>{const t=lab(b);if(/^✦/.test(t))return true;return !NAV.test(t)&&!AVOID.test(t)&&!/Wegpunkt|Stadtportal|Zurück/.test(t)&&!AN.some(n=>t.indexOf(n)===0||t.indexOf(' '+n)>=0)}));if(r)return 'Spezial: '+r}
-  if(!p.done&&(G.hp<S.maxHp*0.5||lowPots())&&(G.sc.tp||0)>0&&!AP.noTp){
+  if(pd&&farmArea()===id){AP.farmRuns=(AP.farmRuns||0)+1;if(AP.farmRuns>(AP.farmMax||12)){AP.farmLv=0;AP.farmId=null;AP.farmRuns=0;say('🌾 FARM Ende',(AP.farmMax||12)+' Läufe, weiter mit der Aufgabe')}else{r=clk(/Neu betreten/);if(r)return 'Farm: '+r}}
+  if(pd){const AN=Object.values(AREAS).map(x=>x.n).filter(Boolean);r=clk(/❗|!/,bs.filter(b=>{const t=lab(b);if(/^✦/.test(t))return true;return !NAV.test(t)&&!AVOID.test(t)&&!/Wegpunkt|Stadtportal|Zurück/.test(t)&&!AN.some(n=>t.indexOf(n)===0||t.indexOf(' '+n)>=0)}));if(r)return 'Spezial: '+r}
+  if(!pd&&(G.hp<S.maxHp*0.5||lowPots())&&(G.sc.tp||0)>0&&!AP.noTp){
    r=clk(/Stadtportal/);if(r){AP.st.tp=(AP.st.tp||0)+1;return 'Portal zur Stadt: '+r}}
-  if(!p.done){
+  if(!pd){
    /* Erst dieses Gebiet, aber braucht ein Questziel anderswo schon vorher Stadt? Nein: erkunden */
    {const fa2=farmArea();if(fa2&&fa2!==id){r=clk(/Wegpunkt: in die Stadt/)||clk(/Stadtportal/);if(r)return 'Farm: zur Stadt';AP.dest=fa2;return goMap(fa2)}}
    r=exploreRoom();if(r)return r;
@@ -9508,8 +9532,8 @@ function tick(){
  AP.tk=setTimeout(tick,Math.max(50,(fc?400:550)/AP.spd));
 }
 AP.start=()=>{if(AP.on)return;AP.userStop=false;
- try{if(!AP.hk){AP.hk=1;const d0=window.deadScene;window.deadScene=function(){try{if(typeof C!=='undefined'&&C){AP.dl={at:G.at,lvl:G.lvl,diff:G.diff,maxHp:Math.round(S.maxHp),def:S.def,ac:S.ac,res:JSON.stringify(S.res),dmg:Math.round((S.dmgMin+S.dmgMax)/2),edmg:S.edmg,mons:(C.mons||[]).map(m=>(m.n||m.name||m.key)+':'+Math.round(m.hp)+'/'+Math.round(m.max||m.mhp||0)+' d'+JSON.stringify(m.dmg||m.d||'')).join(' ; '),pets:(C.pets||[]).length,log:(C.log||[]).slice(-6).join(' / ').replace(/<[^>]+>/g,'')};AP.dls=(AP.dls||[]);AP.dls.push(AP.dl);if(AP.dls.length>40)AP.dls.shift()}}catch(e){}AP.st.deaths++;AP.dA=AP.dA||{};AP.dA[G.at]=(AP.dA[G.at]||0)+1;AP.dk=(AP.dk&&AP.dk.at===G.at)?{at:G.at,n:AP.dk.n+1}:{at:G.at,n:1};say('☠ GEFALLEN',(G.at==='town'?'Stadt':(AREAS[G.at]||{}).n||G.at)+' · '+AP.dk.n+'×');return d0.apply(this,arguments)};
-  const w0=window.winScene;window.winScene=function(){AP.st.wins++;AP.dk=null;return w0.apply(this,arguments)}}}catch(e){}
+ try{if(!AP.hk){AP.hk=1;const d0=window.deadScene;window.deadScene=function(){try{if(typeof C!=='undefined'&&C){AP.dl={at:G.at,lvl:G.lvl,diff:G.diff,maxHp:Math.round(S.maxHp),def:S.def,ac:S.ac,res:JSON.stringify(S.res),dmg:Math.round((S.dmgMin+S.dmgMax)/2),edmg:S.edmg,mons:(C.mons||[]).map(m=>(m.n||m.name||m.key)+':'+Math.round(m.hp)+'/'+Math.round(m.max||m.mhp||0)+' d'+JSON.stringify(m.dmg||m.d||'')).join(' ; '),pets:(C.pets||[]).length,log:(C.log||[]).slice(-6).join(' / ').replace(/<[^>]+>/g,'')};AP.dls=(AP.dls||[]);AP.dls.push(AP.dl);if(AP.dls.length>40)AP.dls.shift()}}catch(e){}AP.st.deaths++;AP.dA=AP.dA||{};AP.dA[G.at]=(AP.dA[G.at]||0)+1;AP.ad=AP.ad||{};AP.ad[G.at]=(AP.ad[G.at]||0)+1;AP.dk=(AP.dk&&AP.dk.at===G.at)?{at:G.at,n:AP.dk.n+1}:{at:G.at,n:1};say('☠ GEFALLEN',(G.at==='town'?'Stadt':(AREAS[G.at]||{}).n||G.at)+' · '+AP.dk.n+'×');return d0.apply(this,arguments)};
+  const w0=window.winScene;window.winScene=function(){AP.st.wins++;try{AP.aw=AP.aw||{};AP.aw[G.at]=(AP.aw[G.at]||0)+1}catch(e){}AP.dk=null;return w0.apply(this,arguments)}}}catch(e){}
  try{if(G&&(G.autoHp||40)<60)G.autoHp=60}catch(e){}
  AP.on=true;AP.t0=AP.t0||Date.now();say('START','Autopilot an');tick()};
 AP.stop=()=>{AP.userStop=true;AP.on=false;clearTimeout(AP.tk);say('STOP','');ui()};
