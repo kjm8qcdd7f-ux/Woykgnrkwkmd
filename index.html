@@ -1130,7 +1130,7 @@ function calc(){
  for(const s of SLOTS){const it=G.eq[s];if(!it)continue;const act=(it.aff||[]).filter(a=>(!a.need||(sc[it.set]||0)>=a.need)&&!(a.col&&COLX&&COLX!==it));if(it.def){const e=act.reduce((t,a)=>t+(a.stat==='defE'||a.stat==='defP'?a.v:0),0);def+=Math.round(it.def*(1+e/100))}/* D2: „+% Verbesserte Verteidigung“ auf einem Gegenstand gilt nur für dessen eigene Verteidigung */const sn=K4.map(k=>A[k]||0),smm=KM.map(k=>A[k]||0);act.forEach(addA);if(s==='offhand'&&BASES[it.base].slot==='weapon'){OFFM={};KM.forEach((k,i)=>{OFFM[k]=(A[k]||0)-smm[i]})}if((s==='weapon'||s==='offhand')&&BASES[it.base].slot==='weapon'){HD[s]={w:it};K4.forEach((k,i)=>{HD[s][k]=(A[k]||0)-sn[i]})}}
  const DW=!!(G.eq.offhand&&BASES[G.eq.offhand.base].slot==='weapon'&&HD.weapon&&HD.offhand);if(DW)K4.forEach(k=>{A[k]=(A[k]||0)-HD.weapon[k]-HD.offhand[k]});
  /* D2R: nur ein Erneuerter Sunder-Zauber wirkt gleichzeitig */let RNX=null;
- (G.inv||[]).forEach(it=>{if(it&&!it.unid&&BASES[it.base]&&BASES[it.base].slot==='charm'&&!it.rs&&(it.rlvl||0)<=G.lvl){if(it.rnw){if(RNX)return;RNX=it}(it.aff||[]).forEach(addA)}});
+ {const UCS=new Set();(G.inv||[]).forEach(it=>{if(it&&!it.unid&&BASES[it.base]&&BASES[it.base].slot==='charm'&&!it.rs&&(it.rlvl||0)<=G.lvl){if(it.rnw){if(RNX)return;RNX=it}const uk=ucKey(it);if(uk){if(UCS.has(uk))return;UCS.add(uk)}(it.aff||[]).forEach(addA)}})};
  S0={};for(const si in sc){const n=sc[si],bn=SETS[si].bonus;S0[si]=n;for(let k=0;k<Math.min(n-1,bn.length);k++)bn[k].forEach(addA)}
  A.life+=G.qlife||0;
  /* Schrein-Verstärkung (shrines.txt: Arg0, Dauer in Frames; 1 Zug = 25 Frames) */if(G.shr&&G.shr.t>0){const k=G.shr.k;if(k==='armor')A.defP+=100;else if(k==='combat'){A.edmg+=200;A.arP=(A.arP||0)+200}else if(k==='rf')A.resF+=75;else if(k==='rc')A.resC+=75;else if(k==='rl')A.resL+=75;else if(k==='rp')A.resP+=75;else if(k==='skill')A.allsk+=2;else if(k==='mana')A.mregenP=(A.mregenP||0)+400}
@@ -1346,6 +1346,10 @@ function genItem(ilvl,o={}){
  const slot=o.slot||pick(slots);const base=pickBase(ilvl,slot);
  return mkItem(base,qualityRoll(o.mf||0,o.minQ),ilvl);
 }
+/* D2: Annihilus, Höllenfackel und Gheeds Glück – nur einer je Sorte pro Charakter (Diablo Wiki „Unique Charms“); Sunder-Talismane dürfen mehrfach */
+const UCHN=new Set(['Annihilus','Höllenfackel','Gheeds Glück']);
+function ucKey(it){if(!it||it.q!==4||!it.uid||typeof UNIQ==='undefined')return null;const u=UNIQ.find(x=>x.id===it.uid);return u&&UCHN.has(u.n)?u.n:null}
+function ucDup(it){const k=ucKey(it);return !!k&&(G.inv||[]).some(x=>x!==it&&isGrid(x)&&ucKey(x)===k)}
 function addInv(it){/* neue Talismane landen im Rucksack, ins Raster legt man sie selbst */if(it&&BASES[it.base]&&BASES[it.base].slot==='charm'&&it.rs===undefined)it.rs=true;if(!canAdd(it))return false;G.inv.push(it);return true}
 /* Hart erarbeitete Gegenstände (Fackel, Annihilus, Quest-Gegenstände) gehen nie verloren: Rucksack, sonst Truhe. Rückgabe: 'inv' | 'stash' */
 function giveSafe(it){if(addInv(it))return 'inv';G.stash.push(it);return 'stash'}
@@ -1570,7 +1574,7 @@ function dealDmg(m,dm,type,o={}){
  m.hp-=dm;if(C&&dm>0)(C.hits=C.hits||[]).push([C.mons.indexOf(m),dm,type]);
  if(C&&C.colLast&&m.colK===C.colLast&&m.hp<=0&&C.mons.some(x=>x.colK&&x!==m&&x.hp>0))m.hp=1;/* Flächenschaden: gewählter Urahne fällt zuletzt */
  if(C&&dm>0&&m.le&&!o.noLL&&m.leT!==C.turn&&G.hp>0){m.leT=C.turn;const bl=Math.max(1,Math.floor(m.lvl/2)),k=R(1,3);hurt(k*((2*bl)-1),'light',`⚡ ${m.n} entlädt ${k} geladene Blitze`)}
- if(m.fx.tap&&m.fx.ct>0&&!o.noLL){const h=Math.max(1,Math.round(dm*m.fx.tap/100));G.hp=Math.min(S.maxHp,G.hp+h)}
+ /* D2: Lebensentzug gibt 50 % des physischen Schadens von Nah- und Fernkampf-Waffenangriffen (Diablo Wiki, D2R-Leech-Regeln) */if(m.fx.tap&&m.fx.ct>0&&!o.noLL&&type==='phys'){const h=Math.max(1,Math.round(dm*m.fx.tap/100));G.hp=Math.min(S.maxHp,G.hp+h)}
  let ex='';if(!o.noLL&&S.ll>0&&type==='phys'){const h=Math.max(1,Math.round(dm*S.ll/100));G.hp=Math.min(S.maxHp,G.hp+h);ex=` (+${h} Leben)`}
  if(m.hp<=0&&m.demon&&S.lakDem){G.hp=Math.min(S.maxHp,G.hp+S.lakDem);ex+=` (+${S.lakDem} Leben, Dämon)`}
  if(m.hp<=0&&S.M.killHeal){const h=S.M.killHeal;G.hp=Math.min(S.maxHp,G.hp+h);ex+=` (+${h} Leben)`}
@@ -5470,10 +5474,12 @@ function gambleRoll(slot){const il=Math.max(1,G.lvl-5+R(0,9));const cand=(slot==
  if(r===1){const u=UNIQ.filter(u=>u.base===key&&(u.dl||u.lvl)<=il&&!u.old&&jewUOk(u));if(u.length)return mkUnique(pick(u))}
  if(r<=3){const c=[];SETS.forEach((s,si)=>s.pieces.forEach((p,pi)=>{if(!p.old&&p.base===key&&(p.dl||p.lvl)<=il)c.push([si,pi])}));if(c.length){const x=pick(c);return mkSetPiece(x[0],x[1])}}
  return mkItem(key,r<=203?2:1,il)}
+function gambleCost(s,il){return s==='ring'?50000:s==='amulet'?63000:40+il*25}
 function gambleScene(msg,w){w=w||'gheed';
  const b=[];const il=Math.max(1,G.lvl+1);
- ['weapon','body','head','offhand','hands','feet','belt','amulet','ring'].forEach(s=>{const c=40+il*25;b.push(btn(`${{weapon:'Waffe',body:'Rüstung',head:'Helm',offhand:'Schild',hands:'Handschuhe',feet:'Stiefel',belt:'Gürtel',amulet:'Amulett',ring:'Ring'}[s]} (${c} 🪙)`,()=>{
-  if(G.gold<c||invUsed()+8>INV_MAX)return;const it=gambleRoll(s);if(!it)return;G.gold-=c;it.unid=false;G.inv.push(it);save();goto(gambleScene,`Gewonnen: ${iname(it)}`,w)},'',G.gold<40+il*25||invUsed()+8>INV_MAX))});
+ /* D2: Ringe kosten beim Glücksspiel immer 50.000, Amulette immer 63.000 Gold (classic.battle.net/VHPG), alles andere steigt mit der Stufe */
+ ['weapon','body','head','offhand','hands','feet','belt','amulet','ring'].forEach(s=>{const c=gambleCost(s,il);b.push(btn(`${{weapon:'Waffe',body:'Rüstung',head:'Helm',offhand:'Schild',hands:'Handschuhe',feet:'Stiefel',belt:'Gürtel',amulet:'Amulett',ring:'Ring'}[s]} (${c} 🪙)`,()=>{
+  if(G.gold<c||invUsed()+8>INV_MAX)return;const it=gambleRoll(s);if(!it)return;G.gold-=c;it.unid=false;G.inv.push(it);save();goto(gambleScene,`Gewonnen: ${iname(it)}`,w)},'',G.gold<c||invUsed()+8>INV_MAX))});
  b.push(btn('◀ Zurück',()=>goto(npcScene,w)));
  show(`<h2>Glücksspiel</h2><p>Du hast <b>${G.gold}</b> 🪙.</p>${msg?`<div class="box">${msg}</div>`:''}`,b);
 }
@@ -6202,7 +6208,7 @@ function viewInv(){
   if(inSt&&BASES[it.base].slot==='charm')it.rs=true;
   if(inSt&&canAdd(it))b.push(btn('Aus der Truhe nehmen',()=>{removeFrom(G.stash,it.u);G.inv.push(it);V.sel=null;save();render()}));
   /* Talisman: zwischen Rucksack und Raster wechseln */
-  if(inInv&&BASES[it.base].slot==='charm'){if(it.rs){const t=Object.assign({},it);delete t.rs;delete t.gp;const ok=canAdd(t);b.push(btn(ok?'⬆ Ins Talisman-Raster legen':'Talisman-Raster voll',()=>{delete it.rs;delete it.gp;calc();save();render()},'',!ok))}
+  if(inInv&&BASES[it.base].slot==='charm'){if(it.rs){const t=Object.assign({},it);delete t.rs;delete t.gp;const dup=ucDup(it),ok=canAdd(t)&&!dup;b.push(btn(dup?'Nur einer pro Charakter erlaubt':ok?'⬆ Ins Talisman-Raster legen':'Talisman-Raster voll',()=>{if(ucDup(it))return;delete it.rs;delete it.gp;calc();save();render()},'',!ok));if(dup)h+='<p class="bad">Diesen einzigartigen Talisman darf ein Charakter nur einmal tragen – wie in D2. Ein zweiter wirkt nicht.</p>'}
    else b.push(btn(invUsed()<INV_MAX?'⬇ Ablegen (in den Rucksack)':'Rucksack voll',()=>{it.rs=true;delete it.gp;calc();save();render()},'',invUsed()>=INV_MAX))}
   if(G.at==='town'&&!eq&&inInv&&isGrid(it))h+='<p class="dim">Liegt im Talisman-Raster und gehört zur festen Ausrüstung – zum Verkaufen erst ablegen.</p>';
   else if(G.at==='town'&&!eq)b.push(btn(`Verkaufen (+${sellPrice(it)} 🪙)`,()=>{G.gold+=sellPrice(it);soldHook(it);removeFrom(G.inv,it.u);removeFrom(G.stash,it.u);V.sel=null;save();render()}));
@@ -6792,8 +6798,8 @@ const ORGN={horn:'Diablos Horn',eye:'Baals Auge',brain:'Mephistos Hirn'};
 const PORTALS=[{id:'lilith',n:'Matrons Versteck',boss:'lilith',org:'horn'},{id:'uber_duriel',n:'Vergessene Sande',boss:'uber_duriel',org:'eye'},{id:'uber_izual',n:'Ofen des Schmerzes',boss:'uber_izual',org:'brain'}];
 /* Stein von Jordan an Händler verkaufen (Hölle) -> Diablo-Klon beim nächsten Boss – wie in D2R beliebig oft */
 function soldHook(it){
- /* Rückkauf-Liste (neueste zuerst, max. 20) */try{if(it&&G){G.buyback=G.buyback||[];G.buyback.unshift({it:JSON.parse(JSON.stringify(it)),g:sellPrice(it)});G.buyback.length=Math.min(G.buyback.length,20)}}catch(e){}
- if(G.diff===2&&!G.flags.dclone&&it&&it.q===4&&it.uid){const u=UNIQ.find(x=>x.id===it.uid);if(u&&u.n==='Der Stein von Jordan'){G.flags.dclone=true;G.notice='Der Händler zittert. „Diablo wandelt auf Erden.“ Der Herr des Schreckens wird dich beim nächsten großen Gegner in der Hölle suchen.'}}
+ /* Rückkauf-Liste (neueste zuerst, max. 20) – ein verkaufter Stein von Jordan ist weg (D2R: Diablo-Klon-Fortschritt verbraucht ihn) */try{if(it&&G&&!(it.q===4&&it.uid&&(UNIQ.find(x=>x.id===it.uid)||{}).n==='Der Stein von Jordan')){G.buyback=G.buyback||[];G.buyback.unshift({it:JSON.parse(JSON.stringify(it)),g:sellPrice(it)});G.buyback.length=Math.min(G.buyback.length,20)}}catch(e){}
+ if(G.diff===2&&!G.flags.dclone&&it&&it.q===4&&it.uid){const u=UNIQ.find(x=>x.id===it.uid);if(u&&u.n==='Der Stein von Jordan'){G.flags.dclone=true;try{G.buyback=(G.buyback||[]).filter(e=>e.it.u!==it.u)}catch(e){}G.notice='Der Händler zittert. „Diablo wandelt auf Erden.“ Der Herr des Schreckens wird dich beim nächsten großen Gegner in der Hölle suchen.'}}
 }
 function cloneFirst(next){
  if(!(G.diff===2&&G.flags.dclone))return false;
@@ -9127,10 +9133,11 @@ function levelPlan(){
  const L=Object.keys(G.skills).filter(k=>G.skills[k]>0&&ok(k)).sort((a,b)=>G.skills[b]-G.skills[a]||(SKILLS[b].lvl-SKILLS[a].lvl));
  if(L.length)G.autoSk=L[0];
  return true}
+function apPre(k,d){if(d>8||!SKILLS[k])return null;for(const q of (SKILLS[k].pre||[])){if((G.skills[q]||0)>=1)continue;if(canLearn(q))return q;const r=apPre(q,d+1);if(r)return r}return null}
 function applyPlan(){
  const P=G.apPlan;if(!P||!G.apAuto)return;
  /* Leveling-Phase */
- if(G.lvl<LVSW&&!G.apSw&&LVR[G.cls]){levelPlan();return}
+ if(!G.apSw&&LVR[G.cls]&&(G.lvl<LVSW||(P.autoSk&&SKILLS[P.autoSk]&&G.lvl<=SKILLS[P.autoSk].lvl))){levelPlan();return}
  /* Umstieg: einmal neu verteilen, dann Plan */
  if(!G.apSw){G.apSw=1;try{respecAll();G.autoSk=null;G.autoTr=null;G.autoCu=null;say('🔁 UMSTIEG','Stufe '+G.lvl+': neu verteilt, ab jetzt Plan „'+(G.build||'')+'“')}catch(e){AP.err.push('Respec: '+e.message)}
   /* erst Stärke/Geschick für die angelegte Ausrüstung */
@@ -9147,7 +9154,8 @@ function applyPlan(){
   let did=false;
   for(const k of c){
    if(canLearn(k)){learn(k);did=true;break}
-   const q=(SKILLS[k].pre||[]).find(q=>(G.skills[q]||0)<1&&canLearn(q));if(q){learn(q);did=true;break}
+   /* Voraussetzungen über die ganze Kette (z. B. Kriegsschrei ← Kampfbefehle ← Schrei) */
+   const q=apPre(k,0);if(q){learn(q);did=true;break}
   }
   if(!did)break}
  /* Ausrüstung: sobald Stufe und Attribute reichen, kommt das Teil aus dem Plan an (bessere ersetzt schlechtere) */
@@ -9169,7 +9177,7 @@ function applyPlan(){
 AP.applyPlan=applyPlan;
 /* ===== Beute: gefundene Ausrüstung bewerten, identifizieren, anlegen, Ramsch verkaufen (nur in der Stadt) ===== */
 function pw(){const d=Math.max(1,((S.dmgMin||0)+(S.dmgMax||0))/2*(1+(S.edmg||0)/100)+(S.dmgAdd||0));const r=S.res||{};const rs=(r.fire||0)+(r.cold||0)+(r.light||0)+(r.poison||0);
- return Math.pow(d,0.7)*S.maxHp*(1+Math.max(-150,rs)/150)*(1+(S.allsk||0)*0.06)*(1+(S.fcr||0)/300)*(1+(S.ac||0)/1500)*(1+(S.ll||0)/200)}
+ return Math.pow(d,0.7)*S.maxHp*(1+Math.max(-150,rs)/150)*(1+(S.allsk||0)*0.06)*(1+(S.fcr||0)/300)*(1+(S.ac||0)/1500)/(1-0.5*Math.min(0.6,(S.def||0)/((S.def||0)+40*G.lvl+100)))*(1+(S.ll||0)/200)}
 function gearUp(){
  if(typeof C!=='undefined'&&C&&!C.over)return;
  const hp0=G.hp,mp0=G.mana;let did=0;
@@ -9194,7 +9202,7 @@ function gearUp(){
   if(!best)break;
   const r=equipItem(best.it,false,best.sl);
   if(r){AP.badIt[best.it.u]=1;continue}
-  AP.st.gear=(AP.st.gear||0)+1;say('⚔ AUSRÜSTUNG',itemName(best.it)+' → '+best.sl+' (+'+Math.round((best.p/base-1)*100)+'%)');calc();
+  AP.st.gear=(AP.st.gear||0)+1;(AP.glog?gsay:say)('⚔ AUSRÜSTUNG',itemName(best.it)+' → '+best.sl+' (+'+Math.round((best.p/base-1)*100)+'%)');calc();
  }
  /* Ramsch verkaufen, wenn der Rucksack fast voll ist */
  try{const junk=G.inv.filter(i=>{const B=BASES[i.base];return B&&B.slot&&!['charm','jewel','gem','rune'].includes(B.slot)&&!i.unid});
@@ -9204,11 +9212,112 @@ function gearUp(){
 }
 AP.gearUp=gearUp;
 
+/* ===== Stadt-Verstand: Söldner, Händler, Runenwörter, Glücksspiel (nur Auto-Modus) ===== */
+const MELEE={barbar:1,paladin:1,druide:0,amazone:1,assassine:1,zauberin:0,nekro:0,hexenmeister:0};
+function gainOf(it){ /* beste Steigerung, wenn dieser Gegenstand angelegt würde */
+ const B=BASES[it.base];if(!B||!B.slot||['charm','jewel','gem','rune'].includes(B.slot)||it.unid)return null;
+ if(G.apAuto&&!AP.wOk(it))return null;
+ const rq=itReq(it);if((rq.str&&S.str<rq.str)||(rq.dex&&S.dex<rq.dex)||(reqLvl(it)>G.lvl)||(B.only&&B.only!==G.cls))return null;
+ const base=Math.max(1,pw());let best=null;
+ const sls=B.slot==='ring'?['ring1','ring2']:[slotFor(it)];
+ for(const sl of sls){const eq0=G.eq;G.eq={...eq0,[sl]:it};if(B.two)G.eq.offhand=null;let p=0;try{calc();p=pw()}catch(e){p=0}G.eq=eq0;try{calc()}catch(e){}
+  if(!best||p>best.p)best={sl,p,g:p/base}}
+ return best}
+function apReserve(){return 600+G.lvl*60+(G.diff||0)*4000}
+function mercBrain(){
+ const N=TOWNS[G.act].npcs.map(id=>[id,NPCS[id]]).find(([id,n])=>n.mercs);
+ if(G.merc&&!G.merc.alive){const rc=60+20*G.lvl;if(G.gold>=rc){G.gold-=rc;G.merc.alive=true;gsay('🛡️ SÖLDNER','wiederbelebt (−'+rc+')');return true}return false}
+ if(!N)return false;const [nid,np]=N;const hc=hireCost();
+ const d=G.diff||0;
+ const want=np.mercs.includes('desert')?'desert':np.mercs.includes('barb')&&MELEE[G.cls]?'barb':np.mercs[0];
+ const au=want==='desert'?(d===0?'p_gebet':(MELEE[G.cls]?'p_macht':'p_heiligesfrost')):null;
+ const better=!G.merc||(G.merc.t!=='desert'&&want==='desert')||(want==='desert'&&G.merc.t==='desert'&&(G.merc.au!==au)&&(G.merc.d||0)<d);
+ if(!better)return false;
+ if(G.gold<hc+apReserve()*0.5)return false;
+ if(G.merc&&G.merc.eq)MSLOTS.forEach(sl=>{const it=G.merc.eq[sl];if(it)giveSafe(it)});
+ G.gold-=hc;G.flags.freeMerc=false;G.merc=au?{t:want,alive:true,au,d}:{t:want,alive:true,d};
+ gsay('🛡️ SÖLDNER',MERCS[want].n+(au?' · '+SKILLS[au].n:'')+' (−'+hc+')');return true}
+function mScore(it,t){if(!it||it.unid)return 0;const o={};(it.aff||[]).forEach(a=>{if(typeof a.v==='number')o[a.stat]=(o[a.stat]||0)+a.v});const B=BASES[it.base]||{};
+ const dm=B.slot==='weapon'?(((it.dmin||B.dmin||0)+(it.dmax||B.dmax||0))/2)*(1+(o.edmg||0)/100)+(o.dmgMax||0):0;
+ const rs=(o.resF||0)+(o.resC||0)+(o.resL||0)+(o.resP||0)+(o.resAll||0)*4;
+ return dm*4+(it.def||B.def||0)*0.3*(1+(o.defP||0)/100)+(o.life||0)*2+(o.vit||0)*3+rs*1.5+(o.ll||0)*12+(o.ias||0)*2+(o.dr||0)*6+(o.reduce||0)*6+(o.allsk||0)*30}
+function mercGearUp(){if(!G.merc||!G.merc.alive)return;G.merc.eq=G.merc.eq||{};const t=G.merc.t;
+ for(const sl of MSLOTS){const cur=G.merc.eq[sl],cs=mScore(cur,t);let best=null,bs=cs*1.05+1;
+  for(const it of G.inv){const B=BASES[it.base];if(!B||it.unid)continue;const s2=B.slot==='weapon'?'weapon':B.slot;if(s2!==sl||!mercCanWear(it,t))continue;const v=mScore(it,t);if(v>bs){bs=v;best=it}}
+  if(best){removeFrom(G.inv,best.u);G.merc.eq[sl]=best;if(cur)G.inv.push(cur);gsay('🛡️ SÖLDNER-AUSRÜSTUNG',itemName(best)+' → '+sl)}}}
+function rwTry(it){ /* passendes Runenwort mit vorhandenen Runen? Rückgabe: Kopie mit Runenwort */
+ if(!it||it.q!==0||!it.sock||it.rw||(it.socks||[]).length)return null;let best=null;
+ for(const rw of RW){if(rw.n_s!==it.sock)continue;const need=rw.r.split(' '),cnt={};let ok=true;need.forEach(r=>{cnt[r]=(cnt[r]||0)+1});for(const r in cnt)if((G.runes[r]||0)<cnt[r])ok=false;if(!ok)continue;
+  const c=JSON.parse(JSON.stringify(it));c.u=it.u;for(const r of need)insertStone(c,{k:'r',r});if(!c.rw)continue;
+  const g=gainOf(c);if(g&&(!best||g.p>best.g.p))best={rw,c,g}}
+ return best}
+function rwBrain(){let n=0;
+ for(const it of [...G.inv,...(G.stash||[])]){const b=rwTry(it);if(!b||b.g.g<1.04)continue;
+  for(const r of b.rw.r.split(' ')){insertStone(it,{k:'r',r});takeRune(r,1)}
+  if(it.rw){n++;gsay('🔷 RUNENWORT',it.rw+' in '+itemName(it));if((G.stash||[]).includes(it)){removeFrom(G.stash,it.u);G.inv.push(it)}}}
+ return n}
+function cubeRunes(){ /* D2-Würfel: 3 gleiche Runen bis Thul ergeben die nächste, nur wenn das ein Runenwort ermöglicht */
+ try{const ids=RUNES.map(r=>r.id);for(let i=0;i<10;i++){const id=ids[i],nx=ids[i+1];if((G.runes[id]||0)<3)continue;
+  const useful=RW.some(rw=>rw.r.split(' ').includes(nx)&&!rw.r.split(' ').includes(id));if(!useful)continue;
+  const k=Math.floor((G.runes[id]-0)/3);if(k<1)continue;G.runes[id]-=3*k;G.runes[nx]=(G.runes[nx]||0)+k}}catch(e){}}
+function shopBrain(){let n=0;const res=apReserve();
+ for(const who of TOWNS[G.act].npcs){if(!hasVendor(who))continue;
+  for(let ref=0;ref<(G.gold>res*20?2:1);ref++){
+   const st=shopStock(who);
+   for(const it of st.slice()){if(!(it.q>=1||(it.sock&&it.q===0)))continue;const pr=buyPrice(it);if(pr>G.gold-res)continue;
+    let g=gainOf(it),c=it;
+    if(it.sock&&it.q===0){const b=rwTry(it);if(b&&(!g||b.g.p>g.p)){g=b.g;c=null}}
+    if(!g||g.g<1.05||!canAdd(it))continue;
+    G.gold-=pr;removeFrom(st,it.u);G.inv.push(it);n++;gsay('🛒 GEKAUFT',itemName(it)+' ('+pr+') +'+Math.round((g.g-1)*100)+'%');
+    if(c===null)rwBrain();
+    gearUp()}
+   if(G.gold<res*3)break;G.shopRef++}}
+ return n}
+function gambleBrain(){const gw=TOWNS[G.act].npcs.find(id=>NPCS[id].roles.includes('gamble'));if(!gw||G.lvl<20)return 0;
+ const il=Math.max(1,G.lvl+1),res=apReserve()*3;let n=0;
+ const slots=['ring','amulet','belt','hands','feet','head','body','offhand','weapon'].filter(s=>s!=='offhand'||!(G.eq.weapon&&BASES[G.eq.weapon.base].two));
+ while(n<12&&invUsed()+8<INV_MAX){const s=slots[n%slots.length],c=gambleCost(s,il);if(G.gold-c<=res){n++;continue}const it=gambleRoll(s);if(!it){n++;continue}G.gold-=c;it.unid=false;n++;
+  const g=gainOf(it);if(g&&g.g>1.03){G.inv.push(it);gsay('🎲 GLÜCKSSPIEL',itemName(it)+' +'+Math.round((g.g-1)*100)+'%');gearUp()}
+  }
+ return n}
+AP.glog=[];const gsay=(k,m)=>{AP.glog.push((G.lvl)+' '+k+' '+m);if(AP.glog.length>200)AP.glog.shift();say(k,m)};
+function charmBrain(){let n=0; /* wie ein Mensch: gute Talismane ins Raster, schwache raus, wenn ein besserer keinen Platz hat */
+ for(let round=0;round<24;round++){
+  const base=Math.max(1,pw());let best=null;
+  for(const c of G.inv){const B=BASES[c.base];if(!B||B.slot!=='charm'||!c.rs||c.unid)continue;if(reqLvl(c)>G.lvl)continue;
+   c.rs=false;let p=0,fit=false;try{fit=packInv(G.inv.filter(isGrid)).over.length===0&&gridFree()>=4;if(fit){calc();p=pw()}}catch(e){}
+   c.rs=true;
+   if(fit){const g=p/base;if(g>1.005&&(!best||g>best.g))best={c,g,sw:null}}
+   else{ /* kein Platz: schwächsten Talisman im Raster gegen diesen tauschen */
+    const gr=G.inv.filter(isGrid);for(const o of gr){o.rs=true;c.rs=false;let p2=0,f2=false;try{f2=packInv(G.inv.filter(isGrid)).over.length===0&&gridFree()>=4;if(f2){calc();p2=pw()}}catch(e){}c.rs=true;o.rs=false;
+     if(f2){const g=p2/base;if(g>1.01&&(!best||g>best.g))best={c,g,sw:o}}}}
+  }
+  try{calc()}catch(e){}
+  if(!best)break;
+  if(best.sw)best.sw.rs=true;best.c.rs=false;n++;try{calc()}catch(e){}
+  gsay('🔮 TALISMAN',itemName(best.c)+(best.sw?' statt '+itemName(best.sw):'')+' ins Raster (+'+Math.round((best.g-1)*100)+'%)')}
+ /* übrige Talismane im Rucksack verkaufen (Platz für Beute), Einzigartige behalten */
+ try{let g=0,k=0;for(const c of G.inv.slice()){const B=BASES[c.base];if(B&&B.slot==='charm'&&c.rs&&!c.unid&&c.q<3&&typeof sellOne==='function'){g+=sellOne(c.u)||0;k++}}if(k)say('💰 TALISMANE',k+' verkauft, +'+g)}catch(e){}
+ return n}
+function townBrain(){if(!G.apAuto||G.at!=='town'||(typeof C!=='undefined'&&C&&!C.over))return;
+ const hp0=G.hp,mp0=G.mana;
+ try{mercBrain()}catch(e){AP.err.push('Merc: '+e.message)}
+ try{cubeRunes();rwBrain()}catch(e){AP.err.push('RW: '+e.message)}
+ try{gearUp()}catch(e){}
+ try{charmBrain()}catch(e){AP.err.push('Charm: '+e.message)}
+ try{shopBrain()}catch(e){AP.err.push('Shop: '+e.message)}
+ try{gambleBrain()}catch(e){AP.err.push('Gamble: '+e.message)}
+ try{mercGearUp()}catch(e){AP.err.push('MercGear: '+e.message)}
+ try{calc()}catch(e){}G.hp=Math.min(hp0,S.maxHp);G.mana=Math.min(mp0,S.maxMana);try{save()}catch(e){}}
+AP.townBrain=townBrain;
+
 /* ===== Hauptschritt ===== */
 function step(){
  if(typeof G==='undefined'||!G||!G.name)return 'kein Spiel';
  if(G.flags&&G.flags.act5done&&G.diff>=2&&!AP.dn){AP.dn=true;say('✅ FERTIG','Alle Akte in Hölle abgeschlossen');AP.on=false;return 'fertig'}
  try{if(G.at==='town'&&Date.now()-(AP.gT||0)>3000&&!(typeof C!=='undefined'&&C&&!C.over)){AP.gT=Date.now();gearUp()}}catch(e){AP.err.push('Gear: '+e.message);say('⚠ GEAR',e.message)}
+ if(G.at!=='town')AP.tbDone=false;
+ try{if(G.at==='town'&&!AP.tbDone&&Date.now()-(AP.tbT||0)>90000&&!(typeof C!=='undefined'&&C&&!C.over)){AP.tbT=Date.now();AP.tbDone=true;townBrain()}}catch(e){AP.err.push('Brain: '+e.message)}
  try{if(G.apAuto&&!(typeof C!=='undefined'&&C&&!C.over))applyPlan()}catch(e){AP.err.push('Plan: '+e.message);say('⚠ PLAN',e.message)}
  /* Kampf */
  if(typeof C!=='undefined'&&C&&!C.over){
@@ -9240,7 +9349,7 @@ function step(){
  /* Boss-Farm (Hölle): Autopilot kommt sonst nicht weiter -> bereits besiegte Bosse über das Endgame-Menü wiederholen (Ausrüstung, Stufen) */
  if(AP.bf&&!isTown()&&!isArea()&&!isMap()&&/Endgame|Farm-Läufe/.test((($('#main')||{}).textContent||'').slice(0,40))){
   if(AP.bf.runs>=AP.bf.max||G.lvl>=AP.bf.untilLvl){say('🗡️ BOSS-FARM Ende',AP.bf.runs+' Läufe, Stufe '+G.lvl);AP.bf=null;AP.farmLv=0;AP.farmId=null;r=clk(/^Zurück/);if(r)return 'Boss-Farm Ende'}
-  else if(needHeal()||lowPots()){r=clk(/^Zurück/);if(r)return 'Boss-Farm: heilen'}
+  else if((needHeal()||lowPots())&&Date.now()-(AP.bfHT||0)>60000){r=clk(/^Zurück/);if(r)return 'Boss-Farm: heilen'}
   else{const cand=vis().map(b=>({b,m:/\(Stufe (\d+)\)/.exec(lab(b))})).filter(x=>x.m&&!/Kuh/.test(lab(x.b))).sort((x,y)=>+y.m[1]-+x.m[1]);
    if(cand.length){AP.bf.runs++;AP.st.bossFarm=(AP.st.bossFarm||0)+1;cand[0].b.click();return 'Boss-Farm: '+lab(cand[0].b)}
    AP.bf=null}}
@@ -9272,7 +9381,7 @@ function step(){
    const pk=progKey();if(AP.qk!==pk+qn){AP.qk=pk+qn;AP.qn=0}AP.qn++;
    if(AP.qn>4){AP.qSkip=pk;AP.qn=0;AP.err.push('Quest-NPC '+qn+' ohne Fortschritt');say('⚠ QUEST','NPC '+qn+' bringt keinen Fortschritt – übersprungen');}
    else{AP.mode='npc';AP.cur=qn;return 'Stadt→'+npcTile(qn)}}
-  if(need&&!AP.healed){AP.mode='npc';AP.cur=healNpc();return 'Stadt→heilen: '+npcTile(healNpc())}
+  if(need&&!AP.healed){const pn=TOWNS[G.act].npcs.find(id=>NPCS[id].roles.includes('pot'));const w=needHeal()||!pn?healNpc():pn;AP.mode='npc';AP.cur=w;AP.bfHT=Date.now();return 'Stadt→'+(w===pn&&!needHeal()?'Tränke: ':'heilen: ')+npcTile(w)}
   AP.healed=false;
   return goOn();
  }
@@ -9314,7 +9423,7 @@ function step(){
   const tgt=targetArea(),qn=questNpc();
   /* Sonderobjekte (Steine, Leichen, Bäume ...) – Knöpfe ohne Navigationspfeil und mit ❗ */
   if(p.done&&farmArea()===id){AP.farmRuns=(AP.farmRuns||0)+1;if(AP.farmRuns>(AP.farmMax||12)){AP.farmLv=0;AP.farmId=null;AP.farmRuns=0;say('🌾 FARM Ende',(AP.farmMax||12)+' Läufe, weiter mit der Aufgabe')}else{r=clk(/Neu betreten/);if(r)return 'Farm: '+r}}
-  if(p.done){r=clk(/❗|!/,bs.filter(b=>!NAV.test(lab(b))&&!AVOID.test(lab(b))));if(r)return 'Spezial: '+r}
+  if(p.done){const AN=Object.values(AREAS).map(x=>x.n).filter(Boolean);r=clk(/❗|!/,bs.filter(b=>{const t=lab(b);if(/^✦/.test(t))return true;return !NAV.test(t)&&!AVOID.test(t)&&!/Wegpunkt|Stadtportal|Zurück/.test(t)&&!AN.some(n=>t.indexOf(n)===0||t.indexOf(' '+n)>=0)}));if(r)return 'Spezial: '+r}
   if(!p.done&&(G.hp<S.maxHp*0.5||lowPots())&&(G.sc.tp||0)>0&&!AP.noTp){
    r=clk(/Stadtportal/);if(r){AP.st.tp=(AP.st.tp||0)+1;return 'Portal zur Stadt: '+r}}
   if(!p.done){
