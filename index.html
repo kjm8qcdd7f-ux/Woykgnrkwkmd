@@ -697,7 +697,7 @@ const SKILLS={
  trankfinden:{n:'Elixier suchen',tree:2,lvl:6,pre:['heulen'],kind:'buff',cost:l=>2,
   d:l=>`Dieser Kampf: +${10+l*4}% Chance auf Tränke als Beute.`,
   use:(t,l)=>{C.potB=(C.potB||0)+10+l*4;logC('🧪 Du durchwühlst die Gefallenen nach Tränken.')}},
- schrei:{n:'Schrei',tree:2,lvl:6,pre:[],kind:'buff',cost:l=>6,
+ schrei:{n:'Schrei',bfS:1,autoSkip:()=>!!(C&&C.fx.shout>0),tree:2,lvl:6,pre:[],kind:'buff',cost:l=>6,
   d:l=>`+${100+10*(l-1)}% Verteidigung für 6 Runden.`,
   use:(t,l)=>{C.fx.shout=6;C.fx.shoutV=100+10*(l-1);logC(`🗣️ Schrei! +${C.fx.shoutV}% Verteidigung für 6 Runden.`)}},
  spott:{n:'Hohn',tree:2,lvl:12,pre:['heulen','trankfinden'],kind:'buff',cost:l=>3,
@@ -712,13 +712,13 @@ const SKILLS={
  duesterer:{n:'Grausiger Schutz',tree:2,lvl:18,pre:['heulen','spott','gegenstandfinden'],kind:'buff',cost:l=>6,
   d:l=>`Fliehende Gegner: Tempo −${Math.floor(Math.floor(110*l/(l+6))*75/100)}%, −${20+5*(G.skills.trankfinden||0)}% phys. Widerstand (6 Runden).`,
   use:(t,l)=>{const sp=Math.floor(Math.floor(110*l/(l+6))*75/100),pd=20+5*(sk('trankfinden')||0);let n=0;alive().forEach(m=>{if(m.st.fear>0){curse(m,{t:6,slowP:sp,pdown:pd,msg:'Grausiger Schutz'});n++}});if(!n)logC('🪦 Das Totem wirkt nur auf fliehende Gegner – nutze zuerst Heulen.')}},
- kampfbefehle:{n:'Kampfbefehle',tree:2,lvl:24,pre:['schrei','schlachtruf'],kind:'buff',cost:l=>8,
+ kampfbefehle:{n:'Kampfbefehle',bfS:1,autoSkip:()=>!!(C&&C.fx.bo>0),tree:2,lvl:24,pre:['schrei','schlachtruf'],kind:'buff',cost:l=>8,
   d:l=>`Maximales Leben und Mana +${35+3*(l-1)}% (20 Runden).`,
   use:(t,l)=>{const o=S.maxHp;C.fx.bo=20;calc();G.hp+=S.maxHp-o;logC(`🛡️ Kampfbefehle! Maximales Leben ${S.maxHp}.`)}},
  kriegsschrei:{n:'Kriegsschrei',tree:2,lvl:30,pre:['heulen','spott','schlachtruf','duesterer'],kind:'atk',cost:l=>10,
   d:l=>{const f=KSY(l);return `Magischer Schaden an allen: ${Math.round(RD('kriegsschrei',l,0,0)*f)}–${Math.round(RD('kriegsschrei',l,0,1)*f)}; betäubt (keine Bosse).`},
   use:(t,l)=>{const f=KSY(l),i=Math.min(45,l);alive().forEach(m=>{spell(m,{lo:Math.round(RD('kriegsschrei',l,0,0)*f),hi:Math.round(RD('kriegsschrei',l,0,1)*f),type:'magic',msg:'Kriegsschrei'});if(m.hp>0&&!m.boss)stun(m,2)})}},
- kampfkommando:{n:'Kampfaufruf',tree:2,lvl:30,pre:['schrei','kampfbefehle'],kind:'buff',cost:l=>10,
+ kampfkommando:{n:'Kampfaufruf',bfS:1,autoSkip:()=>!!(C&&C.fx.bc>0),tree:2,lvl:30,pre:['schrei','kampfbefehle'],kind:'buff',cost:l=>10,
   d:l=>`Alle deine Fertigkeiten +1 Stufe für 8 Runden.`,
   use:(t,l)=>{C.fx.bc=8;calc();logC('📯 Kampfaufruf! Alle Fertigkeiten +1.')}}
 };
@@ -1051,7 +1051,7 @@ function migrate(){if(G)delete G.pity;/* Master-Builds mit freien Talisman-Felde
  if(G.pot&&typeof potRoom==='function'&&G.eq){let ex=potTot()-(beltSlots()+gridFree());while(ex>0){const k=Object.keys(POTS).sort((a,b)=>(G.pot[b]||0)-(G.pot[a]||0))[0];if(!(G.pot[k]>0))break;G.pot[k]--;ex--}}
  /* Unique-Stufenanforderung aus der (korrigierten) Tabelle übernehmen */
  {const fx=x=>{if(x&&x.uid){const d=UNIQ.find(q=>q.id===x.uid);if(d&&d.rlvl)x.rlvl=d.rlvl}};(G.inv||[]).forEach(fx);(G.stash||[]).forEach(fx);if(G.eq)Object.values(G.eq).forEach(fx);if(G.merc&&G.merc.eq)Object.values(G.merc.eq).forEach(fx)}
- G.gems=G.gems||{};G.runes=G.runes||{};G.keys=G.keys||{};G.org=G.org||{};G.portals=G.portals||{};if(G.pot&&!G.potV){/* alte 4 Stufen (Klein/Heil/Groß/Voll) → D2 5 Stufen */const o=G.pot;['h','m'].forEach(t=>{o[t+'5']=(o[t+'5']||0)+(o[t+'4']||0);o[t+'4']=o[t+'3']||0;o[t+'3']=o[t+'2']||0;o[t+'2']=0});G.pgp={}}G.potV=2;POTK.forEach(k=>{G.pot[k]=G.pot[k]||0});G.diff=G.diff||0;G.maxDiff=Math.max(G.maxDiff||0,G.diff);G.ds=G.ds||{};G.flags=G.flags||{};G.q=G.q||{}}
+ G.gems=G.gems||{};G.runes=G.runes||{};try{if(G.flags&&(G.flags.q16done||G.flags.act3done))G.flags.kugel=true}catch(e){}G.keys=G.keys||{};G.org=G.org||{};G.portals=G.portals||{};if(G.pot&&!G.potV){/* alte 4 Stufen (Klein/Heil/Groß/Voll) → D2 5 Stufen */const o=G.pot;['h','m'].forEach(t=>{o[t+'5']=(o[t+'5']||0)+(o[t+'4']||0);o[t+'4']=o[t+'3']||0;o[t+'3']=o[t+'2']||0;o[t+'2']=0});G.pgp={}}G.potV=2;POTK.forEach(k=>{G.pot[k]=G.pot[k]||0});G.diff=G.diff||0;G.maxDiff=Math.max(G.maxDiff||0,G.diff);G.ds=G.ds||{};G.flags=G.flags||{};G.q=G.q||{}}
 function wipeSave(){if(ACC&&G&&G.cid)delChar(G.cid);else try{localStorage.removeItem(SAVEKEY)}catch(e){}}
 /* Spielmodi (beim Erstellen festgelegt): d2 = Diablo 2 pur, ac = Aschenchronik (Standard), dnd = D&D */
 const MODES={d2:{n:'Diablo 2',ic:'🔥',d:'D2R-Erfahrung (≈ 500 h bis 99) mit /players-Bonus, D2-Gruppengrößen, keine Würfel'},ac:{n:'Aschenchronik',ic:'⚔️',d:'Der bisherige Mix aus Diablo 2 und D&D (≈ 60 h bis 99, ab Stufe 70 abgeschwächter D2-Abschlag)'},dnd:{n:'D&D',ic:'🎲',d:'Sichtbare W20-Würfe, Initiative, Proben mit steigendem SG, Rast am Lagerfeuer, Gesinnung & Inspiration, Chronik – Kampfwerte bleiben D2'}};
@@ -1510,13 +1510,15 @@ const UNP=['Blut','Gruft','Düster','Asche','Seuchen','Schatten','Knochen','Eise
 function packAuraMul(){if(!C)return 1;let e=0;alive().forEach(x=>{if((x.aura==='p_macht'||x.aura==='p_fanatismus')&&SKILLS[x.aura]){const a=SKILLS[x.aura].aura(x.auraLv);e=Math.max(e,a.edmg||a.dmgP||0)}});return 1+e/100}
 function uMods(df){const pool=Object.keys(UMODN).filter(k=>!(k==='mr'&&df===0));const L=[];while(L.length<[1,2,3][df]&&pool.length){L.push(pool.splice(R(0,pool.length-1),1)[0])}return L}
 function applyUMods(m,mods,minion,df){m.dmgMul=m.dmgMul||1;m.res=m.res||{};
- mods.forEach(k=>{
+ /* Steinhaut zuletzt prüfen, damit die Immunitäten der anderen Eigenschaften mitzählen */
+ mods.slice().sort((a,b)=>(a==='ss')-(b==='ss')).forEach(k=>{
   if(k==='es'){m.dmgMul*=1+(minion?[0.67,0.56,0.49]:[1.35,1.12,0.99])[df];if(m.ar)m.ar=Math.round(m.ar*(1+(minion?[0.45,0.37,0.33]:[0.9,0.75,0.66])[df]));m.atk=(m.atk||0)+2}
   if(k==='mr'||k==='sh'){['fire','cold','light'].forEach(e=>{const r=m.res[e]||0;if(r<(k==='mr'?100:75))m.res[e]=r+40})}
   if(k==='fe'||k==='le'||k==='ce'){const e={fe:'fire',le:'light',ce:'cold'}[k];/* mehrere Verzauberungen wirken nebeneinander (enchL) */const F=!minion?[0.66,1]:(df>0?[0.33,0.5]:null);if(!minion){m.res[e]=(m.res[e]||0)+75;if(k==='le')m.le=1}if(F){if(!m.ench){m.ench=e;m.enchF=F}else{(m.enchL=m.enchL||[]).push([e,F])}}}
   if(k==='sh'&&!minion){m.ench2=pick(['magic','fire','light','cold','poison']);m.ench2F=[0.66,1]}
   if(k==='mb'){if(!minion){m.mb=1;m.res.magic=(m.res.magic||0)+20}else if(df>0)m.mb=1}
-  if(k==='ss'){m.res.phys=(m.res.phys||0)+50;if(m.def)m.def*=2}
+  /* D2 (Amazon Basin „Immune to Physical“): Steinhaut +50 % Schadensresistenz; würde das immun machen, gilt es nur, wenn der Gegner vorher weniger als zwei Immunitäten hat (Toorc Hölle: Feuer+Kälte immun → bleibt bei 50 %) */
+  if(k==='ss'){const ni=['fire','cold','light','poison','magic','phys'].filter(t=>(m.res[t]||0)>=100).length,np=(m.res.phys||0)+50;if(np<100||ni<2)m.res.phys=np;if(m.def)m.def*=2}
   if(k==='cu'&&!minion)m.cursed=1;
   if(k==='au'&&!minion){const a=uAuraPick(m.lvl||1);m.aura=a;m.auraLv=Math.max(1,Math.floor(m.lvl/UAURA[a]))}
  });
@@ -2633,9 +2635,9 @@ Object.assign(AREAS,{
   txt:'Die Terrassen der oberen Stadt. Auf den Treppen stehen Statuen, die Schatten werfen, ohne Licht zu haben.'},
  damm:{act:3,n:'Damm von Kurast',lvl:31,steps:4,wp:1,pool:['tempelwaechter'],next:['travincal'],
   txt:'Der Damm führt zum Tempelkomplex von Travincal. Je näher du kommst, desto lauter wird das Gebet.'},
- travincal:{act:3,n:'Travincal',lvl:32,steps:3,wp:1,pool:['tempelwaechter'],boss:'ismail',bossGroup:['ismail','geleb','toorc'],quest:'q16',back:'damm',next:['durance'],need:'khalimswille',
+ travincal:{act:3,n:'Travincal',lvl:32,steps:3,wp:1,pool:['tempelwaechter'],boss:'ismail',bossGroup:['ismail','geleb','toorc'],quest:'q16',back:'damm',next:['durance'],need:'khalimswille',special:{1:'kugel'},
   txt:'Der Hohe Rat. Drei Männer, die lange geglaubt haben, sie würden Gutes tun.'},
- durance:{act:3,n:'Kerker des Hasses',lvl:34,steps:4,pool:['tempelwaechter'],boss:'mephisto',quest:'q17',back:'travincal',next:[],need:'q16done',
+ durance:{act:3,n:'Kerker des Hasses',lvl:34,steps:4,pool:['tempelwaechter'],boss:'mephisto',quest:'q17',back:'travincal',next:[],need:'kugel',
   txt:'Die Tiefen des Hasses. Die Wände tropfen, und aus den Tropfen wachsen Gesichter.'},
  /* Akt 4 */
  aussensteppe:{act:4,n:'Äußere Steppe',lvl:33,steps:4,wp:1,pool:['todesritter'],next:['ebene_verz'],
@@ -2703,13 +2705,13 @@ QD('q15',{act:3,n:'Khalims Wille (Herz)',giver:'cain',boss:'icehawk',pre:[],xp:M
  ask:'Cain: „Khalims Herz liegt in den Kanälen unter Kurast, in einer goldenen Truhe. Es trägt noch den Mut, Mephisto entgegenzutreten.“',done:'Cain: „Das Herz. Es schlägt noch. Jetzt fehlt nur noch der Flegel vom Rat.“'});
 QD('q16',{act:3,n:'Der Schwarze Tempel',giver:'ormus',boss:'ismail',pre:['q13','q14','q15'],xp:qxp('ismail',1.4),flagDone:'q16done',
  ask:'Ormus: „Der Hohe Rat sollte Mephisto bewachen und steht jetzt unter seinem Einfluss. Es ist Zeit, die Mitglieder zu stürzen und die Zwingende Kugel zu zerschlagen.“',done:'Ormus: „Die Kugel ist zerbrochen. Der Weg zu Mephisto ist frei.“'});
-QD('q17',{act:3,n:'Der Wächter',giver:'ormus',boss:'mephisto',pre:['q16'],xp:qxp('mephisto',0.9),flag:'act3done',
+QD('q17',{act:3,n:'Der Wächter',giver:'ormus',boss:'mephisto',pre:['q13','q14','q15'],xp:qxp('mephisto',0.9),flag:'act3done',
  ask:'Ormus: „Diablo und Baal sind auf dem Weg, Mephisto zu befreien. Du musst ihn vor ihnen erreichen und aufhalten.“',done:'Mephisto ist gefallen. Ein rotes Portal öffnet sich in der Luft. Es führt zur Festung des Wahnsinns.'});
 QD('q18',{act:4,n:'Der Gefallene Engel',giver:'tyrael',boss:'izual',pre:[],xp:qxp('izual'),sp:2,
  ask:'Tyrael: „Dort draußen ist eine gequälte Seele. Izual war einst mein treuester Leutnant. Er wurde zu einem Schatten seiner selbst, dem weder Himmel noch Hölle trauen. Finde ihn und befreie ihn von seinem Leid.“',done:'Tyrael schließt die Augen. „Danke. Er hat genug gelitten.“ (+2 Fertigkeitspunkte)'});
 QD('q19',{act:4,n:'Höllenschmiede',giver:'cain',boss:'hephasto',pre:[],xp:qxp('hephasto'),
  ask:'Cain: „Es ist Zeit, Mephistos Seelenstein zu zerstören. Die Höllenschmiede steht am Flammenfluss. Hephaisto der Schmied bewacht sie und trägt den Hammer, den du brauchst.“',done:'Der Seelenstein zerspringt unter dem Hammer. Cain nickt. „Mephisto ist endgültig fort.“'});
-QD('q20',{act:4,n:'Das Ende des Schreckens',giver:'tyrael',boss:'diablo',pre:['q18'],xp:qxp('diablo',0.8),flag:'act4done',
+QD('q20',{act:4,n:'Das Ende des Schreckens',giver:'tyrael',boss:'diablo',pre:[],xp:qxp('diablo',0.8),flag:'act4done',
  ask:'Tyrael: „Die Zeit ist gekommen, Diablo selbst zu vernichten. Unterschätze den Herrn des Schreckens nicht. Er wartet im Chaos-Heiligtum hinter fünf Siegeln.“',done:'Diablo ist tot, sein Seelenstein zerstört. Tyrael öffnet ein Portal nach Harrogath. „Baal will den Weltstein verderben. Halte ihn auf.“'});
 QD('q21',{act:5,n:'Belagerung von Harrogath',giver:'larzuk',boss:'shenk',pre:[],xp:qxp('shenk'),flagDone:'larzukfrei',
  ask:'Larzuk: „Katapulte der Dämonen bedrohen unsere Mauern. Shenk der Aufseher steht dahinter. Beseitige sie, und ich bohre dir einen Sockel, wohin du willst.“',done:'Larzuk grinst. „Gib mir einen Gegenstand. Ich schlage dir einen Sockel hinein.“ (Larzuk bohrt einmal kostenlos)'});
@@ -4356,7 +4358,13 @@ Object.assign(SYNREAL,{d_ranke:[['d_tollwut',10]],d_tollwut:[['d_ranke',20]],w_m
 const W='hexenmeister',hb=id=>(G.skills&&G.skills[id])||0;
 /* Verbesserte Entropie (skills.txt Param1–10, Stufe inkl. +Fertigkeiten): Miasma-Schaden +2+2/Stufe %, Wolkendauer +2+2/Stufe %, Abgrund-Schaden +2+3/Stufe % */
 const entL=()=>sk('w_entropie'),ent=()=>{const l=entL();return l>0?2+2*(l-1):0},entD=ent,entA=()=>{const l=entL();return l>0?2+3*(l-1):0};
-const cloud=(m,id,l)=>{/* Miasma-Wolke: Grunddauer 50 Frames = 2 Züge (missiles.txt), Schaden wie der Treffer (Näherung) *//* missiles.txt: miasmaboltcloud Range 50 Frames (2 Züge); miasmachainscloud 50+min(5·Entropie-Stufe,100) Frames; Tick alle 25 Frames */const t=id==='w_kette'?Math.round((50+Math.min(5*entL(),100))/25):2;const f=synF({},l,id)*(1+entD()/100);dot(m,Math.round((RD(id,l,0,0)+RD(id,l,0,1))/2*f*0.5),t,'magic')};
+/* Miasma-Wolke (DoT) – eigene Tabelle „Average Magic Damage Per Second“ (wikiwiki.jp D2R, Stufe 1–25; ab 29 letzte Stufe fortgeschrieben), 1 Zug = 25 Frames = 1 s.
+   Synergien der Wolke: +20 % je hartem Punkt (Miasmablitz/Miasmakette/Abgrund), Dauer 2 s + 0,2 s je Entropie-Stufe (max +4 s) für Blitz und Kette */
+const DPST={w_miasma:[3,5,[1,2,3,6,6],[2,3,4,6,6]],w_kette:[5,10,[4,8,11,13,13],[4,8,11,13,13]]};
+const DSYN={w_miasma:['w_kette','w_abgrund'],w_kette:['w_miasma','w_abgrund']};
+const dps=(id,l)=>{const T=DPST[id];return (tier(T[0],T[2],l)+tier(T[1],T[3],l))/2};
+const cloudF=id=>1+DSYN[id].reduce((s,x)=>s+20*hb(x),0)/100;
+const cloud=(m,id,l)=>{const t=Math.round((50+Math.min(5*entL(),100))/25);dot(m,Math.round(dps(id,l)*cloudF(id)*(1+entD()/100)),t,'magic')};
 /* ---------- Künste des Chaos (Baum 3) ---------- */
 SP(W,'w_miasma','Miasmablitz',2,1,[],4,1,'magic',[0,0],[0,0],{});
 SP(W,'w_feuerring','Feuerring',2,6,[],16,1,'fire',[0,0],[0,0],{aoe:true});
@@ -4381,7 +4389,7 @@ SKILLS.w_abgrund.d=l=>`✨ Zone (2 Züge) auf alle: je Treffer ${RD('w_abgrund',
  wrap('w_kette',(t,l)=>{alive().slice(0,Math.min(10,5+Math.floor(l/4))).forEach(m=>cloud(m,'w_kette',l))});
  wrap('w_apokalypse',(t,l)=>{const v=Math.min(5+(l-1),40);alive().forEach(m=>{m.fx.apoF=v;m.fx.ct=Math.max(m.fx.ct||0,5)});logC(`🔥 Apokalypse: Feuerwiderstand der Gegner −${v} %.`)});
  wrap('w_groll',(t,l)=>{alive().forEach(m=>{if(!m.boss)m.fx.rancor={t:4+l,b:50+5*(l-1)}})});
- SKILLS.w_kette.d=l=>`✨ ${RD('w_kette',l,0,0)}–${RD('w_kette',l,0,1)} Magie, springt auf bis zu ${Math.min(10,5+Math.floor(l/4))} Gegner, hinterlässt Miasma-Wolken${SYNREAL.w_kette?'. Synergien: +'+Math.round((synF({},l,'w_kette')-1)*100)+'% Schaden':''}.`;
+ SKILLS.w_kette.d=l=>`✨ ${RD('w_kette',l,0,0)}–${RD('w_kette',l,0,1)} Magie, springt auf bis zu ${Math.min(10,5+Math.floor(l/4))} Gegner, hinterlässt Miasma-Wolken (${Math.round(dps('w_kette',l)*cloudF('w_kette')*(1+entD()/100))}/Zug für ${Math.round((50+Math.min(5*entL(),100))/25)} Züge)${SYNREAL.w_kette?'. Synergien: +'+Math.round((synF({},l,'w_kette')-1)*100)+'% Treffer, +'+Math.round((cloudF('w_kette')-1)*100)+'% Wolke':''}.`;
  SKILLS.w_kette.use=(t,l)=>{const f=synF({},l,'w_kette'),n=Math.min(10,5+Math.floor(l/4));const L=t&&t.hp>0?[t,...alive().filter(x=>x!==t)]:alive();L.slice(0,n).forEach(m=>{spell(m,{lo:Math.round(RD('w_kette',l,0,0)*f),hi:Math.round(RD('w_kette',l,0,1)*f),type:'magic',msg:'Miasmakette'});if(m.hp>0)cloud(m,'w_kette',l)})};
 }
 {const _rr=resRed;resRed=function(m,type){return _rr(m,type)+(type==='fire'&&m.fx&&m.fx.ct>0?(m.fx.apoF||0):0)}}
@@ -5411,11 +5419,11 @@ function cainId(){
 }
 function potShop(w){
  const b=[];/* D2 1:1 (misc.txt Händlerspalten + NightmareUpgrade/HellUpgrade): Normal Akt 1–2 Schwach/Leicht, Akt 3 + Heiltrank, Akt 4–5 + Groß; Albtraum: alle Tränke werden zu Groß; Hölle: alle zu Super *//* Bewusste Abweichung (Wunsch): alle Tranksorten überall kaufbar, Verjüngung teuer (15.000 / 50.000) */const av=['h5','h4','h3','h2','h1','m5','m4','m3','m2','m1','r1','r2'];
- av.forEach(k=>{const p=POTS[k];b.push(btn(`${ico(POTIC[k])}${p.n} (${p.price} 🪙) · hast ${G.pot[k]||0}`,()=>{if(!addPot(k))return;G.gold-=p.price;save();goto(potShop,w)},'',G.gold<p.price||potRoom()<1))});
+ av.forEach(k=>{const p=POTS[k];b.push(btn(`${ico(POTIC[k])}${p.n} (${p.price} 🪙) · hast ${G.pot[k]||0}${potRoom()<1?' · kein Platz':''}`,()=>{if(!addPot(k))return;G.gold-=p.price;save();goto(potShop,w)},'',G.gold<p.price||potRoom()<1))});
  b.push(btn(`Identifizierungs-Schriftrolle (20 🪙) · hast ${G.sc.id}`,()=>{G.gold-=20;G.sc.id++;save();goto(potShop,w)},'',G.gold<20));
  b.push(btn(`Stadtportal-Schriftrolle (35 🪙) · hast ${G.sc.tp}`,()=>{G.gold-=35;G.sc.tp++;save();goto(potShop,w)},'',G.gold<35));
  b.push(btn('◀ Zurück',()=>goto(npcScene,w)));
- show(`<h2>${NPCS[w].n}s Vorrat</h2><p>Du hast <b>${G.gold}</b> 🪙.</p>`,b);
+ show(`<h2>${NPCS[w].n}s Vorrat</h2><p>Du hast <b>${G.gold}</b> 🪙.</p>`+(potRoom()<1?`<p class="bad">Kein Platz für weitere Tränke: Gürtel (${beltSlots()}) und freie Inventarfelder (${gridFree()}) sind mit ${potTot()} Tränken voll. Erst Tränke trinken oder verkaufen bzw. Platz im Inventar schaffen – wie in D2.</p>`:''),b);
 }
 /* Treffer-Effekt: Karte blitzt in der Elementfarbe, Schadenszahl steigt auf (je Gegner summiert) */
 function fxHits(hs){const by={};hs.forEach(([i,d,t])=>{if(i<0)return;const o=by[i]=by[i]||{d:0,t:{}};o.d+=d;o.t[t]=(o.t[t]||0)+d});
@@ -5508,7 +5516,7 @@ function areaScene(){
  const rm=roomMap(id);b.push(...rm.b);
  if(!p.done){}
  else{
-  Object.values(a.special||{}).forEach(sp=>{if(sp==='cairn'||(SPECIALS[sp]&&SPECIALS[sp].wave))return;const f=spFlag(sp);if(G.flags[f])return;const t=(SPECIALS[sp]&&SPECIALS[sp].t)||{wirt:'Wirts Leiche',inifuss:'Der Inifuss-Baum',turm:'Der Turm'}[sp]||sp;b.push(btn(`✦ ${t}${qGoals().A.has(id)?' ❗':''}`,()=>{SPREV=true;specialStep(sp)}))});
+  Object.values(a.special||{}).forEach(sp=>{if(sp==='cairn'||(SPECIALS[sp]&&SPECIALS[sp].wave))return;const f=spFlag(sp);if(G.flags[f])return;const t=(SPECIALS[sp]&&SPECIALS[sp].t)||{wirt:'Wirts Leiche',inifuss:'Der Inifuss-Baum',turm:'Der Turm',kugel:'Die Zwingende Kugel'}[sp]||sp;b.push(btn(`✦ ${t}${qGoals().A.has(id)?' ❗':''}`,()=>{SPREV=true;specialStep(sp)}))});
   if(id==='steinfeld'&&G.flags.deciph&&!G.flags.tristramOpen&&G.flags.cairnOrder)b.push(btn('🪨 Die Fünf Steine berühren ❗',()=>goto(cairnScene,[])));
   (a.next||[]).forEach(n=>{const na=AREAS[n];b.push(btn(`▶ ${na.n}${towardMark(id,n)}${needOk(na)?'':' 🔒'}`,()=>enterArea(n),'',!needOk(na)))});
   if(a.back)b.push(btn(`◀ Zurück: ${AREAS[a.back].n}${towardMark(id,a.back)}`,()=>enterArea(a.back)));
@@ -5622,6 +5630,9 @@ function specialStep(sp){
   return show(`<h2>${S2.t}</h2><p>${S2.x}</p>`,[btn(S2.b,()=>fight(/^siegel/.test(sp)?S2.ids.concat(Array.from({length:2+R(0,1)+((G.diff||0)===2?1:0)},()=>pick(poolOf(AREAS[G.at])))):S2.ids,{boss:!!S2.boss,intro:S2.intro+(/^siegel/.test(sp)?' Sein Gefolge folgt ihm.':''),after:()=>{
    G.flags[S2.flag]=true;Object.keys(QUESTS).forEach(id=>{const q=QUESTS[id];if((q.readyFlag===S2.flag||(q.readyAll&&q.readyAll.every(f=>G.flags[f])))&&G.q[id]==='active')G.q[id]='ready'});save();goto(msgScene,`<p>${S2.msg}</p>`,()=>spNext())}}))]);
  }
+ /* D2: Der Kerker des Hasses öffnet sich, wenn man die Zwingende Kugel mit Khalims Willen zerschlägt – der Hohe Rat muss dafür nicht tot sein (Der Schwarze Tempel ist ein eigener Auftrag) */
+ if(sp==='kugel'){if(G.flags.kugel)return show(`<h2>Die Zwingende Kugel</h2><p class="dim">Nur noch Splitter. Der Weg in den Kerker des Hasses ist offen.</p>`,[btn('Weiter',()=>spNext())]);if(!G.flags.khalimswille)return show(`<h2>Die Zwingende Kugel</h2><p>Eine Kugel aus pulsierendem Licht versiegelt den Weg nach unten. Ohne <b>Khalims Willen</b> prallt jeder Schlag ab.</p>`,[btn('Weiter',()=>spNext())]);
+  return show(`<h2>Die Zwingende Kugel</h2><p>Hinter dem Hohen Rat schwebt die Kugel, die Mephistos Kerker versiegelt. Khalims Wille liegt schwer in deiner Hand.</p>`,[btn('Die Kugel zerschlagen',()=>{G.flags.kugel=true;save();goto(msgScene,'<p>Mit einem Krachen zerspringt die Kugel. Der Boden bebt – unter dir öffnet sich der Weg in den <b>Kerker des Hasses</b>.</p>',()=>spNext())})])}
  if(sp==='wirt'){return show(`<h2>Wirts Leiche</h2><p>Zwischen den Trümmern liegt etwas Kleines, das mal ein Junge war. Daneben: ein Holzbein.</p>`,[btn('Das Bein nehmen',()=>{G.flags.wirt=true;save();goto(msgScene,'<p>Du steckst <b>Wirts Bein</b> ein. Irgendetwas daran riecht nach Heu.</p>',()=>spNext())})])}
  if(sp==='inifuss'){
   show(`<h2>Der Inifuss-Baum</h2><p>Inmitten der Stämme ragt ein Baum, dessen Rinde aussieht wie ein Gesicht. Zwischen den Wurzeln steckt eine Schriftrolle.</p>`,
@@ -6364,6 +6375,8 @@ function autoStart(){AUTO=true;autoStep()}
 function autoRemember(id){const s=SKILLS[id];if(!s)return;if(s.cuS)G.autoCu=id;else if(s.trS)G.autoTr=id;else if(s.dmgS||s.kind==='atk')G.autoSk=id}
 /* Auto-Kampf läuft in gewohntem Tempo; die Kampfbühne überspringt Animationen, wenn sie hinterherhängt */
 function autoNext(w){AUTOT=setTimeout(()=>{if(!AUTO)return;autoStep()},(w?150:650)*(window.PXB?PXB.TF[PXB.tm]:1))}
+/* Vor denselben Immunen höchstens zweimal fliehen – sonst bleibt der Raum ewig gesperrt (dann kämpft der Söldner es aus) */
+function fleeOk(){try{const p=G.prog[G.at];if(!p||!p.m)return true;const m=p.m;m.fl=m.fl||{};const k=String(m.cur);if((m.fl[k]||0)>=2)return false;m.fl[k]=(m.fl[k]||0)+1;return true}catch(e){return true}}
 function autoStep(){
  if(!AUTO)return;
  if(!C||C.over||G.at==='town'&&!C){AUTO=false;return}
@@ -6395,11 +6408,11 @@ function autoStep(){
   const bf=sks.find(id=>SKILLS[id].bfS&&!hexSkip(id)&&ok(id)&&!(SKILLS[id].autoSkip&&SKILLS[id].autoSkip())&&!(C.buffs||[]).some(b=>b.n===SKILLS[id].n)&&G.mana>S.maxMana*0.5);
   /* Hauptfertigkeit: zuletzt selbst gewählte, sonst die teuerste bezahlbare */
   const dms=sks.filter(id=>(SKILLS[id].dmgS||SKILLS[id].kind==='atk')&&ok(id)&&!(SKILLS[id].uonly&&!al.some(m=>m.undead)));
-  let dm=(G.autoSk&&dms.includes(G.autoSk))?G.autoSk:dms.sort((x,y)=>SKILLS[y].cost(sk(y))-SKILLS[x].cost(sk(x)))[0];
+  let dm=(G.autoSk&&dms.includes(G.autoSk))?G.autoSk:dms.sort((x,y)=>((G.skills[y]||0)-(G.skills[x]||0))||(SKILLS[y].cost(sk(y))-SKILLS[x].cost(sk(x))))[0];/* Ersatz: die am höchsten geskillte bezahlbare Fertigkeit (nicht der 1-Punkt-Rest), bei Gleichstand die teurere */
   /* Einzelziel (z. B. Boss allein): Fertigkeit, die nur andere Gegner trifft, gegen die Einzelziel-Variante tauschen (Blitzendes Unheil → Geladener Schlag) */
   if(dm&&SKILLS[dm].single&&al.length===1&&sk(SKILLS[dm].single)>=1&&ok(SKILLS[dm].single))dm=SKILLS[dm].single;
   /* Alle übrigen Gegner gegen das Element der Hauptfertigkeit immun: auf eine andere Schadensfertigkeit ausweichen, falls vorhanden (sonst erledigt der Söldner sie) */
-  if(dm&&SKILLS[dm].ty&&al.length&&al.every(m=>immTo(m,SKILLS[dm].ty))){const alt=dms.filter(id=>id!==dm&&!(SKILLS[id].ty&&al.every(m=>immTo(m,SKILLS[id].ty)))).sort((x,y)=>sk(y)-sk(x))[0];if(alt)dm=alt;else if((G.hp<S.maxHp*0.6||!(C.pets||[]).some(p=>p.key==='merc'&&p.hp>0)||(C.immT=(C.immT||0)+1)>6)&&!a&&!C.boss){/* D2: gegen Immune ohne zweites Element weicht man aus (Teleport/Vorbeilaufen) – Auto-Kampf flieht, statt wirkungslos weiterzuzaubern */C.log.push('🏃 Alle Gegner sind immun gegen deine Fertigkeiten – Auto-Kampf versucht zu fliehen.');return flee()}}
+  if(dm&&SKILLS[dm].ty&&al.length&&al.every(m=>immTo(m,SKILLS[dm].ty))){const alt=dms.filter(id=>id!==dm&&!(SKILLS[id].ty&&al.every(m=>immTo(m,SKILLS[id].ty)))).sort((x,y)=>sk(y)-sk(x))[0];if(alt)dm=alt;else if((G.hp<S.maxHp*0.6||!(C.pets||[]).some(p=>p.key==='merc'&&p.hp>0)||(C.immT=(C.immT||0)+1)>6)&&!a&&!C.boss&&fleeOk()){/* D2: gegen Immune ohne zweites Element weicht man aus (Teleport/Vorbeilaufen) – Auto-Kampf flieht, statt wirkungslos weiterzuzaubern */C.log.push('🏃 Alle Gegner sind immun gegen deine Fertigkeiten – Auto-Kampf versucht zu fliehen.');return flee()}}
   /* Gestaltwandlung, wenn die Hauptfertigkeit eine Tiergestalt braucht */
   const shs=sks.filter(id=>SKILLS[id].shS),hs=G.autoSk&&SKILLS[G.autoSk]&&sk(G.autoSk)>=1?SKILLS[G.autoSk]:null;
   const sh=!C.shape&&shs.length&&hs&&hs.can&&!hs.can()?shs.sort((x,y)=>sk(y)-sk(x)).find(ok):null;
@@ -8387,7 +8400,7 @@ window.STAFFCLS={"hexenmeister": ["w_ziegenmensch", "w_daemonmeister", "w_todesm
 (function(){
  /* Schlucht der Magier liegt hinter dem Arkanen Heiligtum (wie in D2) */
 })();
-const NEEDTXT={tristramOpen:'das Portal der Fünf Steine',turmschluessel:'den Turmschlüssel',wuerfel:'den Horadrim-Würfel',stab:'den Horadrim-Stab',khalimswille:'Khalims Wille'};
+const NEEDTXT={kugel:'die zerschlagene Zwingende Kugel (Travincal)',tristramOpen:'das Portal der Fünf Steine',turmschluessel:'den Turmschlüssel',wuerfel:'den Horadrim-Würfel',stab:'den Horadrim-Stab',khalimswille:'Khalims Wille'};
 function needTxt(n){
  if(!n)return '';
  if(NEEDTXT[n])return NEEDTXT[n];
@@ -9037,7 +9050,7 @@ function pickFarm(at){const A=AREAS[at];if(!A)return null;const c=Object.keys(AR
  const sc=c.filter(safe);const L=sc.length?sc:c;
  L.sort((x,y)=>(AREAS[y].lvl||0)-(AREAS[x].lvl||0)||((ad[x]||0)-(ad[y]||0)));return L[0]||null}
 function farmArea(){
- if(!AP.farmLv){for(const k of Object.keys(AP.dA||{})){if(AP.dA[k]>=4&&AREAS[k]&&!(G.prog[k]&&G.prog[k].done)){const f=pickFarm(k);AP.dA[k]=0;AP.cyc=AP.cyc||{};AP.cyc[k]=(AP.cyc[k]||0)+1;{const q=AREAS[k].quest;if(q&&optQ(q)&&G.q[q]!=='done'&&AP.cyc[k]>=3){AP.skipQ=AP.skipQ||{};AP.skipQ[(G.diff||0)+':'+q]=1;AP.cyc[k]=0;say('⏭ AUSGELASSEN',QUESTS[q].n+' (Nebenauftrag, '+(AREAS[k].n||k)+' zu stark) – später nachholen');return null}}if(AP.cyc[k]>=5){if(G.diff===2&&typeof ENDRUNS!=='undefined'&&typeof endRunOk==='function'&&(AP.bfR||0)<3&&ENDRUNS.some(endRunOk)){AP.bfR=(AP.bfR||0)+1;AP.cyc[k]=0;AP.bf={runs:0,max:15*AP.bfR,untilLvl:Math.min(99,G.lvl+3)};say('🗡️ BOSS-FARM','Runde '+AP.bfR+': bis '+AP.bf.max+' Boss-Läufe für Ausrüstung ('+(AREAS[k].n||k)+' zu stark)');return null}if(G.lvl<99&&f){AP.cyc[k]=3;AP.farmLv=Math.min(99,G.lvl+2);AP.farmId=f;AP.farmRuns=0;AP.farmMax=96;say('🌾 LANGE FARMEN',(AREAS[f].n||f)+' bis Stufe '+AP.farmLv+' – '+(AREAS[k].n||k)+' noch zu stark');return f}AP.blocked=k;say('⛔ ZU SCHWACH',(AREAS[k]&&AREAS[k].n||k)+': trotz '+(AP.cyc[k]-1)+' Farm-Runden nicht zu schaffen (Stufe '+G.lvl+', '+Math.round(S.maxHp)+' Leben). Ausrüstung fehlt – Autopilot hält an.');try{AP.stop()}catch(e){}return null}if(f){AP.farmLv=G.lvl>=70?999:G.lvl+2;AP.farmId=f;AP.farmRuns=0;AP.farmMax=Math.min(96,(AP.farmMax||6)*2);AP.st.farms=(AP.st.farms||0)+1;say('🌾 FARM',(AREAS[f].n||f)+' bis Stufe '+AP.farmLv+' (zu oft gefallen in '+(AREAS[k].n||k)+')');break}}}}
+ if(!AP.farmLv){for(const k of Object.keys(AP.dA||{})){if(AP.dA[k]>=4&&AREAS[k]&&!(G.prog[k]&&G.prog[k].done)){const f=pickFarm(k);AP.dA[k]=0;AP.cyc=AP.cyc||{};AP.cyc[k]=(AP.cyc[k]||0)+1;{const q=AREAS[k].quest;if(q&&optQ(q)&&G.q[q]!=='done'&&AP.cyc[k]>=1){AP.skipQ=AP.skipQ||{};AP.skipQ[(G.diff||0)+':'+q]=1;AP.cyc[k]=0;say('⏭ AUSGELASSEN',QUESTS[q].n+' (Nebenauftrag, '+(AREAS[k].n||k)+' zu stark) – später nachholen');return null}}if(AP.cyc[k]>=5){if(G.diff===2&&typeof ENDRUNS!=='undefined'&&typeof endRunOk==='function'&&(AP.bfR||0)<(G.lvl>=99?999:3)&&ENDRUNS.some(endRunOk)){AP.bfR=(AP.bfR||0)+1;AP.cyc[k]=0;AP.bf={runs:0,max:15*AP.bfR,untilLvl:G.lvl>=99?100:Math.min(99,G.lvl+3)};say('🗡️ BOSS-FARM','Runde '+AP.bfR+': bis '+AP.bf.max+' Boss-Läufe für Ausrüstung ('+(AREAS[k].n||k)+' zu stark)');return null}if(G.lvl<99&&f){AP.cyc[k]=3;AP.farmLv=Math.min(99,G.lvl+2);AP.farmId=f;AP.farmRuns=0;AP.farmMax=96;say('🌾 LANGE FARMEN',(AREAS[f].n||f)+' bis Stufe '+AP.farmLv+' – '+(AREAS[k].n||k)+' noch zu stark');return f}AP.blocked=k;say('⛔ ZU SCHWACH',(AREAS[k]&&AREAS[k].n||k)+': trotz '+(AP.cyc[k]-1)+' Farm-Runden nicht zu schaffen (Stufe '+G.lvl+', '+Math.round(S.maxHp)+' Leben). Ausrüstung fehlt – Autopilot hält an.');try{AP.stop()}catch(e){}return null}if(f){AP.farmLv=G.lvl>=70?999:G.lvl+2;AP.farmId=f;AP.farmRuns=0;AP.farmMax=Math.min(96,(AP.farmMax||6)*2);AP.st.farms=(AP.st.farms||0)+1;say('🌾 FARM',(AREAS[f].n||f)+' bis Stufe '+AP.farmLv+' (zu oft gefallen in '+(AREAS[k].n||k)+')');break}}}}
  if(AP.farmLv&&G.lvl>=AP.farmLv){AP.farmLv=0;AP.farmId=null;say('🌾 FARM Ende','Stufe '+G.lvl)}
  return AP.farmLv?AP.farmId:null}
 function targetArea(){
@@ -9113,7 +9126,7 @@ const LVW={barbar:/^(axe|sword|mace|polearm|hammer|spear|throw|knife|scepter)$/,
  assassine:/^(claw|knife|sword|axe|mace)$/,druide:/^(staff|mace|axe|sword|hammer|spear|polearm)$/,zauberin:/^(staff|orb|wand|knife|sword|mace)$/,nekro:/^(wand|knife|staff|sword|mace)$/,hexenmeister:/^(knife|sword|wand|staff|mace|scepter|axe)$/};
 AP.wOk=it=>{try{const B=BASES[it.base];if(!B||B.slot!=='weapon'||!LVW[G.cls])return true;if(!LVW[G.cls].test(B.type||''))return false;
  /* Waffe muss zur Hauptfertigkeit passen (z. B. Blitzendes Unheil: nur Wurfspieße werfen, Streuen: Bogen) */
- const ms=SKILLS[G.autoSk]||(G.apPlan&&SKILLS[G.apPlan.autoSk]);if(G.apSw&&ms&&Array.isArray(ms.need)){let ty=ms.need;if(ms.thr)ty=ty.filter(t=>t==='javelin'||t==='throw'||t==='knife');if(ty.length&&!ty.includes(B.type))return false}
+ const ms=SKILLS[G.autoSk]||(G.apPlan&&SKILLS[G.apPlan.autoSk]);const NT={bow:['bow','xbow'],jv:['javelin','spear'],claw:['claw']};const nd=ms&&(Array.isArray(ms.need)?ms.need:NT[ms.need]);if(G.apSw&&nd){let ty=nd;if(ms.thr)ty=ty.filter(t=>t==='javelin'||t==='throw'||t==='knife');if(ty.length&&!ty.includes(B.type))return false}
  return true}catch(e){return true}};
 function lvLearn(id,tgt){const s=SKILLS[id];if(!s||G.lvl<s.lvl)return false;
  for(const q of (s.pre||[]))if(!(G.skills[q]>0)){if(!lvLearn(q,1))return false;if(G.spts<1)return true}
@@ -9128,8 +9141,12 @@ function levelPlan(){
  if(L.length)G.autoSk=L[0];
  return true}
 function apPre(k,d){if(d>8||!SKILLS[k])return null;for(const q of (SKILLS[k].pre||[])){if((G.skills[q]||0)>=1)continue;if(canLearn(q))return q;const r=apPre(q,d+1);if(r)return r}return null}
+/* Magie-Hexenmeister wie im Icy-Veins-Guide: Miasmablitz, Miasmakette, Verbesserte Entropie, Abgrund und Verzehrung je 20, Schwebebeherrschung und Besudelter je 1 (der Startplan hatte Entropie nur 7 und Verzehrung 1) */
+const PLANMAIN={hexenmeister:'w_kette'};/* Icy Veins: Miasmakette ist die Hauptfertigkeit */
+const PLANFIX={hexenmeister:{w_miasma:20,w_kette:20,w_entropie:20,w_abgrund:20,w_verzehrung:20,w_schwebe:1,w_ziegenmensch:1,w_besudelter:1,w_daemonmeister:1,w_bluteid:1}};
 function applyPlan(){
  const P=G.apPlan;if(!P||!G.apAuto)return;
+ if(PLANFIX[G.cls]&&!P._fix&&P.skills&&P.skills.w_kette){P.skills=Object.assign({},PLANFIX[G.cls]);if(PLANMAIN[G.cls])P.autoSk=PLANMAIN[G.cls];P._fix=1;if(G.apSw||G.lvl>1){try{respecAll()}catch(e){}}}
  /* Leveling-Phase */
  if(!G.apSw&&LVR[G.cls]&&(G.lvl<LVSW||(P.autoSk&&SKILLS[P.autoSk]&&G.lvl<=SKILLS[P.autoSk].lvl))){levelPlan();return}
  /* Umstieg: einmal neu verteilen, dann Plan */
@@ -9141,11 +9158,16 @@ function applyPlan(){
  /* Attributspunkte im Verhältnis des Endstands */
  /* wie ein Mensch: erst Stärke/Geschick für Ausrüstung und Trefferchance (Leveling-Ziele), dann im Verhältnis des Endstands */
  if(G.pts>0&&LVST[G.cls]){const [st,dx]=LVST[G.cls](G.lvl),ms=SKILLS[P.autoSk]||SKILLS[G.autoSk],atk=!!(ms&&ms.kind==='atk');
-  for(let i=0;i<500&&G.pts>0;i++){if(G.stat.str<st)addStat('str',1);else if(atk&&G.stat.dex<dx)addStat('dex',1);else break}}
+  for(let i=0;i<500&&G.pts>0;i++){if(G.stat.str<st)addStat('str',1);else if(atk&&G.stat.dex<dx)addStat('dex',1);else break}
+  /* Hauptfertigkeit kostet Mana und der Vorrat reicht nicht für ~30 Einsätze: etwas Energie (wie Javazon/Paladin ohne Mana-Absaugung) */
+  try{const mk=(SKILLS[G.autoSk]&&G.skills[G.autoSk]>0)?G.autoSk:(P.autoSk||G.autoSk),mc=atk&&SKILLS[mk]&&SKILLS[mk].cost?SKILLS[mk].cost(Math.max(1,sk(mk))):0,need=30,cap=100;for(let i=0;i<200&&G.pts>0&&mc>0;i++){calc();if(S.maxMana>=mc*need||G.stat.ene>=cap)break;addStat('ene',1)}}catch(e){}}
  if(G.pts>0){const need={};K.forEach(k=>need[k]=Math.max(0,(P.stat[k]||0)-(B[k]||0)));
   for(let i=0;i<500&&G.pts>0;i++){let best='vit',bv=-1;K.forEach(k=>{const inv=G.stat[k]-(B[k]||0);if(need[k]<=inv)return;const v=need[k]/(inv+1);if(v>bv){bv=v;best=k}});addStat(best,1)}}
  /* Fertigkeitspunkte: gleichmäßig nach Anteil am Endstand, nur was Stufe und Voraussetzungen erlauben */
  /* Wie ein Mensch: erst die wichtigsten Fertigkeiten (höchster Endwert, also Hauptangriff und Synergien), Voraussetzungen jeweils zuerst mit 1 Punkt */
+ /* Zweites Element (Selffound-Hybrid): Zauberin skillt ab Albtraum Feuerball mit, damit Kälte-Immune nicht nur am Söldner hängen */
+ {const SEC={zauberin:'z_feuerball',druide:'d_spalte'}[G.cls];if(SEC&&(G.diff||0)>=1&&SKILLS[SEC]&&!(P.skills[SEC]>=10)){const tg=Math.max(0,Math.min(20,G.lvl-48));
+  for(let i=0;i<60&&G.spts>0&&(G.skills[SEC]||0)<tg;i++){if(canLearn(SEC))learn(SEC);else{const q=apPre(SEC,0);if(q)learn(q);else break}}}}
  for(let i=0;i<200&&G.spts>0;i++){
   const c=Object.keys(P.skills).filter(k=>SKILLS[k]&&(G.skills[k]||0)<P.skills[k]).sort((a,b)=>(P.skills[b]-(G.skills[b]||0))-(P.skills[a]-(G.skills[a]||0))||(P.skills[b]-P.skills[a]));
   let did=false;
@@ -9165,9 +9187,13 @@ function applyPlan(){
  const ok=k=>{const s=SKILLS[k];return s&&!s.trS&&!s.cuS&&(s.kind==='atk'||((s.kind==='spell'||s.kind==='trap')&&s.ty))};
  const corp=k=>/Kadaver|Leichen|Leichnam/.test((SKILLS[k]||{}).n||'');
  if(P.autoSk&&(G.skills[P.autoSk]||0)>0&&!corp(P.autoSk))G.autoSk=P.autoSk;
- else if(P.autoSk&&corp(P.autoSk)){const L=Object.keys(G.skills).filter(k=>G.skills[k]>0&&ok(k)&&!corp(k)).sort((a,b)=>((P.skills[b]||0)-(P.skills[a]||0))||(G.skills[b]-G.skills[a]));if(L.length)G.autoSk=L[0]}
+ else if(P.autoSk&&corp(P.autoSk)){const L=Object.keys(G.skills).filter(k=>G.skills[k]>0&&ok(k)&&!corp(k)).sort((a,b)=>(sk(b)-sk(a))||((P.skills[b]||0)-(P.skills[a]||0)));if(L.length)G.autoSk=L[0]}
  else if(!G.autoSk||!(G.skills[G.autoSk]>0)){const L=Object.keys(G.skills).filter(k=>G.skills[k]>0&&ok(k)).sort((a,b)=>G.skills[b]-G.skills[a]);if(L.length)G.autoSk=L[0]}
  if(P.autoTr&&(G.skills[P.autoTr]||0)>0)G.autoTr=P.autoTr;
+ /* Fallen: wie ein Mensch den stärksten Wächter legen (Blitz-Wächter vor Schocknetz), nicht die Plan-Taste */
+ {const tr=Object.keys(G.skills).filter(k=>G.skills[k]>0&&SKILLS[k]&&SKILLS[k].trS&&SKILLS[k].trSen).sort((a,b)=>sk(b)-sk(a)||((a==='s_blitzturm')?-1:(b==='s_blitzturm')?1:0));if(tr.length&&sk(tr[0])>=10)G.autoTr=tr[0]}
+ /* Hauptangriff ohne Plan-Angabe: stärkste gelernte Schadensfertigkeit (nicht der 1-Punkt-Rest aus dem Leveling) */
+ if(!P.autoSk){const L=Object.keys(G.skills).filter(k=>G.skills[k]>0&&ok(k)).sort((a,b)=>G.skills[b]-G.skills[a]);if(L.length&&G.skills[L[0]]>(G.skills[G.autoSk]||0))G.autoSk=L[0]}
  if(P.autoCu&&(G.skills[P.autoCu]||0)>0)G.autoCu=P.autoCu;
 }
 
@@ -9177,6 +9203,8 @@ function pw(){const ms=G.autoSk&&SKILLS[G.autoSk],cast=!!(ms&&ms.kind!=='atk');
  /* Zauber/Fallen/Hammer: Schaden kommt aus der Fertigkeitsstufe (+Fertigkeiten), nicht aus der Waffe */
  const d=cast?Math.pow(1.09,Math.min(60,sk(G.autoSk)))*20:Math.max(1,((S.dmgMin||0)+(S.dmgMax||0))/2*(1+(S.edmg||0)/100)+(S.dmgAdd||0));const r=S.res||{};const rs=(r.fire||0)+(r.cold||0)+(r.light||0)+(r.poison||0);
  return Math.pow(d,0.7)*S.maxHp*(1+Math.max(-150,rs)/150)*(cast?1:(1+(S.allsk||0)*0.06))*(1+(S.fcr||0)/300)*(1+(S.ac||0)/1500)/(1-0.5*Math.min(0.6,(S.def||0)/((S.def||0)+40*G.lvl+100)))*(1+(S.ll||0)/200)}
+/* Fertigkeit kostet Mana: Mana und Mana-Absaugung zählen mit (sonst geht im langen Bosskampf die Puste aus) */
+function manaF(){try{const ms=SKILLS[G.autoSk];const mc=ms&&ms.cost?ms.cost(Math.max(1,sk(G.autoSk))):0;if(!mc)return 1;return Math.min(1.25,Math.sqrt(((S.maxMana||0)+(S.ml||0)*25)/(mc*30)))}catch(e){return 1}}
 function fixWeapon(){const w=G.eq.weapon;if(!G.apAuto||!w||AP.wOk(w))return;
  let best=null,bp=-1;for(const it of [...G.inv,...(G.stash||[])]){const B=BASES[it.base];if(!B||B.slot!=='weapon'||it.unid||!AP.wOk(it)||canEquip(it))continue;
   const eq0=G.eq;G.eq={...eq0,weapon:it};let p=0;try{calc();p=pw()}catch(e){}G.eq=eq0;try{calc()}catch(e){}if(p>bp){bp=p;best=it}}
@@ -9243,9 +9271,9 @@ function mercBrain(){
  G.gold-=hc;G.flags.freeMerc=false;G.merc=au?{t:want,alive:true,au,d}:{t:want,alive:true,d};
  gsay('🛡️ SÖLDNER',MERCS[want].n+(au?' · '+SKILLS[au].n:'')+' (−'+hc+')');return true}
 function mScore(it,t){if(!it||it.unid)return 0;const o={};(it.aff||[]).forEach(a=>{if(typeof a.v==='number')o[a.stat]=(o[a.stat]||0)+a.v});const B=BASES[it.base]||{};
- const dm=B.slot==='weapon'?(((it.dmin||B.dmin||0)+(it.dmax||B.dmax||0))/2)*(1+(o.edmg||0)/100)+(o.dmgMax||0):0;
+ const dm=B.slot==='weapon'?(B.avg||((B.dice?(B.dice[0]+B.dice[0]*B.dice[1])/2+B.dice[2]:0)))*(1+(o.edmg||0)/100)+(o.dmgMax||0):0;
  const rs=(o.resF||0)+(o.resC||0)+(o.resL||0)+(o.resP||0)+(o.resAll||0)*4;
- return dm*4+(it.def||B.def||0)*0.3*(1+(o.defP||0)/100)+(o.life||0)*2+(o.vit||0)*3+rs*1.5+(o.ll||0)*12+(o.ias||0)*2+(o.dr||0)*6+(o.reduce||0)*6+(o.allsk||0)*30}
+ return (it.rw==='Einsicht'?5000:0)+dm*4+(it.def||B.def||0)*0.3*(1+(o.defP||0)/100)+(o.life||0)*2+(o.vit||0)*3+rs*1.5+(o.ll||0)*12+(o.ias||0)*2+(o.dr||0)*6+(o.reduce||0)*6+(o.allsk||0)*30}
 function mercGearUp(){if(!G.merc||!G.merc.alive)return;G.merc.eq=G.merc.eq||{};const t=G.merc.t;
  for(const sl of MSLOTS){const cur=G.merc.eq[sl],cs=mScore(cur,t);let best=null,bs=cs*1.05+1;
   for(const it of G.inv){const B=BASES[it.base];if(!B||it.unid)continue;const s2=B.slot==='weapon'?'weapon':B.slot;if(s2!==sl||!mercCanWear(it,t))continue;const v=mScore(it,t);if(v>bs){bs=v;best=it}}
@@ -9258,8 +9286,10 @@ function rwTry(it){ /* passendes Runenwort mit vorhandenen Runen? Rückgabe: Kop
  return best}
 function rwBrain(){let n=0;
  for(const it of [...G.inv,...(G.stash||[])]){const b=rwTry(it);if(!b||b.g.g<1.04)continue;
+  /* nur bauen, wenn es danach auch wirklich angelegt wird (keine Runen in Schilde neben einer Zweihandwaffe) */
+  if(canEquip(it))continue;if(b.g.sl==='offhand'&&G.eq.weapon&&BASES[G.eq.weapon.base]&&BASES[G.eq.weapon.base].two)continue;
   for(const r of b.rw.r.split(' ')){insertStone(it,{k:'r',r});takeRune(r,1)}
-  if(it.rw){n++;gsay('🔷 RUNENWORT',it.rw+' in '+itemName(it));if((G.stash||[]).includes(it)){removeFrom(G.stash,it.u);G.inv.push(it)}}}
+  if(it.rw){n++;gsay('🔷 RUNENWORT',it.rw+' in '+itemName(it));if((G.stash||[]).includes(it)){removeFrom(G.stash,it.u);G.inv.push(it)}try{equipItem(it,false,/^ring/.test(b.g.sl)?b.g.sl:undefined)}catch(e){}}}
  return n}
 function cubeRunes(){ /* D2-Würfel: 3 gleiche Runen bis Thul ergeben die nächste, nur wenn das ein Runenwort ermöglicht */
  try{const ids=RUNES.map(r=>r.id);for(let i=0;i<10;i++){const id=ids[i],nx=ids[i+1];if((G.runes[id]||0)<3)continue;
@@ -9279,12 +9309,16 @@ function shopBrain(){let n=0;const res=apReserve();
     /* nur behalten, wenn es wirklich angelegt wurde – sonst sofort zurückgeben (kein Fehlkauf-Kreislauf) */
     if(!Object.values(G.eq).includes(it)&&c!==null){removeFrom(G.inv,it.u);st.push(it);G.gold+=pr;continue}
     n++;gsay('🛒 GEKAUFT',itemName(it)+' ('+pr+') +'+Math.round((g.g-1)*100)+'%')}
+   /* Söldner: bessere Waffe/Rüstung beim Händler kaufen (wie ein Mensch, der seinem Wüstenkämpfer eine Stangenwaffe holt) */
+   if(G.merc&&G.merc.alive){G.merc.eq=G.merc.eq||{};for(const it of shopStock(who).slice()){const B=BASES[it.base];if(!B||it.unid)continue;const sl=B.slot==='weapon'?'weapon':B.slot;if(!MSLOTS.includes(sl)||!mercCanWear(it,G.merc.t))continue;
+    const pr=buyPrice(it);if(pr>G.gold-res)continue;const cur=G.merc.eq[sl];if(mScore(it,G.merc.t)<=mScore(cur,G.merc.t)*1.15+5)continue;
+    G.gold-=pr;removeFrom(shopStock(who),it.u);G.merc.eq[sl]=it;if(cur)G.inv.push(cur);n++;gsay('🛡️ SÖLDNER KAUF',itemName(it)+' → '+sl+' ('+pr+')')}}
    if(G.gold<res*3)break;G.shopRef++}}
  return n}
 function gambleBrain(){const gw=TOWNS[G.act].npcs.find(id=>NPCS[id].roles.includes('gamble'));if(!gw||G.lvl<20)return 0;
  const il=Math.max(1,G.lvl+1),res=apReserve()*3;let n=0;
  const slots=['ring','amulet','belt','hands','feet','head','body','offhand','weapon'].filter(s=>s!=='offhand'||!(G.eq.weapon&&BASES[G.eq.weapon.base].two));
- while(n<12&&invUsed()+8<INV_MAX){const s=slots[n%slots.length],c=gambleCost(s,il);if(G.gold-c<=res){n++;continue}const it=gambleRoll(s);if(!it){n++;continue}G.gold-=c;it.unid=false;n++;
+ while(n<(G.gold>300000?40:12)&&invUsed()+8<INV_MAX){const s=slots[n%slots.length],c=gambleCost(s,il);if(G.gold-c<=res){n++;continue}const it=gambleRoll(s);if(!it){n++;continue}G.gold-=c;it.unid=false;n++;
   const g=gainOf(it);if(g&&g.g>1.03){G.inv.push(it);gsay('🎲 GLÜCKSSPIEL',itemName(it)+' +'+Math.round((g.g-1)*100)+'%');gearUp()}
   }
  return n}
@@ -9309,6 +9343,8 @@ function charmBrain(){let n=0; /* wie ein Mensch: gute Talismane ins Raster, sch
  return n}
 function sellBrain(){ /* wie ein Mensch: alles verkaufen, was weder jetzt noch bald hilft (Gold für Söldner, Händler, Glücksspiel) */
  let g=0,k=0,keepRw=0,keepF=0;
+ /* Juwelen setzt der Autopilot nicht ein – verkaufen, damit der Rucksack nicht vollläuft (sonst keine Beute, keine Runenwort-Basis) */
+ for(const it of G.inv.slice()){const B=BASES[it.base];if(B&&B.slot==='jewel'&&!it.unid&&(it.q||0)<4&&!isGrid(it)&&typeof sellOne==='function'){const x=sellOne(it.u)||0;g+=x;k++}}
  for(const it of G.inv.slice()){const B=BASES[it.base];if(!B||!B.slot||['charm','jewel','gem','rune'].includes(B.slot)||it.unid||B.quest||it.quest)continue;
   if(it.q===0&&it.sock>=2&&!(it.socks||[]).length&&keepRw<6&&RW.some(r=>r.n_s===it.sock&&rwFits(r,it))){keepRw++;continue}
   if(it.q>=3&&reqLvl(it)>G.lvl&&keepF<8){keepF++;continue}
@@ -9316,10 +9352,54 @@ function sellBrain(){ /* wie ein Mensch: alles verkaufen, was weder jetzt noch b
   if(G.merc&&MSLOTS.some(sl=>{const s2=B.slot==='weapon'?'weapon':B.slot;return s2===sl&&mercCanWear(it,G.merc.t)&&mScore(it,G.merc.t)>mScore((G.merc.eq||{})[sl],G.merc.t)}))continue;
   if(typeof sellOne==='function'){const x=sellOne(it.u)||0;if(x||!G.inv.includes(it)){g+=x;k++}}}
  if(k)gsay('💰 VERKAUFT',k+' Teile, +'+g+' Gold');return g}
+/* ===== Runenwort-Ziele (wie ein D2-Spieler): Einsicht für den Söldner (Meditation = Mana), Geist für Zauberer/Fallensteller/Hammerdin.
+   Runen werden im Würfel nach D2-Rezepten hochgestuft (3 bzw. ab Lum 2 Runen + Edelstein), passende graue Basen beim Händler gekauft. ===== */
+const AP_RUP={9:['topas',1],10:['amethyst',1],11:['saphir',1],12:['rubin',1],13:['smaragd',1],14:['diamant',1],15:['topas',2],16:['amethyst',2],17:['saphir',2],18:['rubin',2],19:['smaragd',2],20:['diamant',2],21:['topas',3],22:['amethyst',3],23:['saphir',3],24:['rubin',3],25:['smaragd',3],26:['diamant',3],27:['topas',4],28:['amethyst',4],29:['saphir',4],30:['rubin',4],31:['smaragd',4]};
+/* Plan: welche Würfelvorgänge nötig sind, um die Runen T zu haben (ohne etwas zu verbrauchen) */
+function rwPlan(T){const cnt={};RUNES.forEach(r=>cnt[r.id]=G.runes[r.id]||0);const gem={};Object.keys(G.gems||{}).forEach(k=>gem[k]=G.gems[k]);const need={};RUNES.forEach(r=>need[r.id]=T[r.id]||0);const ops=[];
+ for(let i=RUNES.length-1;i>=0;i--){const id=RUNES[i].id;let d=need[id]-cnt[id];if(d<=0)continue;if(i===0)return null;const pv=RUNES[i-1],n=(i-1)>=20?2:3,g=AP_RUP[i-1];need[pv.id]+=d*n;if(g){const k=g[0]+g[1];gem[k]=(gem[k]||0)-d}ops.push([i-1,d])}
+ for(const k in gem)if(gem[k]<0&&!gemPlan(k.replace(/\d+$/,''),+k.slice(-1),-gem[k],gem))return null;
+ for(const id in need)if(need[id]>cnt[id])return null;return ops.reverse()}
+function gemPlan(t,q,n,gem){/* 3 Edelsteine der Stufe darunter ergeben einen der nächsten (D2-Würfel) */if(q<=1)return false;const k=t+(q-1);const have=gem[k]||0;const need=n*3;if(have>=need){gem[k]=have-need;gem[t+q]=(gem[t+q]||0)+n;return true}
+ if(!gemPlan(t,q-1,need-have,gem))return false;gem[k]=(gem[k]||0)-need;gem[t+q]=(gem[t+q]||0)+n;return true}
+function gemMake(t,q,n){if((G.gems[t+q]||0)>=n)return true;if(q<=1)return false;const d=n-(G.gems[t+q]||0);if(!gemMake(t,q-1,d*3))return false;G.gems[t+(q-1)]-=d*3;G.gems[t+q]=(G.gems[t+q]||0)+d;return true}
+function rwCraft(T){const ops=rwPlan(T);if(!ops)return false;
+ for(const [i,d] of ops){const r=RUNES[i],nx=RUNES[i+1],n=i>=20?2:3,g=AP_RUP[i];for(let k=0;k<d;k++){if((G.runes[r.id]||0)<n)return false;if(g){if(!gemMake(g[0],g[1],1))return false;G.gems[g[0]+g[1]]-=1}G.runes[r.id]-=n;G.runes[nx.id]=(G.runes[nx.id]||0)+1}}
+ return true}
+function rwNeed(rw){const T={};rw.r.split(' ').forEach(x=>T[x]=(T[x]||0)+1);return T}
+function rwGoals(){const o=[];const cast=SKILLS[G.autoSk]&&SKILLS[G.autoSk].kind!=='atk';
+ if(G.merc&&G.merc.alive&&['desert','rogue'].includes(G.merc.t))o.push({rw:'Einsicht',who:'merc'});
+ if(cast||['paladin','assassine','zauberin','nekro','druide','hexenmeister'].includes(G.cls))o.push({rw:'Geist',who:'self'});
+ return o}
+function rwBaseFor(rw,who){const pool=[...G.inv,...(G.stash||[])].filter(it=>it.q===0&&it.sock===rw.n_s&&!(it.socks||[]).length&&!it.rw&&rwFits(rw,it));
+ const ok=it=>who==='merc'?mercCanWear(it,G.merc.t):(reqLvl(it)<=G.lvl&&!canEquip(it)&&AP.wOk(it));
+ return pool.filter(ok).sort((a,b)=>(BASES[b.base].tier||1)-(BASES[a.base].tier||1))[0]||null}
+function rwShopBase(rw,who){if(G.gold<20000)return null;
+ for(let ref=0;ref<(G.gold>200000?(who==="merc"?30:12):4);ref++){for(const w of TOWNS[G.act].npcs){if(!hasVendor(w))continue;const st=shopStock(w);
+   for(const it of st){if(it.q!==0||it.sock!==rw.n_s||!rwFits(rw,it))continue;if(who==='merc'?!mercCanWear(it,G.merc.t):(reqLvl(it)>G.lvl||canEquip(it)||!AP.wOk(it)))continue;
+    const pr=buyPrice(it);if(pr>G.gold-5000||!canAdd(it))continue;G.gold-=pr;removeFrom(st,it.u);G.inv.push(it);gsay('🛒 BASIS',itemName(it)+' für '+rw.n+' ('+pr+')');return it}}
+  G.shopRef++}
+ return null}
+function rwBlocked(){try{for(const g of rwGoals()){const rw=RW.find(r=>r.n===g.rw);if(!rw)continue;const has=g.who==='merc'?((G.merc.eq||{}).weapon&&G.merc.eq.weapon.rw===g.rw):Object.values(G.eq).some(it=>it&&it.rw===g.rw);if(has)continue;if(!rwPlan(rwNeed(rw)))return rw.n}}catch(e){}return ''}
+function rwGoalBrain(){
+ for(const g of rwGoals()){const rw=RW.find(r=>r.n===g.rw);if(!rw)continue;
+  const has=g.who==='merc'?((G.merc.eq||{}).weapon&&G.merc.eq.weapon.rw===g.rw):Object.values(G.eq).some(it=>it&&it.rw===g.rw);if(has)continue;
+  const T=rwNeed(rw);if(!rwPlan(T))continue;/* Runen (noch) nicht erreichbar */
+  /* Spieler: lohnt sich das Runenwort überhaupt? (am gedachten Gegenstand prüfen) */
+  let base=rwBaseFor(rw,g.who);
+  if(!base)base=rwShopBase(rw,g.who);if(!base)continue;
+  if(g.who==='self'){const c=JSON.parse(JSON.stringify(base));rw.r.split(' ').forEach(r=>insertStone(c,{k:'r',r}));const gn=c.rw?gainOf(c):null;if(!gn||gn.g<1.03)continue}
+  if(!rwCraft(T))continue;
+  for(const r of rw.r.split(' ')){insertStone(base,{k:'r',r});takeRune(r,1)}
+  if(!base.rw){gsay('⚠ RUNENWORT',rw.n+' ging nicht in '+itemName(base));continue}
+  if((G.stash||[]).includes(base)){removeFrom(G.stash,base.u);G.inv.push(base)}
+  if(g.who==='merc'){const cur=G.merc.eq.weapon;removeFrom(G.inv,base.u);G.merc.eq.weapon=base;if(cur)G.inv.push(cur);gsay('🔷 RUNENWORT',rw.n+' für den Söldner ('+itemName(base)+')')}
+  else{gsay('🔷 RUNENWORT',rw.n+' gebaut ('+itemName(base)+')');gearUp()}}}
 function townBrain(){if(!G.apAuto||G.at!=='town'||(typeof C!=='undefined'&&C&&!C.over))return;
  const hp0=G.hp,mp0=G.mana;
  try{mercBrain()}catch(e){AP.err.push('Merc: '+e.message)}
- try{cubeRunes();rwBrain()}catch(e){AP.err.push('RW: '+e.message)}
+ try{rwGoalBrain()}catch(e){AP.err.push('RWZiel: '+e.message)}
+ try{rwBrain()}catch(e){AP.err.push('RW: '+e.message)}
  try{gearUp()}catch(e){}
  try{charmBrain()}catch(e){AP.err.push('Charm: '+e.message)}
  try{mercGearUp()}catch(e){AP.err.push('MercGear: '+e.message)}
@@ -9369,11 +9449,12 @@ function step(){
  if(AP.bf&&!isTown()&&!isArea()&&!isMap()&&/Endgame|Farm-Läufe/.test((($('#main')||{}).textContent||'').slice(0,40))){
   if(AP.bf.runs>=AP.bf.max||G.lvl>=AP.bf.untilLvl){say('🗡️ BOSS-FARM Ende',AP.bf.runs+' Läufe, Stufe '+G.lvl);AP.bf=null;AP.farmLv=0;AP.farmId=null;r=clk(/^Zurück/);if(r)return 'Boss-Farm Ende'}
   else if((needHeal()||lowPots())&&Date.now()-(AP.bfHT||0)>60000){r=clk(/^Zurück/);if(r)return 'Boss-Farm: heilen'}
-  else{const cand=vis().map(b=>({b,m:/\(Stufe (\d+)\)/.exec(lab(b))})).filter(x=>x.m&&!/Kuh/.test(lab(x.b))).sort((x,y)=>+y.m[1]-+x.m[1]);
-   if(cand.length){AP.bf.runs++;AP.st.bossFarm=(AP.st.bossFarm||0)+1;cand[0].b.click();return 'Boss-Farm: '+lab(cand[0].b)}
+  else{AP.bfDead=AP.bfDead||{};const cand=vis().map(b=>({b,m:/\(Stufe (\d+)\)/.exec(lab(b))})).filter(x=>x.m&&!/Kuh/.test(lab(x.b))&&(AP.bfDead[lab(x.b)]||0)<2&&(!AP.bf.only||AP.bf.only.test(lab(x.b)))).sort((x,y)=>+y.m[1]-+x.m[1]);
+   if(cand.length){AP.bf.runs++;AP.st.bossFarm=(AP.st.bossFarm||0)+1;AP.bfLast=lab(cand[0].b);cand[0].b.click();return 'Boss-Farm: '+lab(cand[0].b)}
    AP.bf=null}}
  /* a) Weiter/OK-Szenen (Geschichten, Siegbildschirm, Meldungen) */
  if(!isTown()&&!isArea()&&!isMap()&&!isNpc()){
+  if(G.flags&&G.flags.khalimswille&&!G.flags.kugel){r=clk(/^Die Kugel zerschlagen/);if(r)return 'Kugel zerschlagen'}
   if(/Sieg!|Gefallen|gestorben/.test(($('#main')||{}).textContent||'')){}
   r=clk(/^(weiter|fertig|ok|verstanden|schließen|ins lager|annehmen|fortfahren|los|zum lager|weitergehen|zurück zum)\b/i);if(r)return 'weiter: '+r+' «'+L.join(' | ').slice(0,90)+'»'+(document.querySelector('.amap')?' [amap]':'')+(document.querySelector('.tgrid')?' [town]':'');
  }
@@ -9384,6 +9465,8 @@ function step(){
   const portal=bs.find(b=>/Durchs Portal zurück/.test(lab(b)));
   const qn=questNpc();
   const need=needHeal()||lowPots();
+  /* Runen fehlen für Einsicht/Geist: gezielt die Gräfin farmen (Runen-Beutetabelle), danach im Würfel hochstufen – wie in D2 */
+  if(!AP.bf&&(G.diff||0)>=1&&!portal&&Date.now()-(AP.rfT||0)>600000&&rwBlocked()&&G.flags.kill_graefin){AP.rfT=Date.now();AP.bf={runs:0,max:12,untilLvl:100,only:/Gräfin/};say('💎 RUNEN-FARM','Gräfin für '+rwBlocked());}
   if(AP.bf&&(!need||AP.healed)){AP.healed=false;goto(endgameScene);return 'Boss-Farm: Endgame'}
   const tgt=targetArea();
   const goOn=()=>{ /* Richtung Ziel */
@@ -9418,10 +9501,12 @@ function step(){
    const hN=POTH.reduce((x,k)=>x+(G.pot[k]||0),0),mN=POTM.reduce((x,k)=>x+(G.pot[k]||0),0);
    /* Trankstufe wie bisher in D2 üblich (Normal je Akt, Albtraum Groß, Hölle Super) – nicht das teuerste nehmen */
    const tier=(G.diff||0)>=2?5:(G.diff||0)===1?4:G.act>=4?4:G.act>=3?3:2,rx=k=>new RegExp('(^|\\s)'+POTS[k].n+' \\(');
-   if(hN<14){r=clk(rx('h'+tier));if(r)return 'kaufe Heiltrank'}
-   if(mN<6){r=clk(rx('m'+tier));if(r)return 'kaufe Manatrank'}
+   /* Fertigkeit kostet Mana (Geladener Schlag, Zauber …): mehr Manatränke mitnehmen */
+   let mc=0;try{const ms=SKILLS[G.autoSk];mc=ms&&ms.cost?ms.cost(Math.max(1,sk(G.autoSk))):0}catch(e){}const mT=mc>0&&S.maxMana<mc*40?((G.diff||0)>=2?16:12):6,hT=14;
+   if(hN<hT){r=clk(rx('h'+tier));if(r)return 'kaufe Heiltrank'}
+   if(mN<mT){r=clk(rx('m'+tier));if(r)return 'kaufe Manatrank'}
    r=clk(rx('h'+tier));if(r)return 'kaufe Heiltrank'
-   if((G.pot.r2||0)<4&&G.gold>300000+(G.diff||0)*100000){r=clk(/Voller Verjüngungstrank/);if(r)return 'kaufe vollen Verjüngungstrank'}
+   if((G.pot.r2||0)<(G.gold>1000000?8:4)&&G.gold>((G.diff||0)>=2?120000:300000)){r=clk(/Voller Verjüngungstrank/);if(r)return 'kaufe vollen Verjüngungstrank'}
    if((G.sc.tp||0)<8){r=clk(/Stadtportal-Schriftrolle/);if(r)return 'kaufe Portal'}
    if((G.sc.id||0)<3){r=clk(/Identifizierungs/);if(r)return 'kaufe IdSchr'}
   }
@@ -9445,6 +9530,8 @@ function step(){
   /* ausgelassener Nebenauftrag: Boss stehen lassen, sobald der Weg frei ist */
   const pd=p.done||(a.quest&&qSkipped(a.quest)&&a.boss&&p.s>=a.steps);
   const tgt=targetArea(),qn=questNpc();
+  /* Zwingende Kugel: sofort zerschlagen, sobald Khalims Wille da ist (der Rat muss nicht sterben) */
+  if(G.flags.khalimswille&&!G.flags.kugel){r=clk(/^✦ Die Zwingende Kugel/);if(r)return 'Kugel: '+r}
   /* Sonderobjekte (Steine, Leichen, Bäume ...) – Knöpfe ohne Navigationspfeil und mit ❗ */
   if(pd&&farmArea()===id){AP.farmRuns=(AP.farmRuns||0)+1;if(AP.farmRuns>(AP.farmMax||12)){AP.farmLv=0;AP.farmId=null;AP.farmRuns=0;say('🌾 FARM Ende',(AP.farmMax||12)+' Läufe, weiter mit der Aufgabe')}else{r=clk(/Neu betreten/);if(r)return 'Farm: '+r}}
   if(pd){const AN=Object.values(AREAS).map(x=>x.n).filter(Boolean);r=clk(/❗|!/,bs.filter(b=>{const t=lab(b);if(/^✦/.test(t))return true;return !NAV.test(t)&&!AVOID.test(t)&&!/Wegpunkt|Stadtportal|Zurück/.test(t)&&!AN.some(n=>t.indexOf(n)===0||t.indexOf(' '+n)>=0)}));if(r)return 'Spezial: '+r}
@@ -9532,7 +9619,7 @@ function tick(){
  AP.tk=setTimeout(tick,Math.max(50,(fc?400:550)/AP.spd));
 }
 AP.start=()=>{if(AP.on)return;AP.userStop=false;
- try{if(!AP.hk){AP.hk=1;const d0=window.deadScene;window.deadScene=function(){try{if(typeof C!=='undefined'&&C){AP.dl={at:G.at,lvl:G.lvl,diff:G.diff,maxHp:Math.round(S.maxHp),def:S.def,ac:S.ac,res:JSON.stringify(S.res),dmg:Math.round((S.dmgMin+S.dmgMax)/2),edmg:S.edmg,mons:(C.mons||[]).map(m=>(m.n||m.name||m.key)+':'+Math.round(m.hp)+'/'+Math.round(m.max||m.mhp||0)+' d'+JSON.stringify(m.dmg||m.d||'')).join(' ; '),pets:(C.pets||[]).length,log:(C.log||[]).slice(-6).join(' / ').replace(/<[^>]+>/g,'')};AP.dls=(AP.dls||[]);AP.dls.push(AP.dl);if(AP.dls.length>40)AP.dls.shift()}}catch(e){}AP.st.deaths++;AP.dA=AP.dA||{};AP.dA[G.at]=(AP.dA[G.at]||0)+1;AP.ad=AP.ad||{};AP.ad[G.at]=(AP.ad[G.at]||0)+1;AP.dk=(AP.dk&&AP.dk.at===G.at)?{at:G.at,n:AP.dk.n+1}:{at:G.at,n:1};say('☠ GEFALLEN',(G.at==='town'?'Stadt':(AREAS[G.at]||{}).n||G.at)+' · '+AP.dk.n+'×');return d0.apply(this,arguments)};
+ try{if(!AP.hk){AP.hk=1;const d0=window.deadScene;window.deadScene=function(){try{if(typeof C!=='undefined'&&C){AP.dl={at:G.at,lvl:G.lvl,diff:G.diff,maxHp:Math.round(S.maxHp),def:S.def,ac:S.ac,res:JSON.stringify(S.res),dmg:Math.round((S.dmgMin+S.dmgMax)/2),edmg:S.edmg,mons:(C.mons||[]).map(m=>(m.n||m.name||m.key)+':'+Math.round(m.hp)+'/'+Math.round(m.max||m.mhp||0)+' d'+JSON.stringify(m.dmg||m.d||'')).join(' ; '),pets:(C.pets||[]).length,log:(C.log||[]).slice(-6).join(' / ').replace(/<[^>]+>/g,'')};AP.dls=(AP.dls||[]);AP.dls.push(AP.dl);if(AP.dls.length>40)AP.dls.shift()}}catch(e){}AP.st.deaths++;if(AP.bf&&AP.bfLast){AP.bfDead=AP.bfDead||{};AP.bfDead[AP.bfLast]=(AP.bfDead[AP.bfLast]||0)+1}AP.dA=AP.dA||{};AP.dA[G.at]=(AP.dA[G.at]||0)+1;AP.ad=AP.ad||{};AP.ad[G.at]=(AP.ad[G.at]||0)+1;AP.dk=(AP.dk&&AP.dk.at===G.at)?{at:G.at,n:AP.dk.n+1}:{at:G.at,n:1};say('☠ GEFALLEN',(G.at==='town'?'Stadt':(AREAS[G.at]||{}).n||G.at)+' · '+AP.dk.n+'×');return d0.apply(this,arguments)};
   const w0=window.winScene;window.winScene=function(){AP.st.wins++;try{AP.aw=AP.aw||{};AP.aw[G.at]=(AP.aw[G.at]||0)+1}catch(e){}AP.dk=null;return w0.apply(this,arguments)}}}catch(e){}
  try{if(G&&(G.autoHp||40)<60)G.autoHp=60}catch(e){}
  AP.on=true;AP.t0=AP.t0||Date.now();say('START','Autopilot an');tick()};
