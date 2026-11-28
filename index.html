@@ -694,19 +694,19 @@ const SKILLS={
  heulen:{n:'Heulen',tree:2,lvl:1,pre:[],kind:'buff',cost:l=>4,
   d:l=>`Gegner bis Stufe ${24+5*(l-1)} fliehen 2 Runden (keine Bosse).`,
   use:(t,l)=>{alive().forEach(m=>{if(!m.boss&&m.lvl<=24+5*(l-1)){m.st.fear=2;logC(`📢 ${m.n} flieht vor deinem Heulen!`)}else logC(`📢 ${m.n} hält stand.`)})}},
- trankfinden:{n:'Elixier suchen',tree:2,lvl:6,pre:['heulen'],kind:'buff',cost:l=>2,
+ trankfinden:{n:'Elixier suchen',bfS:1,autoSkip:()=>!!(C&&(C.potB>0||(G.skills.trankfinden||0)<5||!alive().length)),tree:2,lvl:6,pre:['heulen'],kind:'buff',cost:l=>2,
   d:l=>`Dieser Kampf: +${10+l*4}% Chance auf Tränke als Beute.`,
   use:(t,l)=>{C.potB=(C.potB||0)+10+l*4;logC('🧪 Du durchwühlst die Gefallenen nach Tränken.')}},
  schrei:{n:'Schrei',bfS:1,autoSkip:()=>!!(C&&C.fx.shout>0),tree:2,lvl:6,pre:[],kind:'buff',cost:l=>6,
   d:l=>`+${100+10*(l-1)}% Verteidigung für 6 Runden.`,
   use:(t,l)=>{C.fx.shout=6;C.fx.shoutV=100+10*(l-1);logC(`🗣️ Schrei! +${C.fx.shoutV}% Verteidigung für 6 Runden.`)}},
- spott:{n:'Hohn',tree:2,lvl:12,pre:['heulen','trankfinden'],kind:'buff',cost:l=>3,
+ spott:{n:'Hohn',bfS:1,autoSkip:()=>!!(C&&alive().every(m=>(m.fx.arDown||0)>0)),tree:2,lvl:12,pre:['heulen','trankfinden'],kind:'buff',cost:l=>3,
   d:l=>`Gegner: −${5+2*(l-1)}% Trefferwert und Schaden für 5 Runden.`,
   use:(t,l)=>{alive().forEach(m=>{m.fx.arDown=5+2*(l-1);m.fx.dmgDown=Math.max(m.fx.dmgDown||0,5+2*(l-1));m.fx.t=5});logC('😤 Du verspottest die Gegner. Ihre Angriffe werden fahrig.')}},
- gegenstandfinden:{n:'Gegenstand finden',tree:2,lvl:12,pre:['heulen','trankfinden'],kind:'buff',cost:l=>3,
+ gegenstandfinden:{n:'Gegenstand finden',bfS:1,autoSkip:()=>!!(C&&(C.findB>0||(G.skills.gegenstandfinden||0)<5||!alive().length)),tree:2,lvl:12,pre:['heulen','trankfinden'],kind:'buff',cost:l=>3,
   d:l=>`Dieser Kampf: +${10+l*5}% Magisch-Fund auf die Beute.`,
   use:(t,l)=>{C.findB=(C.findB||0)+10+l*5;logC('🔍 Du suchst nach wertvoller Beute.')}},
- schlachtruf:{n:'Schlachtruf',tree:2,lvl:18,pre:['schrei','spott'],kind:'buff',cost:l=>5,
+ schlachtruf:{n:'Schlachtruf',bfS:1,autoSkip:()=>!!(C&&alive().every(m=>(m.fx.defDown||0)>=50)),tree:2,lvl:18,pre:['schrei','spott'],kind:'buff',cost:l=>5,
   d:l=>`Gegner: −${50+2*(l-1)}% Verteidigung, −${25+(l-1)}% Schaden für 6 Runden.`,
   use:(t,l)=>{alive().forEach(m=>{m.fx.defDown=50+2*(l-1);m.fx.dmgDown=25+(l-1);m.fx.t=6});logC('⚔️ Schlachtruf! Die Gegner wanken.')}},
  duesterer:{n:'Grausiger Schutz',tree:2,lvl:18,pre:['heulen','spott','gegenstandfinden'],kind:'buff',cost:l=>6,
@@ -714,7 +714,7 @@ const SKILLS={
   use:(t,l)=>{const sp=Math.floor(Math.floor(110*l/(l+6))*75/100),pd=20+5*(sk('trankfinden')||0);let n=0;alive().forEach(m=>{if(m.st.fear>0){curse(m,{t:6,slowP:sp,pdown:pd,msg:'Grausiger Schutz'});n++}});if(!n)logC('🪦 Das Totem wirkt nur auf fliehende Gegner – nutze zuerst Heulen.')}},
  kampfbefehle:{n:'Kampfbefehle',bfS:1,autoSkip:()=>!!(C&&C.fx.bo>0),tree:2,lvl:24,pre:['schrei','schlachtruf'],kind:'buff',cost:l=>8,
   d:l=>`Maximales Leben und Mana +${35+3*(l-1)}% (20 Runden).`,
-  use:(t,l)=>{const o=S.maxHp;C.fx.bo=20;calc();G.hp+=S.maxHp-o;logC(`🛡️ Kampfbefehle! Maximales Leben ${S.maxHp}.`)}},
+  use:(t,l)=>{const o=S.maxHp;C.fx.bo=20;C.fx.boL=l;calc();G.hp+=S.maxHp-o;logC(`🛡️ Kampfbefehle! Maximales Leben ${S.maxHp}.`)}},
  kriegsschrei:{n:'Kriegsschrei',tree:2,lvl:30,pre:['heulen','spott','schlachtruf','duesterer'],kind:'atk',cost:l=>10,
   d:l=>{const f=KSY(l);return `Magischer Schaden an allen: ${Math.round(RD('kriegsschrei',l,0,0)*f)}–${Math.round(RD('kriegsschrei',l,0,1)*f)}; betäubt (keine Bosse).`},
   use:(t,l)=>{const f=KSY(l),i=Math.min(45,l);alive().forEach(m=>{spell(m,{lo:Math.round(RD('kriegsschrei',l,0,0)*f),hi:Math.round(RD('kriegsschrei',l,0,1)*f),type:'magic',msg:'Kriegsschrei'});if(m.hp>0&&!m.boss)stun(m,2)})}},
@@ -1143,7 +1143,7 @@ function calc(){
  let mEd=0,mHit=0,mAR=0,mCr=0;if(mast&&sk(mast)>0){const l=sk(mast),P=mast==='klauenm'?[30,10,35,4,25]:(mast==='stangenm'||mast==='speerm'||mast==='wurfm')?[44,8,28,5,35]:[40,8,28,5,35];mAR=P[0]+P[1]*(l-1);mEd=P[2]+P[3]*(l-1);mCr=Math.min(P[4],Math.floor(P[4]*Math.floor(110*l/(l+6))/100))}
  const isk=sk('eisenhaut'),ironP=isk>0?30+10*(isk-1):0;
  const nr=sk('natres'),natR=nr>0?Math.floor(Math.floor(110*nr/(nr+6))*80/100):0;
- const bo=C&&C.fx.bo>0?sk('kampfbefehle'):0;
+ const bo=C&&C.fx.bo>0?(C.fx.boL||sk('kampfbefehle')):0;
  const M=modsNow();
  /* D2R: Widerstands-Auren des Paladins geben passiv +max. Widerstand = harte Punkte/2 (skills.json passivecalc1) */
  if(G.cls==='paladin'){A.mxF=(A.mxF||0)+Math.floor((G.skills.p_resfeuer||0)/2);A.mxC=(A.mxC||0)+Math.floor((G.skills.p_reskaelte||0)/2);A.mxL=(A.mxL||0)+Math.floor((G.skills.p_resblitz||0)/2)}
@@ -1584,8 +1584,8 @@ function dealDmg(m,dm,type,o={}){
 }
 /* D2-Trefferformel: 100 * 2 * AR/(AR+Vert.) * Stufe/(Stufe+Gegnerstufe), 5-95 % (Fextralife/Pure Diablo); Monsterwerte aus monlvl.txt x monstats.txt */
 const acOf=df=>8+Math.round(4*Math.log2(1+df/10)),defOf=ac=>Math.max(0,Math.round(10*(Math.pow(2,(ac-8)/4)-1)));
-function hitChanceP(m,o={}){const ar=S.arT*(1+(o.arP||0)/100)+(m.undead?S.arUd||0:0)+(m.demon?S.arDem||0:0)+((o.hit||0)+((C&&C.fx.frn)||0))*20;let df=S.ignDef?0:Math.round(m.def*(1-Math.min((S.tgtDef||0)+(S.M.tgtDef||0),100)/100));if(df>0){df=Math.round(df*(1-(m.fx.defDown||0)/100));df=defOf(Math.max(1,acOf(df)-(m.fx.acDown||0)-(o.pierce||0)))}return Math.max(5,Math.min(95,Math.floor(200*ar/(ar+df)*G.lvl/(G.lvl+m.lvl))))}
-function hitChanceM(m){const ar=Math.max(1,Math.round(((m.ar||m.atk*20)-(m.fx.atkDown||0)*20)*(1-(m.fx.arDown||0)/100))+(C&&C.fx.exposed?60:0)),df=defOf(pAC());return Math.max(5,Math.min(95,Math.floor(200*ar/(ar+df)*m.lvl/(m.lvl+G.lvl))))}
+function hitChanceP(m,o={}){const ar=S.arT*(1+(o.arP||0)/100)+(m.undead?S.arUd||0:0)+(m.demon?S.arDem||0:0)+((o.hit||0)+((C&&C.fx.frn)||0))*20;let df=S.ignDef?0:Math.round(m.def*(1-Math.min((S.tgtDef||0)+(S.M.tgtDef||0),100)/100));if(df>0){df=Math.round(df*(1-Math.min(100,Math.max(0,m.fx.defDown||0))/100));df=defOf(Math.max(1,acOf(df)-(m.fx.acDown||0)-(o.pierce||0)))}return Math.max(5,Math.min(95,Math.floor(200*ar/(ar+df)*G.lvl/(G.lvl+m.lvl))))}
+function hitChanceM(m){const ar=Math.max(1,Math.round(((m.ar||m.atk*20)-(m.fx.atkDown||0)*20)*(1-Math.min(100,Math.max(0,m.fx.arDown||0))/100))+(C&&C.fx.exposed?60:0)),df=defOf(pAC());return Math.max(5,Math.min(95,Math.floor(200*ar/(ar+df)*m.lvl/(m.lvl+G.lvl))))}
 function strike(m,o={}){if(!m)return false;
  if(o.kick&&S.offM&&!o._k){const sv={};['cb','ow','ll','ml'].forEach(k=>{sv[k]=S[k];S[k]=Math.max(0,(S[k]||0)-(S.offM[k]||0))});try{return strike(m,{...o,_k:1})}finally{Object.assign(S,sv)}}
  if(S.dw&&o.both&&!o.h){const a=strike(m,{...o,h:'m'});const b=m.hp>0?strike(m,{...o,h:'o'}):0;return (a||0)+(b||0)}
@@ -1648,6 +1648,13 @@ function fear(m,n){if(m.boss){logC(`${m.n} lacht nur.`);return}m.st.fear=Math.ma
 function buff(name,t,m){C.buffs=(C.buffs||[]).filter(b=>b.n!==name);C.buffs.push({n:name,t,m,p:12});G.pb=C.buffs.filter(b=>b.p);G.kp=null;calc();logC(`✨ ${name} (12 Kämpfe).`)}
 function healP(n){n=Math.round(n);G.hp=Math.min(S.maxHp,G.hp+n);logC(`💚 +${n} Leben.`)}
 function shield(n){C.shield=(C.shield||0)+Math.round(n);logC(`🛡️ Schild +${Math.round(n)}.`)}
+/* D2: Buffs auf der Wechselwaffe wirken – beim Wirken gelten die Werte der Wechselwaffe (z. B. Herz der Eiche +3 zu allen Fertigkeiten) statt der Hauptwaffe.
+   Gewählt wird die höhere Stufe (man wechselt nur, wenn es sich lohnt). Ergebnis je Kampf zwischengespeichert. */
+function swapLv(id){const w=G.eq&&G.eq.swap;if(!w||w.unid)return 0;if(C&&C.swL&&C.swL[id]!==undefined)return C.swL[id];
+ const cw=G.eq.weapon,hp=G.hp,mn=G.mana;let l=0;try{G.eq.weapon=w;G.eq.swap=null;calc();l=sk(id)}catch(e){l=0}finally{G.eq.weapon=cw;G.eq.swap=w;calc();G.hp=hp;G.mana=mn}
+ if(C){C.swL=C.swL||{};C.swL[id]=l}return l}
+function castLv(id){const s=SKILLS[id],l=sk(id);if(!s||!(s.kind==='buff'||s.bfS))return l;const w=swapLv(id);return Math.max(l,w)}
+function shieldMax(n){C.shield=Math.max(C.shield||0,Math.round(n));logC(`🛡️ Schild ${Math.round(n)}.`)}
 /* Begleiter */
 function summon(key,o){
  C.pets=C.pets||[];const pm=1+(S.M.petP||0)/100;
@@ -1736,7 +1743,7 @@ function mercRes(){if(!G.merc)return null;const st=mercStats(G.merc.t,mercLvl())
  [['fire','resF','mxF'],['cold','resC','mxC'],['light','resL','mxL'],['poison','resP','mxP']].forEach(([k,r,m])=>{o[k]=Math.min(75+(mg[m]||0),st.res-pen+(mg[r]||0)+(mg.res4||0))});return o}
 const HRL={fire:[3,10,10,45,16],cold:[3,10,10,45,16],desert:[9,20,12,40,12],iw_fire:[15,15,10,40,8],iw_cold:[15,15,10,40,8],iw_light:[15,15,10,40,8],barb:[28,150,17,63,10]};
 function petAR(p){const L=p.lvl||G.lvl;if(p.mk&&HIREK[p.mk]){const st=mercStats(p.mk,Math.min(98,L));return Math.max(1,st.ar+5*st.dex+(p.arB||0))}return Math.max(1,(typeof MLVD!=='undefined'&&MLVD[Math.min(110,L)]?MLVD[Math.min(110,L)][3]:L*8)+(p.hit||0)*5)}
-function hitChanceX(ar,alvl,m){let df=Math.round(m.def||0);if(df>0){df=Math.round(df*(1-(m.fx.defDown||0)/100));df=defOf(Math.max(1,acOf(df)-(m.fx.acDown||0)))}return Math.max(5,Math.min(95,Math.floor(200*ar/(ar+df)*alvl/(alvl+m.lvl))))}
+function hitChanceX(ar,alvl,m){let df=Math.round(m.def||0);if(df>0){df=Math.round(df*(1-Math.min(100,Math.max(0,m.fx.defDown||0))/100));df=defOf(Math.max(1,acOf(df)-(m.fx.acDown||0)))}return Math.max(5,Math.min(95,Math.floor(200*ar/(ar+df)*alvl/(alvl+m.lvl))))}
 function petAct(){
  if(G.merc&&G.merc.alive&&(C.pets||[]).some(p=>p.key==='merc'&&p.hp<=0)){G.merc.alive=false;logC('💀 Deine Söldnerin ist gefallen.')}
  pets().forEach(p=>{
@@ -2262,7 +2269,9 @@ CU(N,'n_anlocken','Mittelpunkt',0,24,['n_verwirren'],8,0.4,l=>({t:6,atkDown:4,dm
 CU(N,'n_schwaechen','Altern',0,30,['n_schwaeche','n_dimvision'],10,0.4,l=>({t:Math.round(LN(100,15,l)/25),dmgDown:50,pdown:50,slowP:50,msg:'Entkräften'}),true,l=>`Schaden −50%, Phys. Widerstand −50%, Tempo −50%`);
 CU(N,'n_senkwid','Widerstandsschwund',0,30,['n_verstaerk'],10,0.4,l=>({t:Math.round(LN(500,50,l)/25),resDown:Math.round(DM(25,70,l)),msg:'Widerstand senken'}),true,l=>`Gegner-Widerstände −${Math.round(DM(25,70,l))}%`);
 SP(N,'n_zaehne','Zähne',1,1,[],2,0.3,'magic',[3,2],[6,3],{bolts:3,syn:[['n_knochenspeer',6]]});
-mk(N,'n_knochenpanzer','Knochen-Rüstung',1,1,[],{kind:'spell',cost:l=>5+l,d:l=>`Schild: fängt ${15+12*l} Schaden ab.`,use:(t,l)=>shield(15+12*l)});
+/* D2: Knochen-Rüstung absorbiert 20 (+10 je Stufe), +15 % je Punkt in Knochenwand und Knochengefängnis; erneutes Wirken füllt nur auf (kein Stapeln) */
+const BARM=l=>Math.round((20+10*(l-1))*(1+0.15*((G.skills.n_knochenwand||0)+(G.skills.n_kerker||0))));
+mk(N,'n_knochenpanzer','Knochen-Rüstung',1,1,[],{kind:'spell',bfS:1,autoSkip:()=>!!(C&&C.shield>0),cost:l=>5+l,d:l=>`Schild: fängt ${BARM(l)} Schaden ab.`,use:(t,l)=>shieldMax(BARM(l))});
 AT(N,'n_giftdolch','Gift-Dolch',1,6,['n_zaehne'],3,0.3,{add:[3,2],dotD:[4,3],dotT:5,hit:[1,0.4],note:'Nahkampf'});
 SP(N,'n_leichen','Kadaver-Explosion',1,6,[],6,0.4,'fire',[0,0],[0,0],{corpse:true});
 mk(N,'n_knochenwand','Knochenwand',1,12,['n_knochenpanzer'],{kind:'spell',cost:l=>8+l,d:l=>`Schild: ${40+25*l} Schaden.`,use:(t,l)=>shield(40+25*l)});
@@ -2282,7 +2291,7 @@ SM(N,'n_blutgolem','Blut-Golem',2,18,['n_lehmgolem','n_golemmeister'],14,0.6,l=>
 PS(N,'n_beschwwid','Monster-Widerstand',2,24,['n_skelmeister'],l=>({petHp:10*l,petP:2*l}));
 SM(N,'n_eisengolem','Eisen-Golem',2,24,['n_blutgolem'],18,0.8,l=>({n:'Eisengolem',ic:'🤖',hp:PH('ig',GM()+BL('n_blutgolem')*5),dmg:PD('ig',BL('n_feuergolem')*6),hit:8+l}),'golem');
 SM(N,'n_feuergolem','Feuer-Golem',2,30,['n_eisengolem'],22,1,l=>({n:'Feuergolem',ic:'🔥',hp:PH('fg',GM()+BL('n_blutgolem')*5),dmg:PD('fg',0,0,[TIERV(10,[9,10,11,12,13],l),TIERV(27,[10,11,12,13,14],l)]),hit:10+l,type:'fire'}),'golem');
-mk(N,'n_wiederbeleben','Wiederbeleben',2,30,['n_skeleton','n_lehmgolem'],{kind:'spell',cost:l=>20+l,can:()=>C.mons.some(m=>m.hp<=0&&!m.boss&&!m.revived),d:l=>`Gefallene Gegner (keine Bosse) kämpfen als Verbündete mit 60% Leben. Bis zu ${1+Math.floor(l/4)}.`,
+mk(N,'n_wiederbeleben','Wiederbeleben',2,30,['n_skeleton','n_lehmgolem'],{kind:'spell',bfS:1,cost:l=>20+l,can:()=>C.mons.some(m=>m.hp<=0&&!m.boss&&!m.revived),d:l=>`Gefallene Gegner (keine Bosse) kämpfen als Verbündete mit 60% Leben. Bis zu ${1+Math.floor(l/4)}.`,
  use:(t,l)=>{let n=0;C.mons.filter(m=>m.hp<=0&&!m.boss&&!m.revived).slice(0,1+Math.floor(l/4)).forEach(m=>{m.revived=true;n++;summon('rev'+m.id+n,{def:m.def,n:m.n.replace('Champion ',''),ic:m.ic,hp:Math.round(m.max*0.6),dmg:[m.dmg[0]+m.dmg[2],m.dmg[1]*m.dmg[0]+m.dmg[2]],hit:m.atk,multi:true,cap:99,t:0})})}});
 
 /* ================= PALADIN ================= */
@@ -2448,7 +2457,7 @@ SP(D_,'d_feuersturm','Feuersturm',0,1,[],2,0.2,'fire',[2,2],[5,3],{aoe:true});
 SP(D_,'d_felsbrocken','Felsenfeuer',0,6,['d_feuersturm'],5,0.3,'fire',[8,4],[14,5],{splash:0.5,dot:[3,2],dotT:3});
 SP(D_,'d_arktisch','Arktiswind',0,6,[],4,0.3,'cold',[3,2],[6,3],{aoe:true,frz:40});
 SP(D_,'d_spalte','Riss',0,12,['d_felsbrocken'],8,0.4,'fire',[10,5],[16,6.5],{aoe:true});
-mk(D_,'d_zyklon','Zyklon-Rüstung',0,12,['d_arktisch'],{kind:'spell',cost:l=>5+l,d:l=>`Schild: ${CYC(l)} Schaden.`,use:(t,l)=>shield(CYC(l))});
+mk(D_,'d_zyklon','Zyklon-Rüstung',0,12,['d_arktisch'],{kind:'spell',bfS:1,autoSkip:()=>!!(C&&C.shield>0),cost:l=>5+l,d:l=>`Schild: ${CYC(l)} Schaden.`,use:(t,l)=>shieldMax(CYC(l))});
 SP(D_,'d_windhose','Twister',0,18,['d_arktisch'],9,0.5,'phys',[8,4],[16,5],{aoe:true,stn:25});
 TR(D_,'d_vulkan','Vulkan',0,24,['d_spalte'],14,0.5,6,'fire',[12,5.5],[22,7.5],{tps:25/11});
 SP(D_,'d_tornado','Tornado',0,24,['d_windhose'],13,0.5,'phys',[14,6],[22,7],{aoe:true,stn:35,repM:()=>5,repT:' (5 Wirbeltreffer)'});
@@ -5847,7 +5856,7 @@ function combatScene(){
  const hd=(k,t,n)=>{const o=CM===k;return `<button class="grp${o?' open':''}" style="grid-column:1/-1" onclick="CM=${o?"null":"'"+k+"'"};render()">${o?'▼':'▶'} ${t}${n?' ('+n+')':''}</button>`};
  const top=[btn('▶ Auto-Kampf',autoStart),btn(`⚔️ Angriff (${tgt()?hitChanceP(tgt(),{}):'–'}%)`,()=>{if(window.PXB)PXB.sk='basic';act(()=>strike(tgt(),{rel:1}),0,'atk')})];
  const sks=[];
- (CLASSES[G.cls].skills||[]).forEach(id=>{const s=SKILLS[id],l=sk(id);if(l<1||s.kind==='passive')return;
+ (CLASSES[G.cls].skills||[]).forEach(id=>{const s=SKILLS[id],l=castLv(id);if(l<1||s.kind==='passive')return;
   if(s.kind==='aura'){sks.push(btn(`${skIcon(id,s,26)} ${s.n} L${l}${G.aura===id?' ✓':''}`,()=>{G.aura=id;calc();C.log.push('🔆 Aura: '+s.n);render()},'',G.aura===id));return}
   const c=s.cost(l),ok=!s.can||s.can();
   sks.push(btn(`${skIcon(id,s,26)} ${s.n} L${l} <span class="dim">(${c})</span>${G.autoSk===id?' ⭐':''}`,()=>{if(window.PXB)PXB.sk=id;autoRemember(id);act(()=>s.use(tgt(),l),c,s.kind==='atk'?'atk':'buff')},'',G.mana<c||!ok))});
@@ -6453,7 +6462,7 @@ function autoStep(){
   if(ma==='__atk')ma=null;
   const pick1=sh||bf||cu||sm||tr||st||ma||dm;
   if(pick1&&pick1===sm){C.sumT=C.sumT||{};C.sumT[sm]=C.turn;C.sumT._any=C.turn}
-  if(pick1){const s=SKILLS[pick1],l=sk(pick1),c=s.cost(l);a=()=>act(()=>{if(window.PXB)PXB.sk=pick1;const hb=C.mons.reduce((x,m)=>x+Math.max(0,m.hp),0);s.use(tgt(),l);if(pick1===dm){const dd=Math.max(0,hb-C.mons.reduce((x,m)=>x+Math.max(0,m.hp),0));/* Zauber mit 0 Schaden = Ziel (noch) immun, z. B. bevor Überzeugung wirkt: nicht mitzählen; Fehlschläge von Angriffen zählen */if(dd>0||s.kind==='atk'){const e=AD[pick1]||(AD[pick1]={n:0,sum:0});e.n++;e.sum+=dd}}},c,s.kind==='atk'?'atk':'buff')}
+  if(pick1){const s=SKILLS[pick1],l=castLv(pick1),c=s.cost(l);a=()=>act(()=>{if(window.PXB)PXB.sk=pick1;const hb=C.mons.reduce((x,m)=>x+Math.max(0,m.hp),0);s.use(tgt(),l);if(pick1===dm){const dd=Math.max(0,hb-C.mons.reduce((x,m)=>x+Math.max(0,m.hp),0));/* Zauber mit 0 Schaden = Ziel (noch) immun, z. B. bevor Überzeugung wirkt: nicht mitzählen; Fehlschläge von Angriffen zählen */if(dd>0||s.kind==='atk'){const e=AD[pick1]||(AD[pick1]={n:0,sum:0});e.n++;e.sum+=dd}}},c,s.kind==='atk'?'atk':'buff')}
   else a=()=>act(()=>{if(window.PXB)PXB.sk='basic';return strike(tgt(),{rel:1})},0,'atk');
   }
  }
@@ -7012,6 +7021,8 @@ function cubeView(){
   const pick=G.inv.filter(x=>!isGrid(x)||(typeof isLatent==='function'&&isLatent(x))).map(x=>[x,rec(x)]).filter(z=>z[1]);
   h+=pick.length?'<p class="dim">Wähle unten unter „Gegenstand in den Würfel legen“, was hinein soll. Gezeigt werden nur Gegenstände aus dem Rucksack, für die es ein Rezept gibt.</p>':'<p class="dim">Im Rucksack liegt nichts, wofür es ein Rezept gibt (Sockel, Neu würfeln, Handwerk, Aufwerten). Gegenstände aus der Truhe vorher in den Rucksack nehmen.</p>';
   pick.forEach(([x,r])=>b.push(btn(`${BASES[x.base].ic} ${iname(x)} <span class="dim">· ${r}</span>`,()=>{V.cube=x.u;render()},'slot')));
+  /* D2R 3.0: alte Sunder-Zauber (vor Reign of the Warlock) bleiben wie sie sind – erneuern lassen sich nur Latente (Herolde/Große Zauber) */
+  {const leg=G.inv.filter(x=>{const u=x.uid&&UNIQ.find(z=>z.id===x.uid);return u&&u.sunder===1});if(leg.length)h+=`<p class="dim">${leg.map(x=>iname(x)).join(', ')}: alter Sunder-Zauber (vor Reign of the Warlock) – kann wie in D2R nicht erneuert werden. Erneuern geht nur mit <b>Latenten</b> Sunder-Zaubern (von Herolden in Schreckenszonen) + perfektem Edelstein + Rune + Weltsteinsplitter.</p>`}
 
  }
  if(!b.length)h+='<p class="dim">Keine Rezepte möglich. Gesammelte Edelsteine und Runen siehst du im Inventar.</p>';
